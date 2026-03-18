@@ -130,9 +130,13 @@ geocode_location <- function(city, state, zipcode) {
 all_state_choices <- c(state.name, "U.S. Virgin Islands", "American Samoa")
 
 build_state_polygons <- function() {
+  previous_s2 <- sf_use_s2()
+  on.exit(sf_use_s2(previous_s2), add = TRUE)
+  sf_use_s2(FALSE)
   us_state_map <- maps::map("state", fill = TRUE, plot = FALSE)
   state_polygons <- st_as_sf(us_state_map) %>%
     st_transform(4326) %>%
+    st_make_valid() %>%
     mutate(
       state = str_to_title(str_replace(ID, ":.*$", ""))
     ) %>%
