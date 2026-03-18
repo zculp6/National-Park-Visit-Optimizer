@@ -1,0 +1,920 @@
+---
+title: "National Parks Trip Planning"
+author: "Zachary Culp"
+format: html
+editor: visual
+---
+
+```{r}
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(leaflet)
+library(sf)
+library(geosphere)
+library(igraph)
+library(httr)
+library(DT)
+```
+
+## Airport Data
+
+```{r}
+major_airports <- read.csv("us-airports.csv")
+major_airports <- major_airports %>% 
+  filter(type == "large_airport" | type == "medium_airport") %>%
+  select(ident, name, latitude_deg, longitude_deg, region_name, local_region, municipality, local_code) %>%
+  rename(lat = latitude_deg) %>%
+  rename(lon = longitude_deg)
+  
+# Find nearest airport to a location
+find_nearest_airport <- function(lat, lon, airports = major_airports) {
+  distances <- distHaversine(
+    cbind(lon, lat),
+    cbind(airports$lon, airports$lat)
+  ) / 1000
+  
+  nearest_idx <- which.min(distances)
+  return(list(
+    airport = airports[nearest_idx, ],
+    distance_km = distances[nearest_idx]
+  ))
+}
+  
+```
+
+## Load Data
+
+Data set from <https://www.kaggle.com/datasets/thedevastator/the-united-states-national-parks?select=df_2.csv>
+
+```{r}
+load_park_data <- function() {
+  df <- read.csv("df_2.csv", stringsAsFactors = FALSE)
+  
+  extract_state <- function(location_string) {
+    state_match <- str_extract(location_string, "^[A-Za-z\\s,]+(?=\\.|\\d)")
+    if (!is.na(state_match)) return(str_trim(state_match))
+    return(NA)
+  }
+  
+  extract_coordinates <- function(location_string) {
+    coord_pattern <- "(\\d+\\.?\\d*)°([NS])\\s+(\\d+\\.?\\d*)°([EW])"
+    matches <- str_match(location_string, coord_pattern)
+    if (!is.na(matches[1])) {
+      lat <- as.numeric(matches[2])
+      if (matches[3] == "S") lat <- -lat
+      lon <- as.numeric(matches[4])
+      if (matches[5] == "W") lon <- -lon
+      return(c(lat, lon))
+    }
+    return(c(NA, NA))
+  }
+  
+  park_coords <- df %>%
+    mutate(
+      state = sapply(Location, extract_state),
+      coords = t(sapply(Location, extract_coordinates)),
+      latitude = coords[, 1],
+      longitude = coords[, 2],
+      date_established = Date.established.as.park.7..12.,
+      area = Area..2021..13.,
+      visitors = Recreation.visitors..2021..11.,
+      description = Description
+    ) %>%
+    select(name = Name, state, latitude, longitude, 
+           date_established, area, visitors, description) %>%
+    filter(!is.na(latitude) & !is.na(longitude)) %>%
+    mutate(state = ifelse(name == "Virgin Islands", "U.S. Virgin Islands", state)) %>% mutate(name = ifelse(name == "Virgin Islands", "U.S. Virgin Islands", name))
+  
+  return(park_coords)
+}
+ 
+# Classify parks by region
+classify_park_region <- function(state) {
+  territories <- c("American Samoa", "U.S. Virgin Islands")
+  if (state %in% territories) return("territory")
+  if (state == "Hawaii" || grepl("Hawaii", state)) return("hawaii")
+  if (state == "Alaska" || grepl("Alaska", state)) return("alaska")
+  return("mainland")
+}
+ 
+# Geocode user location (simplified - using nominatim)
+geocode_location <- function(city, state, zipcode) {
+  tryCatch({
+    query <- paste(city, state, zipcode, "USA", sep = ", ")
+    url <- sprintf("https://nominatim.openstreetmap.org/search?q=%s&format=json&limit=1",
+                   URLencode(query))
+    
+    response <- GET(url, user_agent("NationalParksApp/1.0"))
+    
+    if (status_code(response) == 200) {
+      result <- content(response, as = "parsed")
+      if (length(result) > 0) {
+        return(list(
+          lat = as.numeric(result[[1]]$lat),
+          lon = as.numeric(result[[1]]$lon),
+          success = TRUE
+        ))
+      }
+    }
+    return(list(success = FALSE))
+  }, error = function(e) {
+    return(list(success = FALSE))
+  })
+}
+ 
+```
+
+## Getting Routes
+
+```{r}
+get_route_info <- function(lon1, lat1, lon2, lat2) {
+  tryCatch({
+    url <- sprintf("http://router.project-osrm.org/route/v1/driving/%f,%f;%f,%f?overview=full&geometries=geojson",
+                   lon1, lat1, lon2, lat2)
+    
+    response <- GET(url, timeout(10))
+    
+    if (status_code(response) == 200) {
+      result <- content(response, as = "parsed")
+      route <- result$routes[[1]]
+      
+      # Extract route geometry
+      geometry <- route$geometry$coordinates
+      
+      return(list(
+        distance_km = route$distance / 1000,
+        duration_hours = route$duration / 3600,
+        geometry = geometry,
+        success = TRUE
+      ))
+    } else {
+      dist <- distHaversine(c(lon1, lat1), c(lon2, lat2)) / 1000
+      return(list(
+        distance_km = dist,
+        duration_hours = dist / 80,
+        geometry = list(list(lon1, lat1), list(lon2, lat2)),
+        success = FALSE
+      ))
+    }
+  }, error = function(e) {
+    dist <- distHaversine(c(lon1, lat1), c(lon2, lat2)) / 1000
+    return(list(
+      distance_km = dist,
+      duration_hours = dist / 80,
+      geometry = list(list(lon1, lat1), list(lon2, lat2)),
+      success = FALSE
+    ))
+  })
+}
+ 
+# Calculate flight with airport transfers
+calculate_flight_route <- function(lon1, lat1, lon2, lat2) {
+  # Find nearest airports
+  airport1 <- find_nearest_airport(lat1, lon1)
+  airport2 <- find_nearest_airport(lat2, lon2)
+  
+  # Drive to origin airport
+  drive_to_airport <- get_route_info(lon1, lat1, airport1$airport$lon, airport1$airport$lat)
+  
+  # Flight distance
+  flight_dist <- distHaversine(
+    c(airport1$airport$lon, airport1$airport$lat),
+    c(airport2$airport$lon, airport2$airport$lat)
+  ) / 1000
+  
+  # Flight time: distance/600 + 2.5 hours (boarding, taxi, etc)
+  flight_time <- (flight_dist / 600) + 2.5
+  
+  # Drive from destination airport
+  drive_from_airport <- get_route_info(airport2$airport$lon, airport2$airport$lat, lon2, lat2)
+  
+  total_distance <- drive_to_airport$distance_km + flight_dist + drive_from_airport$distance_km
+  total_time <- drive_to_airport$duration_hours + flight_time + drive_from_airport$duration_hours
+  
+  # Build complete geometry
+  geometry <- c(
+    drive_to_airport$geometry,
+    list(list(airport1$airport$lon, airport1$airport$lat)),
+    list(list(airport2$airport$lon, airport2$airport$lat)),
+    drive_from_airport$geometry
+  )
+  
+  return(list(
+    distance_km = total_distance,
+    duration_hours = total_time,
+    geometry = geometry,
+    airport_origin = airport1$airport$code,
+    airport_dest = airport2$airport$code,
+    success = TRUE
+  ))
+}
+```
+
+## Distance Calculation
+
+```{r}
+calculate_distance_matrix <- function(parks_df, use_roads = TRUE, start_location = NULL, progress = NULL) {
+  parks_df$region <- sapply(parks_df$state, classify_park_region)
+  
+  # Add starting location if provided
+  if (!is.null(start_location)) {
+    start_row <- data.frame(
+      name = "START",
+      state = start_location$state,
+      latitude = start_location$lat,
+      longitude = start_location$lon,
+      date_established = NA,
+      area = NA,
+      visitors = NA,
+      description = "Starting Location",
+      region = "mainland",
+      stringsAsFactors = FALSE
+    )
+    parks_df <- rbind(start_row, parks_df)
+  }
+  
+  n <- nrow(parks_df)
+  dist_matrix <- matrix(0, n, n)
+  time_matrix <- matrix(0, n, n)
+  
+  total_pairs <- n * (n - 1) / 2
+  pair_count <- 0
+  
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      pair_count <- pair_count + 1
+      
+      if (!is.null(progress)) {
+        progress$inc(1/total_pairs, 
+                    detail = sprintf("Calculating %d of %d", pair_count, total_pairs))
+      }
+      
+      region1 <- parks_df$region[i]
+      region2 <- parks_df$region[j]
+      
+      # Use roads only for mainland-to-mainland
+      if (use_roads && region1 == "mainland" && region2 == "mainland") {
+        route_info <- get_route_info(
+          parks_df$longitude[i], parks_df$latitude[i],
+          parks_df$longitude[j], parks_df$latitude[j]
+        )
+        dist <- route_info$distance_km
+        time <- route_info$duration_hours
+      } else {
+        # Use flight routing for inter-region travel
+        flight_info <- calculate_flight_route(
+          parks_df$longitude[i], parks_df$latitude[i],
+          parks_df$longitude[j], parks_df$latitude[j]
+        )
+        dist <- flight_info$distance_km
+        time <- flight_info$duration_hours
+      }
+      
+      dist_matrix[i, j] <- dist
+      dist_matrix[j, i] <- dist
+      time_matrix[i, j] <- time
+      time_matrix[j, i] <- time
+    }
+  }
+  
+  rownames(dist_matrix) <- parks_df$name
+  colnames(dist_matrix) <- parks_df$name
+  rownames(time_matrix) <- parks_df$name
+  colnames(time_matrix) <- parks_df$name
+  
+  return(list(
+    distance = dist_matrix, 
+    time = time_matrix,
+    parks = parks_df
+  ))
+}
+```
+
+## Traveling Salesman Problem (Finding Optimal Path)
+
+```{r}
+solve_tsp <- function(dist_matrix, start_index = NULL) {
+  n <- nrow(dist_matrix)
+  
+  if (n == 2) {
+    return(list(tour = c(1, 2), distance = dist_matrix[1, 2]))
+  }
+  
+  # Start from specified location or first park
+  if (is.null(start_index)) {
+    current <- 1
+  } else {
+    current <- start_index
+  }
+  
+  tour <- current
+  unvisited <- setdiff(1:n, current)
+  
+  # Nearest neighbor construction
+  while (length(unvisited) > 0) {
+    distances_to_unvisited <- dist_matrix[current, unvisited]
+    nearest_idx <- which.min(distances_to_unvisited)
+    nearest <- unvisited[nearest_idx]
+    
+    tour <- c(tour, nearest)
+    current <- nearest
+    unvisited <- setdiff(unvisited, nearest)
+  }
+  
+  # Calculate initial distance
+  total_dist <- 0
+  for (i in 1:(length(tour)-1)) {
+    total_dist <- total_dist + dist_matrix[tour[i], tour[i+1]]
+  }
+  
+  # 2-opt improvement (more iterations for better results)
+  improved <- TRUE
+  max_iterations <- 2000
+  iteration <- 0
+  
+  while (improved && iteration < max_iterations) {
+    improved <- FALSE
+    iteration <- iteration + 1
+    
+    for (i in 1:(n-2)) {
+      for (j in (i+2):n) {
+        if (j == n) next
+        
+        # Don't move the start position
+        if (i == 1 && !is.null(start_index)) next
+        
+        current_dist <- dist_matrix[tour[i], tour[i+1]] + 
+                        dist_matrix[tour[j], tour[j+1]]
+        new_dist <- dist_matrix[tour[i], tour[j]] + 
+                    dist_matrix[tour[i+1], tour[j+1]]
+        
+        if (new_dist < current_dist) {
+          tour[(i+1):j] <- rev(tour[(i+1):j])
+          total_dist <- total_dist - current_dist + new_dist
+          improved <- TRUE
+        }
+      }
+    }
+  }
+  
+  return(list(tour = tour, distance = total_dist))
+}
+```
+
+## UI
+
+```{r}
+ui <- dashboardPage(
+  dashboardHeader(title = "National Parks Route Optimizer"),
+  
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("All Parks Map", tabName = "allparks", icon = icon("map")),
+      menuItem("Route Planner", tabName = "planner", icon = icon("route")),
+      menuItem("Route Map", tabName = "routemap", icon = icon("map-marked-alt")),
+      menuItem("About", tabName = "about", icon = icon("info-circle"))
+    )
+  ),
+  
+  dashboardBody(
+    tags$head(
+      tags$style(HTML("
+        .info-box { min-height: 90px; }
+        .info-box-icon { height: 90px; line-height: 90px; }
+        .info-box-content { padding-top: 0px; padding-bottom: 0px; }
+      "))
+    ),
+    
+    tabItems(
+      # All Parks Map Tab
+      tabItem(tabName = "allparks",
+        fluidRow(
+          box(
+            title = "All U.S. National Parks",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            p("Click on any park marker to see detailed information including establishment date, area, visitor numbers, and description."),
+            leafletOutput("all_parks_map", height = 700)
+          )
+        )
+      ),
+      
+      # Route Planner Tab
+      tabItem(tabName = "planner",
+        fluidRow(
+          box(
+            title = "Starting Location (Optional)", 
+            status = "info", 
+            solidHeader = TRUE,
+            width = 12,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            
+            fluidRow(
+              column(4,
+                textInput("start_city", "City:", placeholder = "Columbus")
+              ),
+              column(4,
+                textInput("start_state", "State/Territory:", placeholder = "Ohio")
+              ),
+              column(4,
+                textInput("start_zip", "Zip Code:", placeholder = "43215")
+              )
+            ),
+            p(em("Leave blank to start from the first park in the route."))
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Route Configuration", 
+            status = "primary", 
+            solidHeader = TRUE,
+            width = 12,
+            
+            fluidRow(
+              column(4,
+                selectInput("states", 
+                           "Select States/Territories:",
+                           choices = NULL,
+                           multiple = TRUE,
+                           selected = NULL)
+              ),
+              column(4,
+                sliderInput("num_parks",
+                           "Number of Parks to Visit:",
+                           min = 2, max = 63, value = 5, step = 1)
+              ),
+              column(4,
+                radioButtons("distance_type",
+                            "Distance Calculation:",
+                            choices = c("Road/Flight (Mixed)" = "mixed",
+                                      "Air Distance Only" = "air"),
+                            selected = "mixed")
+              )
+            ),
+            
+            fluidRow(
+              column(12,
+                p(strong("Note:"), "For 'All States', only continental US parks are included. 
+                   Algorithm will find the optimal route visiting the number of parks you specify 
+                   (can visit multiple parks in the same state)."),
+                actionButton("calculate", "Calculate Optimal Route", 
+                           icon = icon("calculator"),
+                           class = "btn-success btn-lg"),
+                br(), br(),
+                textOutput("status_text")
+              )
+            )
+          )
+        ),
+        
+        fluidRow(
+          infoBoxOutput("total_distance_box", width = 3),
+          infoBoxOutput("total_time_box", width = 3),
+          infoBoxOutput("num_stops_box", width = 3),
+          infoBoxOutput("avg_distance_box", width = 3)
+        ),
+        
+        fluidRow(
+          box(
+            title = "Route Details",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            DTOutput("route_table")
+          )
+        )
+      ),
+      
+      # Route Map Tab
+      tabItem(tabName = "routemap",
+        fluidRow(
+          box(
+            title = "Interactive Route Map with GPS-Style Paths",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers). 
+               Click markers to see park details."),
+            leafletOutput("route_map", height = 700)
+          )
+        )
+      ),
+      
+      # About Tab
+      tabItem(tabName = "about",
+        fluidRow(
+          box(
+            title = "About This Application",
+            status = "info",
+            solidHeader = TRUE,
+            width = 12,
+            
+            h3("National Parks Route Optimizer"),
+            
+            h4("Key Features:"),
+            tags$ul(
+              tags$li(strong("Custom Starting Location:"), "Enter your city to start the route from home"),
+              tags$li(strong("Smart Park Selection:"), "Can visit multiple parks in same state (e.g., all 5 Utah parks)"),
+              tags$li(strong("Realistic Flight Routing:"), "Includes drives to/from major airports and flight time"),
+              tags$li(strong("Mixed Transportation:"), "Automatically uses driving for mainland, flights for Alaska/Hawaii"),
+              tags$li(strong("GPS-Accurate Routes:"), "Shows actual roads you would drive on"),
+              tags$li(strong("Complete Park Info:"), "Dates, areas, visitor counts, and descriptions")
+            ),
+            
+            h4("How Flights Work:"),
+            tags$ol(
+              tags$li("Calculates drive to nearest major airport"),
+              tags$li("Direct flight to destination region's airport"),
+              tags$li("Drive from airport to park"),
+              tags$li("Flight time includes 2.5 hours for boarding, taxi, etc.")
+            ),
+            
+            h4("TSP Algorithm:"),
+            p("The route optimizer uses the Traveling Salesman Problem algorithm to find 
+               the shortest path. It can select multiple parks from the same state if that 
+               creates a better overall route.")
+          )
+        )
+      )
+    )
+  )
+)
+```
+
+## Server
+
+```{r}
+server <- function(input, output, session) {
+  
+  # Load park data
+  park_data <- load_park_data()
+  park_data$region <- sapply(park_data$state, classify_park_region)
+  
+  # Update state choices
+  observe({
+    states <- sort(unique(park_data$state))
+    updateSelectInput(session, "states", 
+                     choices = c("All States (Continental US Only)" = "ALL", states),
+                     selected = "ALL")
+  })
+  
+  # All Parks Map
+  output$all_parks_map <- renderLeaflet({
+    leaflet(park_data) %>%
+      addTiles() %>%
+      addCircleMarkers(
+        lng = ~longitude,
+        lat = ~latitude,
+        radius = 6,
+        color = ~case_when(
+          region == "mainland" ~ "red",
+          region == "alaska" ~ "blue",
+          region == "hawaii" ~ "green",
+          region == "territory" ~ "purple"
+        ),
+        fillOpacity = 0.7,
+        popup = ~paste0(
+          "<h4><b>", name, "</b></h4>",
+          "<b>State/Territory:</b> ", state, "<br>",
+          "<b>Date Established:</b> ", date_established, "<br>",
+          "<b>Area:</b> ", area, "<br>",
+          "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>",
+          "<b>Description:</b><br>", 
+          substr(description, 1, 300), 
+          if_else(nchar(description) > 300, "...", "")
+        ),
+        label = ~name
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("red", "blue", "green", "purple"),
+        labels = c("Continental US", "Alaska", "Hawaii", "Territories"),
+        title = "Park Regions"
+      )
+  })
+  
+  # Filtered parks
+  filtered_parks <- reactive({
+    if ("ALL" %in% input$states || length(input$states) == 0) {
+      return(park_data %>% filter(region == "mainland"))
+    } else {
+      return(park_data %>% filter(state %in% input$states))
+    }
+  })
+  
+  # Update max number of parks
+  observe({
+    max_parks <- nrow(filtered_parks())
+    current_value <- input$num_parks
+    if (current_value > max_parks) {
+      current_value <- max_parks
+    }
+    updateSliderInput(session, "num_parks", 
+                     max = max_parks,
+                     value = min(current_value, max_parks))
+  })
+  
+  # Selected parks for route (just sample randomly, TSP will optimize)
+  selected_parks <- reactive({
+    parks <- filtered_parks()
+    n <- min(input$num_parks, nrow(parks))
+    
+    if (n >= nrow(parks)) {
+      return(parks)
+    }
+    
+    # Random sample
+    set.seed(123)
+    sample_indices <- sample(1:nrow(parks), n)
+    return(parks[sample_indices, ])
+  })
+  
+  # Get starting location
+  start_location <- reactive({
+    if (nchar(input$start_city) > 0 && nchar(input$start_state) > 0) {
+      result <- geocode_location(input$start_city, input$start_state, input$start_zip)
+      if (result$success) {
+        return(list(
+          lat = result$lat,
+          lon = result$lon,
+          city = input$start_city,
+          state = input$start_state,
+          zip = input$start_zip
+        ))
+      }
+    }
+    return(NULL)
+  })
+  
+  # Calculate route
+  route_result <- eventReactive(input$calculate, {
+    parks <- selected_parks()
+    start_loc <- start_location()
+    
+    if (nrow(parks) < 2) {
+      return(NULL)
+    }
+    
+    progress <- Progress$new(session, min = 0, max = 1)
+    on.exit(progress$close())
+    progress$set(message = "Calculating distances...", value = 0)
+    
+    use_roads <- (input$distance_type == "mixed")
+    matrices <- calculate_distance_matrix(parks, use_roads, start_loc, progress)
+    
+    progress$set(message = "Optimizing route...", value = 0.8)
+    
+    # Solve TSP (start from index 1 if custom start location provided)
+    start_idx <- if (!is.null(start_loc)) 1 else NULL
+    tsp_result <- solve_tsp(matrices$distance, start_idx)
+    
+    # Build result
+    tour_indices <- tsp_result$tour
+    route_df <- matrices$parks[tour_indices, ]
+    route_df$step <- 1:nrow(route_df)
+    
+    # Calculate segment details
+    distances <- c()
+    times <- c()
+    travel_modes <- c()
+    
+    for (i in 1:(nrow(route_df)-1)) {
+      idx1 <- tour_indices[i]
+      idx2 <- tour_indices[i+1]
+      distances <- c(distances, matrices$distance[idx1, idx2])
+      times <- c(times, matrices$time[idx1, idx2])
+      
+      if (route_df$region[i] == "mainland" && route_df$region[i+1] == "mainland") {
+        travel_modes <- c(travel_modes, "Drive")
+      } else {
+        travel_modes <- c(travel_modes, "Flight")
+      }
+    }
+    
+    route_df$distance_to_next_km <- c(distances, NA)
+    route_df$distance_to_next_miles <- c(distances * 0.621371, NA)
+    route_df$time_to_next_hours <- c(times, NA)
+    route_df$travel_mode <- c(travel_modes, NA)
+    
+    progress$set(value = 1)
+    
+    return(list(
+      route = route_df,
+      total_distance = sum(distances),
+      total_time = sum(times),
+      tour_indices = tour_indices,
+      has_start = !is.null(start_loc)
+    ))
+  })
+  
+  # Status text
+  output$status_text <- renderText({
+    parks <- selected_parks()
+    start_loc <- start_location()
+    
+    if (!is.null(start_loc)) {
+      sprintf("Ready to calculate route for %d parks starting from %s, %s", 
+              nrow(parks), start_loc$city, start_loc$state)
+    } else {
+      sprintf("Ready to calculate route for %d parks", nrow(parks))
+    }
+  })
+  
+  # Info boxes
+  output$total_distance_box <- renderInfoBox({
+    result <- route_result()
+    if (is.null(result)) {
+      infoBox("Total Distance", "--", "Click Calculate", 
+              icon = icon("road"), color = "blue")
+    } else {
+      infoBox("Total Distance",
+              sprintf("%.0f km\n(%.0f mi)", result$total_distance, 
+                     result$total_distance * 0.621371),
+              "Complete route", icon = icon("road"), color = "blue")
+    }
+  })
+  
+  output$total_time_box <- renderInfoBox({
+    result <- route_result()
+    if (is.null(result)) {
+      infoBox("Total Time", "--", "Click Calculate", 
+              icon = icon("clock"), color = "green")
+    } else {
+      days <- floor(result$total_time / 24)
+      hours <- round(result$total_time %% 24, 1)
+      time_str <- if (days > 0) {
+        sprintf("%d day%s, %.1fh", days, if(days > 1) "s" else "", hours)
+      } else {
+        sprintf("%.1f hours", hours)
+      }
+      infoBox("Total Time", time_str, "Travel time", 
+              icon = icon("clock"), color = "green")
+    }
+  })
+  
+  output$num_stops_box <- renderInfoBox({
+    result <- route_result()
+    if (is.null(result)) {
+      infoBox("Parks", "--", "Click Calculate", 
+              icon = icon("map-marker-alt"), color = "yellow")
+    } else {
+      n_parks <- if (result$has_start) nrow(result$route) - 1 else nrow(result$route)
+      infoBox("Parks to Visit", n_parks, sprintf("%d stop%s", n_parks, if(n_parks > 1) "s" else ""),
+              icon = icon("map-marker-alt"), color = "yellow")
+    }
+  })
+  
+  output$avg_distance_box <- renderInfoBox({
+    result <- route_result()
+    if (is.null(result)) {
+      infoBox("Avg Between Stops", "--", "Click Calculate", 
+              icon = icon("arrows-alt-h"), color = "red")
+    } else {
+      avg_dist <- result$total_distance / (nrow(result$route) - 1)
+      avg_time <- result$total_time / (nrow(result$route) - 1)
+      infoBox("Avg Between Stops",
+              sprintf("%.0f km\n%.1fh", avg_dist, avg_time),
+              "Per segment", icon = icon("arrows-alt-h"), color = "red")
+    }
+  })
+  
+  # Route table
+  output$route_table <- renderDT({
+    result <- route_result()
+    if (is.null(result)) {
+      return(data.frame(Message = "Click 'Calculate Optimal Route' to begin"))
+    }
+    
+    display_df <- result$route %>%
+      mutate(
+        Location = ifelse(name == "START", 
+                         paste0(city, ", ", state), 
+                         paste0(name, " (", state, ")")),
+        `Travel Mode` = travel_mode,
+        `Distance (km)` = round(distance_to_next_km, 1),
+        `Distance (mi)` = round(distance_to_next_miles, 1),
+        `Time (hours)` = round(time_to_next_hours, 1)
+      ) %>%
+      select(Step = step, Location, `Travel Mode`, 
+             `Distance (km)`, `Distance (mi)`, `Time (hours)`)
+    
+    datatable(display_df, 
+              options = list(pageLength = 25, dom = 'tip'),
+              rownames = FALSE)
+  })
+  
+  # Route map
+  output$route_map <- renderLeaflet({
+    result <- route_result()
+    
+    if (is.null(result)) {
+      leaflet() %>% addTiles() %>% setView(lng = -95, lat = 39, zoom = 4)
+    } else {
+      route <- result$route
+      use_roads <- (input$distance_type == "mixed")
+      
+      map <- leaflet() %>% addTiles()
+      
+      # Add route segments
+      for (i in 1:(nrow(route)-1)) {
+        region1 <- route$region[i]
+        region2 <- route$region[i+1]
+        
+        if (use_roads && region1 == "mainland" && region2 == "mainland") {
+          route_info <- get_route_info(
+            route$longitude[i], route$latitude[i],
+            route$longitude[i+1], route$latitude[i+1]
+          )
+        } else {
+          flight_info <- calculate_flight_route(
+            route$longitude[i], route$latitude[i],
+            route$longitude[i+1], route$latitude[i+1]
+          )
+          route_info <- flight_info
+        }
+        
+        # Extract coordinates - FIX: Handle list structure properly
+        coords_list <- route_info$geometry
+        if (length(coords_list) > 0) {
+          lons <- numeric(length(coords_list))
+          lats <- numeric(length(coords_list))
+          
+          for (j in 1:length(coords_list)) {
+            coord <- coords_list[[j]]
+            if (is.list(coord)) {
+              lons[j] <- as.numeric(coord[[1]])
+              lats[j] <- as.numeric(coord[[2]])
+            } else if (is.numeric(coord) && length(coord) == 2) {
+              lons[j] <- coord[1]
+              lats[j] <- coord[2]
+            }
+          }
+          
+          # Only add polyline if we have valid coordinates
+          if (all(is.finite(lons)) && all(is.finite(lats)) && length(lons) > 1) {
+            line_color <- if (route$travel_mode[i] == "Drive") "blue" else "red"
+            
+            map <- map %>%
+              addPolylines(
+                lng = lons,
+                lat = lats,
+                color = line_color,
+                weight = 3,
+                opacity = 0.7,
+                label = sprintf("%s → %s: %.0f km, %.1fh", 
+                              route$name[i], route$name[i+1],
+                              route$distance_to_next_km[i],
+                              route$time_to_next_hours[i])
+              )
+          }
+        }
+      }
+      
+      # Add markers
+      map <- map %>%
+        addCircleMarkers(
+          data = route,
+          lng = ~longitude,
+          lat = ~latitude,
+          radius = 10,
+          color = "red",
+          fillOpacity = 0.9,
+          label = ~paste0("Stop ", step, ": ", name),
+          popup = ~paste0(
+            "<h4><b>Stop ", step, ": ", name, "</b></h4>",
+            if (name != "START") {
+              paste0("<b>State:</b> ", state, "<br>",
+                    "<b>Date Established:</b> ", date_established, "<br>",
+                    "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>")
+            } else "",
+            if (!is.na(distance_to_next_km)) {
+              paste0("<b>Next Stop:</b> ", round(distance_to_next_km, 1), " km (", 
+                    round(distance_to_next_miles, 1), " mi) via ", travel_mode, "<br>",
+                    "<b>Travel Time:</b> ", round(time_to_next_hours, 1), " hours")
+            } else {
+              "<b>Final Destination</b>"
+            }
+          )
+        ) %>%
+        addLegend(
+          position = "bottomright",
+          colors = c("blue", "red"),
+          labels = c("Driving Route", "Flight Path"),
+          title = "Route Type"
+        )
+      
+      map
+    }
+  })
+}
+```
+
+## Run App
+
+```{r}
+shinyApp(ui = ui, server = server)
+```
