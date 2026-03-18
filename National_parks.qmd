@@ -100,9 +100,12 @@ load_park_data <- function() {
 # Classify parks by region
 classify_park_region <- function(state) {
   territories <- c("American Samoa", "U.S. Virgin Islands")
+
+  if (is.null(state) || length(state) == 0 || is.na(state) || !nzchar(state)) return("mainland")
   if (state %in% territories) return("territory")
   if (state == "Hawaii" || grepl("Hawaii", state)) return("hawaii")
   if (state == "Alaska" || grepl("Alaska", state)) return("alaska")
+
   return("mainland")
 }
  
