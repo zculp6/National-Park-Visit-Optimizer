@@ -21,6 +21,9 @@ major_airports <- major_airports %>%
   rename(lat = latitude_deg) %>%
   rename(lon = longitude_deg)
 
+zip_codes <- read.csv("uszips.csv", stringsAsFactors = FALSE) %>%
+  mutate(zip = str_pad(as.character(zip), width = 5, side = "left", pad = "0"))
+
 # Find nearest airport to a location
 find_nearest_airport <- function(lat, lon, airports = major_airports) {
   distances <- distHaversine(
@@ -103,8 +106,32 @@ classify_park_region <- function(state) {
 }
 
 # Geocode user location (simplified - using nominatim)
+get_zip_coordinates <- function(zipcode, zip_data = zip_codes) {
+  zip_clean <- str_extract(as.character(zipcode), "\\d{5}")
+  if (is.na(zip_clean) || !nzchar(zip_clean)) return(NULL)
+  zip_match <- zip_data %>% filter(zip == zip_clean) %>% slice(1)
+  if (nrow(zip_match) == 0) return(NULL)
+  list(
+    lat = as.numeric(zip_match$lat[[1]]),
+    lon = as.numeric(zip_match$lon[[1]]),
+    city = zip_match$city[[1]],
+    state = zip_match$state_name[[1]],
+    zip = zip_clean
+  )
+}
 geocode_location <- function(city, state, zipcode) {
   tryCatch({
+    zip_match <- get_zip_coordinates(zipcode)
+    if (!is.null(zip_match)) {
+      return(list(
+        lat = zip_match$lat,
+        lon = zip_match$lon,
+        source_city = zip_match$city,
+        source_state = zip_match$state,
+        source_zip = zip_match$zip,
+        success = TRUE
+      ))
+    }
     query_parts <- c(city, state, zipcode, "USA")
     query_parts <- query_parts[nzchar(query_parts)]
     query <- paste(query_parts, collapse = ", ")
@@ -119,6 +146,9 @@ geocode_location <- function(city, state, zipcode) {
         return(list(
           lat = as.numeric(result[[1]]$lat),
           lon = as.numeric(result[[1]]$lon),
+          source_city = city,
+          source_state = state,
+          source_zip = zipcode,
           success = TRUE
         ))
       }
@@ -466,10 +496,13 @@ get_segment_route_by_choice <- function(from_lon, from_lat, to_lon, to_lat, mode
 
 route_with_constraints <- function(drive_info, flight_info, mode_choice = "auto",
                                    limit_metric = "none", limit_value = NULL) {
+  if (is.null(limit_metric) || !length(limit_metric) || !nzchar(limit_metric)) {
+    limit_metric <- "none"
+  }
   is_valid <- function(route_info) {
     if (limit_metric == "none" || is.null(limit_value) || is.na(limit_value)) return(TRUE)
     if (limit_metric == "time") return(route_info$duration_hours <= limit_value)
-    if (limit_metric == "distance") return(route_info$distance_km <= limit_value)
+    if (limit_metric == "distance") return((route_info$distance_km * 0.621371) <= limit_value)
     TRUE
   }
   
@@ -578,7 +611,6 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(id = "main_tabs",
                 menuItem("Home", tabName = "home", icon = icon("home")),
-                menuItem("All Parks Map", tabName = "allparks", icon = icon("map")),
                 menuItem("Route Planner", tabName = "planner", icon = icon("route")),
                 menuItem("Route Map", tabName = "routemap", icon = icon("map-marked-alt")),
                 menuItem("About", tabName = "about", icon = icon("info-circle"))
@@ -665,7 +697,7 @@ ui <- dashboardPage(
                                        "Maximum Segment Constraint:",
                                        choices = c("No limit" = "none",
                                                    "Maximum Segment Travel Time (hours)" = "time",
-                                                   "Maximum Segment Distance (km)" = "distance"),
+                                                   "Maximum Segment Distance (miles)" = "distance"),
                                        selected = "none")
                     ),
                     column(4,
@@ -680,11 +712,17 @@ ui <- dashboardPage(
                   fluidRow(
                     column(
                       4,
-                      numericInput("limit_value",
-                                   "Limit Value:",
-                                   min = 1,
-                                   value = 8,
-                                   step = 1)
+                      conditionalPanel(
+                        condition = "input.limit_metric !== 'none'",
+                        uiOutput("limit_value_input")
+                      )
+                    ),
+                    column(
+                      4,
+                      selectInput("distance_unit",
+                                  "Distance Units:",
+                                  choices = c("Miles" = "miles", "Kilometers" = "km"),
+                                  selected = "miles")
                     )
                   ),
                   fluidRow(
@@ -814,22 +852,19 @@ server <- function(input, output, session) {
   park_data$region <- sapply(park_data$state, classify_park_region)
   available_states <- sort(unique(park_data$state))
   
-  selected_states <- reactiveVal(character(0))
+  selected_states <- reactiveVal(available_states)
   selected_park_names <- reactiveVal(character(0))
   segment_mode_overrides <- reactiveVal(character(0))
   
   # Update state choices
   observe({
     updateSelectInput(session, "states",
-                      choices = c("None" = "NONE", "Select All States/Territories" = "ALL", available_states),
-                      selected = character(0))
+                      choices = c("All States/Territories" = "ALL", available_states),
+                      selected = "ALL")
   })
   
   observeEvent(input$states, {
-    if (is.null(input$states) || length(input$states) == 0 || "NONE" %in% input$states) {
-      selected_states(character(0))
-      updateSelectInput(session, "states", selected = character(0))
-    } else if ("ALL" %in% input$states) {
+    if (is.null(input$states) || length(input$states) == 0 || "ALL" %in% input$states) {
       selected_states(available_states)
       updateSelectInput(session, "states", selected = available_states)
     } else {
@@ -838,8 +873,20 @@ server <- function(input, output, session) {
   }, ignoreNULL = FALSE)
   
   observeEvent(input$reset_states, {
-    selected_states(character(0))
-    updateSelectInput(session, "states", selected = character(0))
+    selected_states(available_states)
+    updateSelectInput(session, "states", selected = available_states)
+  })
+  
+  output$limit_value_input <- renderUI({
+    label_text <- if (identical(input$limit_metric, "time")) "Hour Limit:" else "Mile Limit:"
+    default_value <- if (identical(input$limit_metric, "time")) 12 else 500
+    numericInput(
+      "limit_value",
+      label_text,
+      min = 1,
+      value = default_value,
+      step = 1
+    )
   })
   
   # All Parks Map
@@ -852,13 +899,47 @@ server <- function(input, output, session) {
   })
   
   output$park_selector_map <- renderLeaflet({
+    parks <- state_filtered_parks()
+    selected <- intersect(selected_park_names(), parks$name)
+    map_data <- parks %>%
+      mutate(marker_color = if_else(name %in% selected, "green", "red"))
     leaflet() %>%
       addTiles() %>%
-      setView(lng = -98.5, lat = 39.8, zoom = 4)
+      setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
+      addCircleMarkers(
+        data = map_data,
+        layerId = ~name,
+        lng = ~longitude,
+        lat = ~latitude,
+        radius = 7,
+        color = ~marker_color,
+        fillColor = ~marker_color,
+        fillOpacity = 0.85,
+        weight = 2,
+        popup = ~paste0(
+          "<h4><b>", name, "</b></h4>",
+          "<b>State/Territory:</b> ", state, "<br>",
+          "<b>Date Established:</b> ", date_established, "<br>",
+          "<b>Area:</b> ", area, "<br>",
+          "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>",
+          "<b>Description:</b><br>", description
+        ),
+        label = ~name
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("green", "red"),
+        labels = c("Selected", "Not selected"),
+        title = "Park Selection"
+      )
   })
   
   observe({
-    parks <- state_filtered_parks()
+    parks <- state_filtered_parks() %>%
+      filter(
+        !is.na(name), nzchar(name),
+        is.finite(latitude), is.finite(longitude)
+      )
     selected <- selected_park_names()
     selected <- intersect(selected, parks$name)
     selected_park_names(selected)
@@ -954,9 +1035,9 @@ server <- function(input, output, session) {
         start_loc <- list(
           lat = geocode_result$lat,
           lon = geocode_result$lon,
-          city = ifelse(nzchar(start_input$city), start_input$city, "ZIP"),
-          state = start_input$state,
-          zip = start_input$zip
+          city = ifelse(nzchar(start_input$city), start_input$city, geocode_result$source_city),
+          state = ifelse(nzchar(start_input$state), start_input$state, geocode_result$source_state),
+          zip = ifelse(nzchar(start_input$zip), start_input$zip, geocode_result$source_zip)
         )
       } else {
         detail_msg <- geocode_result$message
@@ -977,10 +1058,14 @@ server <- function(input, output, session) {
     
     limit_value <- suppressWarnings(as.numeric(input$limit_value))
     if (is.na(limit_value) || limit_value <= 0) limit_value <- NULL
+    limit_metric <- input$limit_metric
+    if (is.null(limit_metric) || !length(limit_metric) || !nzchar(limit_metric)) {
+      limit_metric <- "none"
+    }
     
     matrices <- calculate_distance_matrix(
       parks, input$distance_type, start_loc, progress,
-      limit_metric = input$limit_metric, limit_value = limit_value
+      limit_metric = limit_metric, limit_value = limit_value
     )
     
     progress$set(message = "Optimizing route...", detail = "Solving route sequence...", value = 0.65)
@@ -1022,7 +1107,7 @@ server <- function(input, output, session) {
       )
       segment <- route_with_constraints(
         drive_info, flight_info, mode_choice = default_choice,
-        limit_metric = input$limit_metric, limit_value = limit_value
+        limit_metric = limit_metric, limit_value = limit_value
       )
       if (!isTRUE(segment$valid)) {
         showNotification("No valid segment route fits the selected limit. Increase the limit and try again.", type = "error", duration = 8)
@@ -1060,7 +1145,7 @@ server <- function(input, output, session) {
       tour_indices = tour_indices,
       has_start = !is.null(start_loc),
       segment_geometries = segment_geometries,
-      limit_metric = input$limit_metric,
+      limit_metric = limit_metric,
       limit_value = limit_value
     ))
   })
@@ -1115,6 +1200,14 @@ server <- function(input, output, session) {
     base$total_time <- sum(times)
     base$segment_geometries <- segment_geometries
     base
+  })
+  
+  selected_distance_multiplier <- reactive({
+    if (identical(input$distance_unit, "km")) 1 else 0.621371
+  })
+  
+  selected_distance_label <- reactive({
+    if (identical(input$distance_unit, "km")) "km" else "mi"
   })
   
   # Status text
@@ -1196,9 +1289,9 @@ server <- function(input, output, session) {
       infoBox("Total Distance", "--", "Click Calculate",
               icon = icon("road"), color = "blue")
     } else {
+      dist_value <- result$total_distance * selected_distance_multiplier()
       infoBox("Total Distance",
-              sprintf("%.0f km\n(%.0f mi)", result$total_distance,
-                      result$total_distance * 0.621371),
+              sprintf("%.0f %s", dist_value, selected_distance_label()),
               "Complete route", icon = icon("road"), color = "blue")
     }
   })
@@ -1239,10 +1332,10 @@ server <- function(input, output, session) {
       infoBox("Avg Between Stops", "--", "Click Calculate",
               icon = icon("arrows-alt-h"), color = "red")
     } else {
-      avg_dist <- result$total_distance / (nrow(result$route) - 1)
+      avg_dist <- (result$total_distance / (nrow(result$route) - 1)) * selected_distance_multiplier()
       avg_time <- result$total_time / (nrow(result$route) - 1)
       infoBox("Avg Between Stops",
-              sprintf("%.0f km\n%.1fh", avg_dist, avg_time),
+              sprintf("%.0f %s\n%.1fh", avg_dist, selected_distance_label(), avg_time),
               "Per segment", icon = icon("arrows-alt-h"), color = "red")
     }
   })
@@ -1257,15 +1350,19 @@ server <- function(input, output, session) {
     display_df <- result$route %>%
       mutate(
         Location = ifelse(name == "START",
-                          paste0(city, ", ", state),
+                          paste0(
+                            ifelse(!is.na(description) & nzchar(description), description, "Starting Location"),
+                            ifelse(!is.na(state) & nzchar(state), paste0(" (", state, ")"), "")
+                          ),
                           paste0(name, " (", state, ")")),
         `Travel Mode` = travel_mode,
-        `Distance (km)` = round(distance_to_next_km, 1),
-        `Distance (mi)` = round(distance_to_next_miles, 1),
+        Distance = round(distance_to_next_km * selected_distance_multiplier(), 1),
         `Time (hours)` = round(time_to_next_hours, 1)
       ) %>%
       select(Step = step, Location, `Travel Mode`,
-             `Distance (km)`, `Distance (mi)`, `Time (hours)`)
+             Distance, `Time (hours)`)
+    
+    names(display_df)[names(display_df) == "Distance"] <- paste0("Distance (", selected_distance_label(), ")")
     
     datatable(display_df,
               options = list(pageLength = 25, dom = 'tip'),
@@ -1314,9 +1411,10 @@ server <- function(input, output, session) {
   for (i in seq_len(nrow(route) - 1)) {
     segment_route <- result$segment_geometries[[i]]
     if (is.null(segment_route)) next
-    label_text <- sprintf("%s \u2192 %s: %.0f km, %.1fh",
+    label_text <- sprintf("%s \u2192 %s: %.0f %s, %.1fh",
                           route$name[i], route$name[i + 1],
-                          route$distance_to_next_km[i],
+                          route$distance_to_next_km[i] * selected_distance_multiplier(),
+                          selected_distance_label(),
                           route$time_to_next_hours[i])
     
     if (route$travel_mode[i] == "Flight" &&
@@ -1374,8 +1472,9 @@ server <- function(input, output, session) {
                ""
         ),
         ifelse(!is.na(distance_to_next_km),
-               paste0("<b>Next Stop:</b> ", round(distance_to_next_km, 1), " km (",
-                      round(distance_to_next_miles, 1), " mi) via ", travel_mode, "<br>",
+               paste0("<b>Next Stop:</b> ",
+                      round(distance_to_next_km * selected_distance_multiplier(), 1), " ",
+                      selected_distance_label(), " via ", travel_mode, "<br>",
                       "<b>Travel Time:</b> ", round(time_to_next_hours, 1), " hours"),
                "<b>Final Destination</b>"
           )
