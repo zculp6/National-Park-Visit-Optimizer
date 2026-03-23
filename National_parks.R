@@ -133,7 +133,7 @@ geocode_location <- function(city, state, zipcode) {
       ))
     }
     query_parts <- c(city, state, zipcode, "USA")
-    query_parts <- query_parts[nzchar(query_parts)]
+    query_parts <- query_parts[!is.na(query_parts) & nzchar(query_parts)]
     query <- paste(query_parts, collapse = ", ")
     url <- sprintf("https://nominatim.openstreetmap.org/search?q=%s&format=json&limit=1",
                    URLencode(query))
@@ -165,6 +165,9 @@ geocode_location <- function(city, state, zipcode) {
 
 all_state_choices <- c(state.name, "U.S. Virgin Islands", "American Samoa")
 penalty_value <- 1e9
+scalar_has_text <- function(x) {
+  is.character(x) && length(x) == 1 && !is.na(x) && nzchar(x)
+}
 
 build_state_polygons <- function() {
   normalize_geometry_column <- function(sf_object, target_name = "geometry") {
@@ -388,6 +391,22 @@ calculate_distance_matrix <- function(parks_df, transport_mode = "mixed", start_
     parks_df <- rbind(start_row, parks_df)
   }
   
+  if (!is.null(end_location)) {
+    end_row <- data.frame(
+      name = "END",
+      state = end_location$state,
+      latitude = end_location$lat,
+      longitude = end_location$lon,
+      date_established = NA,
+      area = NA,
+      visitors = NA,
+      description = "Ending Location",
+      region = "mainland",
+      stringsAsFactors = FALSE
+    )
+    parks_df <- rbind(parks_df, end_row)
+  }
+  
   n <- nrow(parks_df)
   dist_matrix <- matrix(0, n, n)
   time_matrix <- matrix(0, n, n)
@@ -496,7 +515,7 @@ get_segment_route_by_choice <- function(from_lon, from_lat, to_lon, to_lat, mode
 
 route_with_constraints <- function(drive_info, flight_info, mode_choice = "auto",
                                    limit_metric = "none", limit_value = NULL) {
-  if (is.null(limit_metric) || !length(limit_metric) || !nzchar(limit_metric)) {
+  if (!scalar_has_text(limit_metric)) {
     limit_metric <- "none"
   }
   is_valid <- function(route_info) {
@@ -600,6 +619,32 @@ solve_tsp <- function(dist_matrix, start_index = NULL) {
   return(list(tour = tour, distance = total_dist))
 }
 
+solve_tsp_with_end <- function(dist_matrix, start_index = NULL, end_index = NULL) {
+  n <- nrow(dist_matrix)
+  if (is.null(end_index) || end_index < 1 || end_index > n) {
+    return(solve_tsp(dist_matrix, start_index = start_index))
+  }
+  
+  current <- if (is.null(start_index)) 1 else start_index
+  tour <- current
+  unvisited <- setdiff(seq_len(n), c(current, end_index))
+  
+  while (length(unvisited) > 0) {
+    nearest <- unvisited[which.min(dist_matrix[current, unvisited])]
+    tour <- c(tour, nearest)
+    current <- nearest
+    unvisited <- setdiff(unvisited, nearest)
+  }
+  
+  tour <- c(tour, end_index)
+  total_dist <- 0
+  for (i in 1:(length(tour) - 1)) {
+    total_dist <- total_dist + dist_matrix[tour[i], tour[i + 1]]
+  }
+  
+  list(tour = tour, distance = total_dist)
+}
+
 
 ###################
 ### UI
@@ -611,8 +656,9 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(id = "main_tabs",
                 menuItem("Home", tabName = "home", icon = icon("home")),
+                menuItem("National Parks Map", tabName = "allparks", icon = icon("globe-americas")),
                 menuItem("Route Planner", tabName = "planner", icon = icon("route")),
-                menuItem("Route Map", tabName = "routemap", icon = icon("map-marked-alt")),
+                menuItem("Optimal Route", tabName = "optimalroute", icon = icon("map-marked-alt")),
                 menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
   ),
@@ -637,25 +683,38 @@ ui <- dashboardPage(
                   width = 12,
                   p("Use the sidebar or buttons below to move through the app quickly."),
                   tags$ul(
+                    tags$li(strong("National Parks Map:"), "Browse every U.S. national park with area and description details."),
                     tags$li(strong("Route Planner:"), "Select states/territories and configure your trip."),
-                    tags$li(strong("Route Map:"), "See the calculated route drawn on the map."),
+                    tags$li(strong("Optimal Route:"), "See the calculated route drawn on the map with segment details."),
                     tags$li(strong("About:"), "Review features and route logic details.")
                   ),
                   br(),
+                  actionButton("go_allparks", "See Map", class = "btn-primary"),
                   tags$span("  "),
-                  actionButton("go_planner", "Go to Route Planner", class = "btn-success"),
-                  tags$span("  "),
-                  actionButton("go_routemap", "Go to Route Map", class = "btn-info")
+                  actionButton("go_planner", "Plan Route", class = "btn-success")
                 )
               )
       ),
       
+      # National Parks Map Tab
+      tabItem(tabName = "allparks",
+              fluidRow(
+                box(
+                  title = "National Parks Map",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 12,
+                  p("All national parks from df_2.csv. Click a marker to see area, visitors, and description."),
+                  leafletOutput("all_parks_map", height = 700)
+                )
+              )
+      ),
       
       # Route Planner Tab
       tabItem(tabName = "planner",
               fluidRow(
                 box(
-                  title = "Starting Location (Optional)",
+                  title = "Start/End Locations (Optional)",
                   status = "info",
                   solidHeader = TRUE,
                   width = 12,
@@ -663,17 +722,16 @@ ui <- dashboardPage(
                   collapsed = TRUE,
                   
                   fluidRow(
-                    column(4,
-                           textInput("start_city", "City:", placeholder = "Columbus")
+                    column(6,
+                           selectizeInput("start_zip_choice", "Start City:", choices = NULL, multiple = FALSE,
+                                          options = list(placeholder = "Choose a city (by zip code)"))
                     ),
-                    column(4,
-                           textInput("start_state", "State/Territory:", placeholder = "Ohio")
-                    ),
-                    column(4,
-                           textInput("start_zip", "Zip Code:", placeholder = "43215")
+                    column(6,
+                           selectizeInput("end_zip_choice", "End City:", choices = NULL, multiple = FALSE,
+                                          options = list(placeholder = "Optional final destination city"))
                     )
                   ),
-                  p(em("Leave blank to start from the first park in the route."))
+                  p(em("Leave blank to start at the first selected park and/or end at the last selected park."))
                 )
               ),
               
@@ -694,7 +752,7 @@ ui <- dashboardPage(
                     ),
                     column(4,
                            selectInput("limit_metric",
-                                       "Maximum Segment Constraint:",
+                                       "Per-Segment Constraint:",
                                        choices = c("No limit" = "none",
                                                    "Maximum Segment Travel Time (hours)" = "time",
                                                    "Maximum Segment Distance (miles)" = "distance"),
@@ -723,6 +781,18 @@ ui <- dashboardPage(
                                   "Distance Units:",
                                   choices = c("Miles" = "miles", "Kilometers" = "km"),
                                   selected = "miles")
+                    ),
+                    column(
+                      4,
+                      numericInput("overall_time_limit",
+                                   "Overall Time Limit (hours, optional):",
+                                   value = NA, min = 1, step = 1)
+                    ),
+                    column(
+                      4,
+                      numericInput("overall_distance_limit",
+                                   "Overall Distance Limit (miles, optional):",
+                                   value = NA, min = 1, step = 10)
                     )
                   ),
                   fluidRow(
@@ -760,42 +830,51 @@ ui <- dashboardPage(
                 infoBoxOutput("avg_distance_box", width = 3)
               ),
               
-              fluidRow(
-                box(
-                  title = "Per-Segment Travel Mode Overrides",
-                  status = "warning",
-                  solidHeader = TRUE,
-                  width = 12,
-                  p("After calculating a route, you can override each segment to Auto/Drive/Flight and compare time."),
-                  uiOutput("segment_mode_controls")
-                )
-              ),
               
               fluidRow(
                 box(
-                  title = "Route Details",
+                  title = "Next Step",
                   status = "primary",
                   solidHeader = TRUE,
                   width = 12,
-                  actionButton("go_route_map_from_details", "Go to Route Map", class = "btn-info"),
-                  br(), br(),
-                  DTOutput("route_table")
+                  p("When calculation finishes, you will be redirected to Optimal Route automatically.")
                 )
               )
       ),
       
-      # Route Map Tab
-      tabItem(tabName = "routemap",
+      # Optimal Route Tab
+      tabItem(tabName = "optimalroute",
               fluidRow(
                 box(
                   title = "Interactive Route Map with GPS-Style Paths",
                   status = "primary",
                   solidHeader = TRUE,
                   width = 12,
+                  actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default"),
+                  br(), br(),
                   p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers).
                Click markers to see park details."),
                   p(em("Map initializes on app startup. If no route has been calculated yet, a starter map is shown.")),
                   leafletOutput("route_map", height = 700)
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "Per-Segment Travel Mode Overrides",
+                  status = "warning",
+                  solidHeader = TRUE,
+                  width = 12,
+                  p("Override each segment to Auto/Drive/Flight and recalculate route details instantly."),
+                  uiOutput("segment_mode_controls")
+                )
+              ),
+              fluidRow(
+                box(
+                  title = "Optimal Route Details",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 12,
+                  DTOutput("route_table")
                 )
               )
       ),
@@ -855,12 +934,19 @@ server <- function(input, output, session) {
   selected_states <- reactiveVal(available_states)
   selected_park_names <- reactiveVal(character(0))
   segment_mode_overrides <- reactiveVal(character(0))
+  city_zip_choices <- zip_codes %>%
+    mutate(label = paste0(city, ", ", state_id, " (", zip, ")")) %>%
+    distinct(label, .keep_all = TRUE) %>%
+    arrange(city, state_id, zip)
   
   # Update state choices
   observe({
     updateSelectInput(session, "states",
                       choices = c("All States/Territories" = "ALL", available_states),
                       selected = "ALL")
+    city_choices <- setNames(city_zip_choices$zip, city_zip_choices$label)
+    updateSelectizeInput(session, "start_zip_choice", choices = city_choices, selected = "")
+    updateSelectizeInput(session, "end_zip_choice", choices = city_choices, selected = "")
   })
   
   observeEvent(input$states, {
@@ -887,6 +973,30 @@ server <- function(input, output, session) {
       value = default_value,
       step = 1
     )
+  })
+  
+  output$all_parks_map <- renderLeaflet({
+    leaflet(park_catalog) %>%
+      addTiles() %>%
+      setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
+      addCircleMarkers(
+        lng = ~longitude,
+        lat = ~latitude,
+        radius = 6,
+        color = "#2c7fb8",
+        fillColor = "#2c7fb8",
+        fillOpacity = 0.8,
+        stroke = TRUE,
+        weight = 1.5,
+        label = ~name,
+        popup = ~paste0(
+          "<h4><b>", name, "</b></h4>",
+          "<b>State/Territory:</b> ", state, "<br>",
+          "<b>Area:</b> ", area, "<br>",
+          "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>",
+          "<b>Description:</b><br>", description
+        )
+      )
   })
   
   # All Parks Map
@@ -1000,21 +1110,24 @@ server <- function(input, output, session) {
   
   # Collect starting location inputs without geocoding on every re-render
   start_location_input <- reactive({
-    city <- trimws(input$start_city)
-    state <- trimws(input$start_state)
-    zip <- trimws(input$start_zip)
-    
-    if (!nzchar(city) && !nzchar(state) && !nzchar(zip)) {
-      return(NULL)
-    }
-    list(city = city, state = state, zip = zip)
+    zip <- trimws(input$start_zip_choice)
+    if (!nzchar(zip)) return(NULL)
+    list(city = "", state = "", zip = zip)
+  })
+  
+  end_location_input <- reactive({
+    zip <- trimws(input$end_zip_choice)
+    if (!nzchar(zip)) return(NULL)
+    list(city = "", state = "", zip = zip)
   })
   
   # Calculate route
   route_result <- eventReactive(input$calculate, {
     parks <- selected_parks()
     start_input <- start_location_input()
+    end_input <- end_location_input()
     start_loc <- NULL
+    end_loc <- NULL
     
     if (nrow(parks) < 2) {
       showNotification("Please select at least two parks on the Route Planner map.", type = "warning")
@@ -1022,22 +1135,15 @@ server <- function(input, output, session) {
     }
     
     if (!is.null(start_input)) {
-      if (!nzchar(start_input$city) && !nzchar(start_input$state) && nzchar(start_input$zip)) {
-        showNotification(
-          "Tip: ZIP-only start locations are allowed, but including city/state often improves accuracy.",
-          type = "message",
-          duration = 6
-        )
-      }
       
       geocode_result <- geocode_location(start_input$city, start_input$state, start_input$zip)
       if (isTRUE(geocode_result$success)) {
         start_loc <- list(
           lat = geocode_result$lat,
           lon = geocode_result$lon,
-          city = ifelse(nzchar(start_input$city), start_input$city, geocode_result$source_city),
-          state = ifelse(nzchar(start_input$state), start_input$state, geocode_result$source_state),
-          zip = ifelse(nzchar(start_input$zip), start_input$zip, geocode_result$source_zip)
+          city = ifelse(scalar_has_text(start_input$city), start_input$city, geocode_result$source_city),
+          state = ifelse(scalar_has_text(start_input$state), start_input$state, geocode_result$source_state),
+          zip = ifelse(scalar_has_text(start_input$zip), start_input$zip, geocode_result$source_zip)
         )
       } else {
         detail_msg <- geocode_result$message
@@ -1051,6 +1157,24 @@ server <- function(input, output, session) {
         )
       }
     }
+    if (!is.null(end_input)) {
+      geocode_result <- geocode_location(end_input$city, end_input$state, end_input$zip)
+      if (isTRUE(geocode_result$success)) {
+        end_loc <- list(
+          lat = geocode_result$lat,
+          lon = geocode_result$lon,
+          city = geocode_result$source_city,
+          state = geocode_result$source_state,
+          zip = geocode_result$source_zip
+        )
+      } else {
+        showNotification(
+          paste("Ending location lookup failed:", geocode_result$message),
+          type = "warning",
+          duration = 8
+        )
+      }
+    }
     
     progress <- Progress$new(session, min = 0, max = 1)
     on.exit(progress$close())
@@ -1059,12 +1183,12 @@ server <- function(input, output, session) {
     limit_value <- suppressWarnings(as.numeric(input$limit_value))
     if (is.na(limit_value) || limit_value <= 0) limit_value <- NULL
     limit_metric <- input$limit_metric
-    if (is.null(limit_metric) || !length(limit_metric) || !nzchar(limit_metric)) {
+    if (!scalar_has_text(limit_metric)) {
       limit_metric <- "none"
     }
     
     matrices <- calculate_distance_matrix(
-      parks, input$distance_type, start_loc, progress,
+      parks, input$distance_type, start_loc, end_loc, progress,
       limit_metric = limit_metric, limit_value = limit_value
     )
     
@@ -1072,7 +1196,8 @@ server <- function(input, output, session) {
     
     # Solve TSP (start from index 1 if custom start location provided)
     start_idx <- if (!is.null(start_loc)) 1 else NULL
-    tsp_result <- solve_tsp(matrices$time, start_idx)
+    end_idx <- if (!is.null(end_loc)) nrow(matrices$parks) else NULL
+    tsp_result <- solve_tsp_with_end(matrices$time, start_idx, end_idx)
     
     # Build result
     tour_indices <- tsp_result$tour
@@ -1124,6 +1249,20 @@ server <- function(input, output, session) {
     route_df$time_to_next_hours <- c(times, NA)
     route_df$travel_mode <- c(travel_modes, NA)
     
+    total_distance_miles <- sum(distances) * 0.621371
+    total_time_hours <- sum(times)
+    overall_time_limit <- suppressWarnings(as.numeric(input$overall_time_limit))
+    overall_distance_limit <- suppressWarnings(as.numeric(input$overall_distance_limit))
+    
+    if (!is.na(overall_time_limit) && overall_time_limit > 0 && total_time_hours > overall_time_limit) {
+      showNotification("Calculated route exceeds the overall time limit. Loosen constraints and try again.", type = "error", duration = 8)
+      return(NULL)
+    }
+    if (!is.na(overall_distance_limit) && overall_distance_limit > 0 && total_distance_miles > overall_distance_limit) {
+      showNotification("Calculated route exceeds the overall distance limit. Loosen constraints and try again.", type = "error", duration = 8)
+      return(NULL)
+    }
+    
     progress$set(message = "Finalizing route...", detail = "Loading map-ready geometry...", value = 0.97)
     Sys.sleep(0.2)
     progress$set(value = 1)
@@ -1144,6 +1283,7 @@ server <- function(input, output, session) {
       total_time = sum(times),
       tour_indices = tour_indices,
       has_start = !is.null(start_loc),
+      has_end = !is.null(end_loc),
       segment_geometries = segment_geometries,
       limit_metric = limit_metric,
       limit_value = limit_value
@@ -1165,7 +1305,7 @@ server <- function(input, output, session) {
     
     for (i in 1:(nrow(route) - 1)) {
       choice <- overrides[as.character(i)]
-      if (is.na(choice) || !nzchar(choice)) {
+      if (!scalar_has_text(choice)) {
         choice <- "auto"
       }
       drive_info <- get_route_info(
@@ -1217,14 +1357,10 @@ server <- function(input, output, session) {
     
     selected_count <- length(selected_states())
     
-    if (!is.null(start_input)) {
-      sprintf("Ready to calculate route for %d selected parks (%d states/territories selected) starting from %s, %s",
-              nrow(parks), selected_count,
-              ifelse(nzchar(start_input$city), start_input$city, "entered location"),
-              ifelse(nzchar(start_input$state), start_input$state, "USA"))
-    } else {
-      sprintf("Ready to calculate route for %d selected parks (%d states/territories selected)", nrow(parks), selected_count)
-    }
+    start_msg <- if (!is.null(start_input)) "with a custom start city" else "with park-based start"
+    end_msg <- if (!is.null(end_input)) "and a custom end city" else "and park-based finish"
+    sprintf("Ready to calculate route for %d selected parks (%d states/territories selected) %s %s.",
+            nrow(parks), selected_count, start_msg, end_msg)
   })
   
   observeEvent(input$go_allparks, {
@@ -1235,12 +1371,13 @@ server <- function(input, output, session) {
     updateTabItems(session, "main_tabs", "planner")
   })
   
-  observeEvent(input$go_routemap, {
-    updateTabItems(session, "main_tabs", "routemap")
+  observeEvent(input$back_to_planner, {
+    updateTabItems(session, "main_tabs", "planner")
   })
   
-  observeEvent(input$go_route_map_from_details, {
-    updateTabItems(session, "main_tabs", "routemap")
+  observeEvent(route_result(), {
+    req(route_result())
+    updateTabItems(session, "main_tabs", "optimalroute")
   })
   
   output$segment_mode_controls <- renderUI({
@@ -1255,7 +1392,7 @@ server <- function(input, output, session) {
       from_label <- paste0(route$name[i], " (", route$state[i], ")")
       to_label <- paste0(route$name[i + 1], " (", route$state[i + 1], ")")
       selected_value <- overrides[as.character(i)]
-      if (is.na(selected_value) || !nzchar(selected_value)) selected_value <- "auto"
+      if (!scalar_has_text(selected_value)) selected_value <- "auto"
       selectInput(
         inputId = paste0("segment_mode_", i),
         label = sprintf("Segment %d: %s → %s", i, from_label, to_label),
@@ -1275,7 +1412,7 @@ server <- function(input, output, session) {
     current_overrides <- segment_mode_overrides()
     for (i in seq_len(nrow(result$route) - 1)) {
       selected_value <- input[[paste0("segment_mode_", i)]]
-      if (!is.null(selected_value) && nzchar(selected_value)) {
+      if (scalar_has_text(selected_value)) {
         current_overrides[as.character(i)] <- selected_value
       }
     }
@@ -1320,7 +1457,7 @@ server <- function(input, output, session) {
       infoBox("Parks", "--", "Click Calculate",
               icon = icon("map-marker-alt"), color = "yellow")
     } else {
-      n_parks <- if (result$has_start) nrow(result$route) - 1 else nrow(result$route)
+      n_parks <- nrow(result$route) - ifelse(isTRUE(result$has_start), 1, 0) - ifelse(isTRUE(result$has_end), 1, 0)
       infoBox("Parks to Visit", n_parks, sprintf("%d stop%s", n_parks, if(n_parks > 1) "s" else ""),
               icon = icon("map-marker-alt"), color = "yellow")
     }
@@ -1354,7 +1491,12 @@ server <- function(input, output, session) {
                             ifelse(!is.na(description) & nzchar(description), description, "Starting Location"),
                             ifelse(!is.na(state) & nzchar(state), paste0(" (", state, ")"), "")
                           ),
-                          paste0(name, " (", state, ")")),
+                          ifelse(name == "END",
+                                 paste0(
+                                   ifelse(!is.na(description) & nzchar(description), description, "Ending Location"),
+                                   ifelse(!is.na(state) & nzchar(state), paste0(" (", state, ")"), "")
+                                 ),
+                                 paste0(name, " (", state, ")"))),
         `Travel Mode` = travel_mode,
         Distance = round(distance_to_next_km * selected_distance_multiplier(), 1),
         `Time (hours)` = round(time_to_next_hours, 1)
