@@ -593,7 +593,17 @@ ui <- dashboardPage(
                                           options = list(placeholder = "Optional final destination city"))
                     )
                   ),
-                  p(em("Leave blank to start at the first selected park and/or end at the last selected park."))
+                  fluidRow(
+                    column(
+                      12,
+                      checkboxInput(
+                        "same_as_start",
+                        "End location is the same as start location",
+                        value = FALSE
+                      )
+                    )
+                  ),
+                  p(em("Leave blank to start at the first park and/or end at the last park."))
                 )
               ),
               
@@ -681,13 +691,6 @@ ui <- dashboardPage(
                 )
               ),
               
-              fluidRow(
-                infoBoxOutput("total_distance_box", width = 3),
-                infoBoxOutput("total_time_box", width = 3),
-                infoBoxOutput("num_stops_box", width = 3),
-                infoBoxOutput("avg_distance_box", width = 3)
-              ),
-              
               
               fluidRow(
                 box(
@@ -702,6 +705,12 @@ ui <- dashboardPage(
       
       # Optimal Route Tab
       tabItem(tabName = "optimalroute",
+              fluidRow(
+                infoBoxOutput("total_distance_box", width = 3),
+                infoBoxOutput("total_time_box", width = 3),
+                infoBoxOutput("num_stops_box", width = 3),
+                infoBoxOutput("avg_distance_box", width = 3)
+              ),
               fluidRow(
                 box(
                   title = "Interactive Route Map with GPS-Style Paths",
@@ -814,6 +823,13 @@ server <- function(input, output, session) {
       selected = "",
       server = TRUE
     )
+  })
+  
+  observe({
+    if (isTRUE(input$same_as_start)) {
+      start_value <- if (!is.null(input$start_zip_choice) && nzchar(input$start_zip_choice)) input$start_zip_choice else ""
+      updateSelectizeInput(session, "end_zip_choice", selected = start_value)
+    }
   })
   
   output$limit_value_input <- renderUI({
@@ -970,8 +986,16 @@ server <- function(input, output, session) {
       "first park"
     }
     
-    end_text <- if (!is.null(input$end_zip_choice) && nzchar(input$end_zip_choice)) {
-      zip_info <- get_zip_coordinates(input$end_zip_choice)
+    effective_end_zip <- if (isTRUE(input$same_as_start) &&
+                             !is.null(input$start_zip_choice) &&
+                             nzchar(input$start_zip_choice)) {
+      input$start_zip_choice
+    } else {
+      input$end_zip_choice
+    }
+    
+    end_text <- if (!is.null(effective_end_zip) && nzchar(effective_end_zip)) {
+      zip_info <- get_zip_coordinates(effective_end_zip)
       if (!is.null(zip_info)) {
         paste0(zip_info$city, ", ", zip_info$state)
       } else {
@@ -1051,8 +1075,16 @@ server <- function(input, output, session) {
     # Parse end location
     end_loc <- NULL
     end_idx <- NULL
-    if (!is.null(input$end_zip_choice) && nzchar(input$end_zip_choice)) {
-      geo_result <- geocode_location(input$end_zip_choice)
+    effective_end_zip <- if (isTRUE(input$same_as_start) &&
+                             !is.null(input$start_zip_choice) &&
+                             nzchar(input$start_zip_choice)) {
+      input$start_zip_choice
+    } else {
+      input$end_zip_choice
+    }
+    
+    if (!is.null(effective_end_zip) && nzchar(effective_end_zip)) {
+      geo_result <- geocode_location(effective_end_zip)
       if (isTRUE(geo_result$success)) {
         end_loc <- list(
           name = "END",
@@ -1339,7 +1371,7 @@ server <- function(input, output, session) {
           label = ~paste0("Stop ", step, ": ", name),
           popup = ~paste0(
             "<h4><b>Stop ", step, ": ", name, "</b></h4>",
-            ifelse(name != "START" && name != "END",
+            ifelse(name != "START" & name != "END",
                    paste0("<b>State:</b> ", state, "<br>",
                           "<b>Date Established:</b> ", date_established, "<br>",
                           "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>"),
