@@ -8,6 +8,14 @@ library(igraph)
 library(httr)
 library(DT)
 
+
+normalize_park_code <- function(x) {
+  x %>%
+    str_replace_all("[^A-Za-z]", "") %>%
+    str_to_upper() %>%
+    str_trim()
+}
+
 # Zip code data from: https://simplemaps.com/data/us-zips
 
 ###################
@@ -163,7 +171,7 @@ load_park_outline_data <- function() {
         park_code = normalize_park_code(park_code),
         type = trimws(type)
       ) %>%
-      filter(!is.na(latitude) & !is.na(longitude) & !is.na(park_code))
+      filter(!is.na(latitude) & !is.na(longitude) & !is.na(park_code) & park_code != "")
   } else {
     # Return empty tibble if file doesn't exist
     tibble(
@@ -177,13 +185,6 @@ load_park_outline_data <- function() {
 }
 
 load_park_point_data <- function() {
-  normalize_park_code <- function(x) {
-    x %>%
-      str_replace_all("[^A-Za-z]", "") %>%
-      str_to_upper() %>%
-      str_trim()
-  }
-  
   park_points <- load_park_outline_data()
   if (nrow(park_points) == 0) return(park_points)
   
@@ -1073,7 +1074,7 @@ server <- function(input, output, session) {
   park_images <- read.csv("national_parks_images.csv", stringsAsFactors = FALSE)
   park_activities <- read.csv("nps_activities_by_park.csv", stringsAsFactors = FALSE)
   park_things_to_do <- read.csv("nps_things_to_do.csv", stringsAsFactors = FALSE)
-  park_outline <- read.csv("nps_park_outline.csv", stringsAsFactors = FALSE)
+  park_outline <- read.csv("nps_all_coordinates.csv", stringsAsFactors = FALSE)
   visit_time_defaults <- load_visit_time_defaults()
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
