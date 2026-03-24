@@ -1,0 +1,63 @@
+park_name,state,entrance_fee_vehicle_usd,entrance_fee_person_usd,timed_entry_required,parking_included
+Acadia,ME,35,20,TRUE,TRUE
+American Samoa,AS,0,0,FALSE,TRUE
+Arches,UT,30,15,TRUE,TRUE
+Badlands,SD,30,15,FALSE,TRUE
+Big Bend,TX,30,15,FALSE,TRUE
+Biscayne,FL,0,0,FALSE,TRUE
+Black Canyon of the Gunnison,CO,30,15,FALSE,TRUE
+Bryce Canyon,UT,35,20,FALSE,TRUE
+Canyonlands,UT,30,15,FALSE,TRUE
+Capitol Reef,UT,20,10,FALSE,TRUE
+Carlsbad Caverns,NM,0,15,FALSE,TRUE
+Channel Islands,CA,0,0,FALSE,TRUE
+Congaree,SC,0,0,FALSE,TRUE
+Crater Lake,OR,30,15,FALSE,TRUE
+Cuyahoga Valley,OH,0,0,FALSE,TRUE
+Death Valley,CA/NV,30,15,FALSE,TRUE
+Denali,AK,0,15,FALSE,TRUE
+Dry Tortugas,FL,0,15,FALSE,TRUE
+Everglades,FL,30,15,FALSE,TRUE
+Gateway Arch,MO,0,0,FALSE,TRUE
+Glacier,MT,35,20,TRUE,TRUE
+Glacier Bay,AK,0,0,FALSE,TRUE
+Grand Canyon,AZ,35,20,FALSE,TRUE
+Grand Teton,WY,35,20,FALSE,TRUE
+Great Basin,NV,0,0,FALSE,TRUE
+Great Sand Dunes,CO,25,15,FALSE,TRUE
+Great Smoky Mountains,TN/NC,0,0,TRUE,FALSE
+Guadalupe Mountains,TX,0,10,FALSE,TRUE
+Haleakala,HI,30,15,TRUE,TRUE
+Hawaii Volcanoes,HI,30,15,FALSE,TRUE
+Hot Springs,AR,0,0,FALSE,TRUE
+Indiana Dunes,IN,25,15,FALSE,TRUE
+Isle Royale,MI,0,7,FALSE,TRUE
+Joshua Tree,CA,30,15,TRUE,TRUE
+Katmai,AK,0,0,FALSE,TRUE
+Kenai Fjords,AK,0,0,FALSE,TRUE
+Kings Canyon,CA,35,20,FALSE,TRUE
+Kobuk Valley,AK,0,0,FALSE,TRUE
+Lake Clark,AK,0,0,FALSE,TRUE
+Lassen Volcanic,CA,30,15,FALSE,TRUE
+Mammoth Cave,KY,0,0,FALSE,TRUE
+Mesa Verde,CO,30,15,FALSE,TRUE
+Mount Rainier,WA,30,15,TRUE,TRUE
+New River Gorge,WV,0,0,FALSE,TRUE
+North Cascades,WA,0,0,FALSE,TRUE
+Olympic,WA,30,15,FALSE,TRUE
+Petrified Forest,AZ,25,15,FALSE,TRUE
+Pinnacles,CA,30,15,FALSE,TRUE
+Redwood,CA,0,0,FALSE,TRUE
+Rocky Mountain,CO,30,15,TRUE,TRUE
+Saguaro,AZ,25,15,FALSE,TRUE
+Sequoia,CA,35,20,FALSE,TRUE
+Shenandoah,VA,30,15,FALSE,TRUE
+Theodore Roosevelt,ND,30,15,FALSE,TRUE
+Virgin Islands,VI,0,0,FALSE,TRUE
+Voyageurs,MN,0,0,FALSE,TRUE
+White Sands,NM,25,15,FALSE,TRUE
+Wind Cave,SD,0,0,FALSE,TRUE
+Wrangell-St. Elias,AK,0,0,FALSE,TRUE
+Yellowstone,WY/MT/ID,35,20,FALSE,TRUE
+Yosemite,CA,35,20,TRUE,TRUE
+Zion,UT,35,20,TRUE,TRUE
