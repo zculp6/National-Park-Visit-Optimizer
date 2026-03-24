@@ -1061,8 +1061,6 @@ ui <- dashboardPage(
       )
     )
   )
-)
-
 
 ###################
 ### Server
@@ -1074,7 +1072,7 @@ server <- function(input, output, session) {
   park_images <- read.csv("national_parks_images.csv", stringsAsFactors = FALSE)
   park_activities <- read.csv("nps_activities_by_park.csv", stringsAsFactors = FALSE)
   park_things_to_do <- read.csv("nps_things_to_do.csv", stringsAsFactors = FALSE)
-  park_outline <- read.csv("nps_all_coordinates.csv", stringsAsFactors = FALSE)
+  park_outline <- load_park_point_data()
   visit_time_defaults <- load_visit_time_defaults()
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
@@ -1087,12 +1085,35 @@ server <- function(input, output, session) {
   park_visit_time_overrides <- reactiveVal(numeric(0))
   computed_route <- reactiveVal(NULL)
   
+  park_type_levels <- sort(unique(park_outline$type))
+  park_type_palette <- colorFactor(
+    palette = c(
+      "Visitor Center" = "#1f78b4",
+      "Campground" = "#33a02c",
+      "Point of Interest" = "#ff7f00",
+      "Parking" = "#6a3d9a",
+      "Webcam" = "#e31a1c"
+    ),
+    domain = park_type_levels,
+    na.color = "#7f7f7f"
+  )
+  
   get_default_visit_hours <- function(park_name) {
     val <- park_catalog %>%
       filter(name == park_name) %>%
       pull(default_visit_hours) %>%
       .[1]
     if (is.null(val) || is.na(val) || !is.finite(val) || val <= 0) 2 else round(as.numeric(val), 2)
+  }
+  
+  add_popup_html <- function(data) {
+    data %>%
+      mutate(
+        popup_html = map_chr(name, function(park_name_value) {
+          park_row <- data %>% filter(name == park_name_value) %>% slice(1)
+          build_park_popup(park_row, park_images)
+        })
+      )
   }
   
   city_zip_choices <- zip_codes %>%
@@ -1152,10 +1173,7 @@ server <- function(input, output, session) {
   })
   
   output$all_parks_map <- renderLeaflet({
-    map_data <- park_catalog %>%
-      rowwise() %>%
-      mutate(popup_html = build_park_popup(cur_data(), park_images)) %>%
-      ungroup()
+    map_data <- add_popup_html(park_catalog)
     
     leaflet(map_data) %>%
       addTiles() %>%
@@ -1175,10 +1193,22 @@ server <- function(input, output, session) {
   })
   
   output$view_park_map <- renderLeaflet({
-    map_data <- park_catalog %>%
-      rowwise() %>%
-      mutate(popup_html = build_park_popup(cur_data(), park_images)) %>%
-      ungroup()
+    selected_name <- selected_view_park()
+    map_data <- add_popup_html(park_catalog)
+    
+    selected_points <- tibble()
+    if (!is.null(selected_name) && nzchar(selected_name)) {
+      selected_code <- park_catalog %>%
+        filter(name == selected_name) %>%
+        pull(park_code) %>%
+        .[1]
+      if (!is.null(selected_code) && !is.na(selected_code) && nzchar(selected_code)) {
+        selected_points <- park_outline %>%
+          filter(tolower(.data$park_code) == tolower(selected_code)) %>%
+          mutate(type = if_else(is.na(type) | !nzchar(type), "Unknown", type))
+      }
+    }
+    
     leaflet(map_data) %>%
       addTiles() %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
@@ -1193,6 +1223,25 @@ server <- function(input, output, session) {
         fillOpacity = 0.85,
         popup = ~popup_html,
         label = ~name
+      ) %>%
+      addCircleMarkers(
+        data = selected_points,
+        lng = ~longitude,
+        lat = ~latitude,
+        radius = 5,
+        stroke = FALSE,
+        fillOpacity = 0.9,
+        fillColor = ~park_type_palette(type),
+        color = ~park_type_palette(type),
+        popup = ~paste0("<b>", entity_name, "</b><br>", type),
+        group = "park_features"
+      ) %>%
+      addLegend(
+        "bottomright",
+        pal = park_type_palette,
+        values = selected_points$type,
+        title = "Feature Type",
+        opacity = 1
       )
   })
   
@@ -1248,16 +1297,13 @@ server <- function(input, output, session) {
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_outline %>%
       filter(tolower(.data$park_code) == tolower(park_code)) %>%
-      select(visitor_centers, trails, campgrounds, restrooms, latitude, longitude, entrance_fees, operating_hours) %>%
+      mutate(type = if_else(is.na(type) | !nzchar(type), "Unknown", type)) %>%
+      select(entity_name, type, latitude, longitude) %>%
       rename(
-        `Visitor Centers` = visitor_centers,
-        Trails = trails,
-        Campgrounds = campgrounds,
-        Restrooms = restrooms,
-        `Boundary Latitude` = latitude,
-        `Boundary Longitude` = longitude,
-        `Entrance Fees` = entrance_fees,
-        `Operating Hours` = operating_hours
+        `Feature Name` = entity_name,
+        `Feature Type` = type,
+        Latitude = latitude,
+        Longitude = longitude
       )
     datatable(dat, options = list(pageLength = 5, dom = "tip"), rownames = FALSE)
   })
@@ -1267,9 +1313,7 @@ server <- function(input, output, session) {
     selected <- selected_park_names()
     map_data <- park_catalog %>%
       mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
-      rowwise() %>%
-      mutate(popup_html = build_park_popup(cur_data(), park_images)) %>%
-      ungroup()
+      add_popup_html()
     
     leaflet() %>%
       addTiles() %>%
@@ -1300,9 +1344,7 @@ server <- function(input, output, session) {
     selected <- selected_park_names()
     map_data <- park_catalog %>%
       mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
-      rowwise() %>%
-      mutate(popup_html = build_park_popup(cur_data(), park_images)) %>%
-      ungroup()
+      add_popup_html()
     
     leafletProxy("park_selector_map", data = map_data) %>%
       clearMarkers() %>%
