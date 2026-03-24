@@ -8,7 +8,6 @@ library(igraph)
 library(httr)
 library(DT)
 
-
 normalize_park_code <- function(x) {
   x %>%
     str_replace_all("[^A-Za-z]", "") %>%
@@ -20,11 +19,13 @@ normalize_park_name_key <- function(x) {
   x %>%
     str_to_lower() %>%
     str_replace_all("&", " and ") %>%
-    str_replace_all("\\b(national\\s+park|national\\s+parks|np|n\\.p\\.)\\b", " ") %>%
+    str_replace_all("\\b(national\\s+park|national\\s+parks|national\\s+and\\s+state\\s+parks|state\\s+parks|preserve|np|n\\.p\\.)\\b", " ") %>%
+    str_replace_all("\\bof\\b", " ") %>%
     str_replace_all("[^a-z0-9]+", " ") %>%
     str_squish()
 }
 # Zip code data from: https://simplemaps.com/data/us-zips
+# Other data from NPS API
 
 ###################
 ### Airport Data
@@ -99,10 +100,7 @@ load_park_data <- function() {
     filter(!is.na(latitude) & !is.na(longitude)) %>%
     mutate(
       name = ifelse(name == "Virgin Islands", "U.S. Virgin Islands", name),
-      states = lapply(states, function(x) {
-        x <- ifelse(x == "Virgin Islands", "U.S. Virgin Islands", x)
-        x
-      })
+      states = map_chr(states, ~ paste(ifelse(.x == "Virgin Islands", "U.S. Virgin Islands", .x), collapse = ", "))
     ) %>%
     unnest_longer(states, values_to = "state") %>%
     distinct(name, state, .keep_all = TRUE)
@@ -134,6 +132,49 @@ load_park_data <- function() {
     ) %>%
     distinct(park_code, .keep_all = TRUE)
   
+  detail_aliases <- tibble(
+    park_alias = c(
+      "american samoa",
+      "katmai",
+      "glacier bay",
+      "wrangell st elias",
+      "denali",
+      "lake clark",
+      "gates of the arctic",
+      "redwood",
+      "kings canyon",
+      "sequoia",
+      "great sand dunes",
+      "new river gorge",
+      "u s virgin islands"
+    ),
+    detail_name_key = c(
+      "american samoa",
+      "katmai",
+      "glacier bay",
+      "wrangell st elias",
+      "denali",
+      "lake clark",
+      "gates of the arctic",
+      "redwood",
+      "sequoia and kings canyon",
+      "sequoia and kings canyon",
+      "great sand dunes",
+      "new river gorge",
+      "virgin islands"
+    )
+  ) %>%
+    left_join(details_clean %>% select(
+      detail_name_key = name_key,
+      alias_city = city,
+      alias_phone = phone,
+      alias_email = email,
+      alias_hours = hours,
+      alias_website = website,
+      alias_description = description
+    ),
+    by = "detail_name_key")
+  
   image_counts <- park_images %>%
     mutate(park_code = normalize_park_code(Park_Code)) %>%
     group_by(park_code) %>%
@@ -142,20 +183,10 @@ load_park_data <- function() {
   
   park_coords <- park_coords %>%
     mutate(name_key = normalize_park_name_key(name)) %>%
-    left_join(details_clean %>% select(-name_key), by = "park_code") %>%
-    left_join(details_clean %>% select(name_key, city, phone, email, hours, website, description),
-              by = "name_key", suffix = c("", "_name")) %>%
-    mutate(
-      city = coalesce(city, city_name),
-      phone = coalesce(phone, phone_name),
-      email = coalesce(email, email_name),
-      hours = coalesce(hours, hours_name),
-      website = coalesce(website, website_name),
-      description = coalesce(description, description_name)
-    ) %>%
+    left_join(details_clean, by = "name_key") %>%
     left_join(image_counts, by = "park_code") %>%
     mutate(image_count = replace_na(image_count, 0L)) %>%
-    select(-name_key, -ends_with("_name"))
+    select(-name_key)
   
   return(park_coords)
 }
@@ -1188,7 +1219,7 @@ server <- function(input, output, session) {
     map_data <- add_popup_html(park_catalog)
     
     leaflet(map_data) %>%
-      addTiles() %>%
+      addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
       addCircleMarkers(
         lng = ~longitude,
@@ -1227,7 +1258,7 @@ server <- function(input, output, session) {
     }
     
     leaflet(map_data) %>%
-      addTiles() %>%
+      addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
       addCircleMarkers(
         data = map_data,
@@ -1366,10 +1397,11 @@ server <- function(input, output, session) {
   output$park_selector_map <- renderLeaflet({
     selected <- selected_park_names()
     map_data <- park_catalog %>%
-      mutate(marker_color = if_else(name %in% selected, "green", "red")) 
+      mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
+      add_popup_html()
     
     leaflet() %>%
-      addTiles() %>%
+      addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
       addCircleMarkers(
         data = map_data,
@@ -1381,7 +1413,6 @@ server <- function(input, output, session) {
         fillColor = ~marker_color,
         fillOpacity = 0.85,
         weight = 2,
-        popup = ~popup_html,
         label = ~name
       ) %>%
       addLegend(
@@ -1396,7 +1427,8 @@ server <- function(input, output, session) {
   observe({
     selected <- selected_park_names()
     map_data <- park_catalog %>%
-      mutate(marker_color = if_else(name %in% selected, "green", "red"))
+      mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
+      add_popup_html()
     
     leafletProxy("park_selector_map", data = map_data) %>%
       clearMarkers() %>%
@@ -1853,7 +1885,7 @@ server <- function(input, output, session) {
   # Route map
   output$route_map <- renderLeaflet({
     leaflet() %>%
-      addTiles() %>%
+      addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -95, lat = 39, zoom = 4) %>%
       addControl(
         html = "<div style='background: rgba(255,255,255,0.92); padding: 8px 10px; border-radius: 4px;'>
