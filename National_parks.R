@@ -132,49 +132,6 @@ load_park_data <- function() {
     ) %>%
     distinct(park_code, .keep_all = TRUE)
   
-  detail_aliases <- tibble(
-    park_alias = c(
-      "american samoa",
-      "katmai",
-      "glacier bay",
-      "wrangell st elias",
-      "denali",
-      "lake clark",
-      "gates of the arctic",
-      "redwood",
-      "kings canyon",
-      "sequoia",
-      "great sand dunes",
-      "new river gorge",
-      "u s virgin islands"
-    ),
-    detail_name_key = c(
-      "american samoa",
-      "katmai",
-      "glacier bay",
-      "wrangell st elias",
-      "denali",
-      "lake clark",
-      "gates of the arctic",
-      "redwood",
-      "sequoia and kings canyon",
-      "sequoia and kings canyon",
-      "great sand dunes",
-      "new river gorge",
-      "virgin islands"
-    )
-  ) %>%
-    left_join(details_clean %>% select(
-      detail_name_key = name_key,
-      alias_city = city,
-      alias_phone = phone,
-      alias_email = email,
-      alias_hours = hours,
-      alias_website = website,
-      alias_description = description
-    ),
-    by = "detail_name_key")
-  
   image_counts <- park_images %>%
     mutate(park_code = normalize_park_code(Park_Code)) %>%
     group_by(park_code) %>%
@@ -237,6 +194,22 @@ load_park_point_data <- function() {
     left_join(park_details, by = "park_code")
 }
 
+categorize_park_feature <- function(type, entity_name) {
+  raw_type <- ifelse(is.na(type), "", type)
+  raw_name <- ifelse(is.na(entity_name), "", entity_name)
+  merged <- str_to_lower(paste(raw_type, raw_name))
+  
+  if (str_detect(merged, "webcam")) return(NA_character_)
+  if (str_detect(merged, "picnic")) return("Picnic Area")
+  if (str_detect(merged, "bathroom|restroom|toilet")) return("Restroom")
+  if (str_detect(merged, "visitor\\s*center")) return("Visitor Center")
+  if (str_detect(merged, "campground")) return("Campground")
+  if (str_detect(merged, "parking")) return("Parking")
+  if (str_detect(merged, "trail")) return("Trail")
+  
+  "Additional Areas"
+}
+
 build_image_gallery_html <- function(park_name, image_df) {
   park_name_key <- normalize_park_name_key(park_name)
   images <- image_df %>%
@@ -268,6 +241,7 @@ build_image_gallery_html <- function(park_name, image_df) {
 
 build_park_popup <- function(park_row, image_df) {
   gallery_html <- build_image_gallery_html(park_row$name, image_df)
+  modal_id <- paste0("gallery_modal_", gsub("[^a-zA-Z0-9]", "_", park_row$name))
   paste0(
     "<h4><b>", park_row$name, "</b></h4>",
     "<b>State/Territory:</b> ", park_row$state, "<br>",
@@ -281,7 +255,13 @@ build_park_popup <- function(park_row, image_df) {
     "<b>Website:</b> <a href='", park_row$website, "' target='_blank'>", park_row$website, "</a><br><br>",
     "<b>Description:</b><br>", park_row$description, "<br><br>",
     "<b>Gallery (", park_row$image_count, "):</b><br>",
-    gallery_html
+    "<button class='btn btn-primary btn-sm' onclick=\"window.openParkGallery('", modal_id, "')\">View Gallery</button>",
+    "<div id='", modal_id, "' class='park-gallery-modal' style='display:none;'>",
+    "<div class='park-gallery-modal-content'>",
+    "<button class='park-gallery-close' onclick=\"window.closeParkGallery('", modal_id, "')\">&times;</button>",
+    "<h4>", park_row$name, " Gallery</h4>",
+    gallery_html,
+    "</div></div>"
   )
 }
 
@@ -789,6 +769,35 @@ ui <- dashboardPage(
         .info-box-content { padding-top: 0px; padding-bottom: 0px; }
         .gallery-slide { display: none; }
         .gallery-slide.active { display: block; }
+        .park-gallery-modal {
+          position: fixed;
+          z-index: 3000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0, 0, 0, 0.55);
+        }
+        .park-gallery-modal-content {
+          position: relative;
+          background-color: #fff;
+          margin: 8% auto;
+          padding: 16px;
+          border-radius: 8px;
+          width: min(700px, 90vw);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+        .park-gallery-close {
+          position: absolute;
+          top: 8px;
+          right: 10px;
+          border: none;
+          background: transparent;
+          font-size: 24px;
+          cursor: pointer;
+          line-height: 1;
+        }
       "))
     ),
     tags$script(HTML("
@@ -802,6 +811,16 @@ ui <- dashboardPage(
           slides[active].classList.remove('active');
           var nextIdx = (active + delta + slides.length) % slides.length;
           slides[nextIdx].classList.add('active');
+        };
+        window.openParkGallery = function(modalId) {
+          var modal = document.getElementById(modalId);
+          if (!modal) return;
+          modal.style.display = 'block';
+        };
+        window.closeParkGallery = function(modalId) {
+          var modal = document.getElementById(modalId);
+          if (!modal) return;
+          modal.style.display = 'none';
         };
       ")),
     
@@ -853,7 +872,8 @@ ui <- dashboardPage(
                   width = 12,
                   fluidRow(
                     column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(6, p("Start in all parks U.S. view, then choose a park to zoom in and label park features."))
+                    column(3, selectInput("view_feature_type", "Feature Type:", choices = c("All Feature Types" = "all"), selected = "all")),
+                    column(3, p("Start in all parks U.S. view, then choose a park to zoom in and filter park features."))
                   ),
                   leafletOutput("view_park_map", height = 500)
                 )
@@ -872,7 +892,7 @@ ui <- dashboardPage(
                 box(title = "Things To Do", status = "warning", solidHeader = TRUE, width = 6, DTOutput("view_park_things_to_do"))
               ),
               fluidRow(
-                box(title = "Park Outline (Visitor Centers, Trails, Campgrounds, Boundaries, Amenities)", status = "primary", solidHeader = TRUE, width = 12, DTOutput("view_park_outline"))
+                box(title = "Park Outline (Selected Park Only: Visitor Centers, Trails, Campgrounds, Additional Areas)", status = "primary", solidHeader = TRUE, width = 12, DTOutput("view_park_outline"))
               )
       ),
       
@@ -1133,14 +1153,22 @@ server <- function(input, output, session) {
     value[[1]]
   }
   
-  park_type_levels <- sort(unique(park_outline$type))
+  park_outline <- park_outline %>%
+    mutate(
+      feature_type = map2_chr(type, entity_name, categorize_park_feature)
+    ) %>%
+    filter(!is.na(feature_type))
+  
+  park_type_levels <- c("Visitor Center", "Campground", "Trail", "Parking", "Picnic Area", "Restroom", "Additional Areas")
   park_type_palette <- colorFactor(
     palette = c(
       "Visitor Center" = "#1f78b4",
       "Campground" = "#33a02c",
-      "Point of Interest" = "#ff7f00",
+      "Trail" = "#b2df8a",
       "Parking" = "#6a3d9a",
-      "Webcam" = "#e31a1c"
+      "Picnic Area" = "#ff7f00",
+      "Restroom" = "#e31a1c",
+      "Additional Areas" = "#7f7f7f"
     ),
     domain = park_type_levels,
     na.color = "#7f7f7f"
@@ -1188,6 +1216,12 @@ server <- function(input, output, session) {
     )
     park_choices <- c("All Parks (U.S.)" = "", sort(unique(park_catalog$name)))
     updateSelectInput(session, "view_park_choice", choices = park_choices, selected = "")
+    updateSelectInput(
+      session,
+      "view_feature_type",
+      choices = c("All Feature Types" = "all", setNames(park_type_levels, park_type_levels)),
+      selected = "all"
+    )
   })
   
   observeEvent(input$view_park_choice, {
@@ -1241,7 +1275,7 @@ server <- function(input, output, session) {
     
     selected_points <- tibble(
       entity_name = character(),
-      type = character(),
+      feature_type = character(),
       latitude = numeric(),
       longitude = numeric()
     )
@@ -1252,16 +1286,24 @@ server <- function(input, output, session) {
         .[1]
       if (!is.null(selected_code) && !is.na(selected_code) && nzchar(selected_code)) {
         selected_points <- park_outline %>%
-          filter(tolower(.data$park_code) == tolower(selected_code)) %>%
-          mutate(type = if_else(is.na(type) | !nzchar(type), "Unknown", type))
+          filter(tolower(.data$park_code) == tolower(selected_code))
+        if (!is.null(input$view_feature_type) && input$view_feature_type != "all") {
+          selected_points <- selected_points %>% filter(feature_type == input$view_feature_type)
+        }
       }
     }
     
-    leaflet(map_data) %>%
+    base_map <- if (!is.null(selected_name) && nzchar(selected_name)) {
+      map_data %>% filter(name == selected_name)
+    } else {
+      map_data
+    }
+    
+    leaflet(base_map) %>%
       addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
       addCircleMarkers(
-        data = map_data,
+        data = base_map,
         layerId = ~name,
         lng = ~longitude,
         lat = ~latitude,
@@ -1279,9 +1321,9 @@ server <- function(input, output, session) {
         radius = 5,
         stroke = FALSE,
         fillOpacity = 0.9,
-        fillColor = ~park_type_palette(type),
-        color = ~park_type_palette(type),
-        popup = ~paste0("<b>", entity_name, "</b><br>", type),
+        fillColor = ~park_type_palette(feature_type),
+        color = ~park_type_palette(feature_type),
+        popup = ~paste0("<b>", entity_name, "</b><br>", feature_type),
         group = "park_features"
       ) %>%
       addLabelOnlyMarkers(
@@ -1307,7 +1349,7 @@ server <- function(input, output, session) {
       addLegend(
         "bottomright",
         pal = park_type_palette,
-        values = selected_points$type,
+        values = selected_points$feature_type,
         title = "Feature Type",
         opacity = 1
       )
@@ -1324,7 +1366,12 @@ server <- function(input, output, session) {
     selected_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
     req(nrow(selected_row) == 1)
     leafletProxy("view_park_map") %>%
-      setView(lng = selected_row$longitude, lat = selected_row$latitude, zoom = 12)
+      fitBounds(
+        lng1 = selected_row$longitude - 0.1,
+        lat1 = selected_row$latitude - 0.1,
+        lng2 = selected_row$longitude + 0.1,
+        lat2 = selected_row$latitude + 0.1
+      )
   })
   
   observeEvent(input$view_park_map_marker_click, {
@@ -1382,11 +1429,15 @@ server <- function(input, output, session) {
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_outline %>%
       filter(tolower(.data$park_code) == tolower(park_code)) %>%
-      mutate(type = if_else(is.na(type) | !nzchar(type), "Unknown", type)) %>%
-      select(entity_name, type, latitude, longitude) %>%
+      {
+        if (!is.null(input$view_feature_type) && input$view_feature_type != "all") {
+          filter(., feature_type == input$view_feature_type)
+        } else .
+      } %>%
+      select(entity_name, feature_type, latitude, longitude) %>%
       rename(
         `Feature Name` = entity_name,
-        `Feature Type` = type,
+        `Feature Type` = feature_type,
         Latitude = latitude,
         Longitude = longitude
       )
@@ -1551,6 +1602,9 @@ server <- function(input, output, session) {
   # Calculate route
   observeEvent(input$calculate, {
     selected <- selected_park_names()
+    computed_route(NULL)
+    segment_mode_overrides(character(0))
+    park_visit_time_overrides(numeric(0))
     
     if (length(selected) < 2) {
       showNotification("Please select at least 2 parks.", type = "error", duration = 5)
