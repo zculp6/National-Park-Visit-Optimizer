@@ -16,6 +16,14 @@ normalize_park_code <- function(x) {
     str_trim()
 }
 
+normalize_park_name_key <- function(x) {
+  x %>%
+    str_to_lower() %>%
+    str_replace_all("&", " and ") %>%
+    str_replace_all("\\b(national\\s+park|national\\s+parks|np|n\\.p\\.)\\b", " ") %>%
+    str_replace_all("[^a-z0-9]+", " ") %>%
+    str_squish()
+}
 # Zip code data from: https://simplemaps.com/data/us-zips
 
 ###################
@@ -99,20 +107,6 @@ load_park_data <- function() {
     unnest_longer(states, values_to = "state") %>%
     distinct(name, state, .keep_all = TRUE)
   
-  normalize_park_name <- function(x) {
-    x %>%
-      str_to_lower() %>%
-      str_replace_all("[^a-z0-9]+", " ") %>%
-      str_squish()
-  }
-  
-  normalize_park_code <- function(x) {
-    x %>%
-      str_replace_all("[^A-Za-z]", "") %>%
-      str_to_upper() %>%
-      str_trim()
-  }
-  
   phone_fmt <- function(x) {
     digits <- str_replace_all(x, "[^0-9]", "")
     ifelse(
@@ -124,7 +118,7 @@ load_park_data <- function() {
   
   details_clean <- park_details %>%
     mutate(
-      name_key = normalize_park_name(Park_Name),
+      name_key = normalize_park_name_key(Park_Name),
       park_code = normalize_park_code(Park_Code),
       phone = phone_fmt(Phone)
     ) %>%
@@ -138,19 +132,30 @@ load_park_data <- function() {
       website = Website_URL,
       description = Description
     ) %>%
-    distinct(name_key, .keep_all = TRUE)
+    distinct(park_code, .keep_all = TRUE)
   
   image_counts <- park_images %>%
-    group_by(Park_Code) %>%
+    mutate(park_code = normalize_park_code(Park_Code)) %>%
+    group_by(park_code) %>%
     summarise(image_count = n(), .groups = "drop") %>%
-    rename(park_code = Park_Code)
+    mutate(park_code = as.character(park_code))
   
   park_coords <- park_coords %>%
-    mutate(name_key = normalize_park_name(name)) %>%
-    left_join(details_clean, by = "name_key") %>%
+    mutate(name_key = normalize_park_name_key(name)) %>%
+    left_join(details_clean %>% select(-name_key), by = "park_code") %>%
+    left_join(details_clean %>% select(name_key, city, phone, email, hours, website, description),
+              by = "name_key", suffix = c("", "_name")) %>%
+    mutate(
+      city = coalesce(city, city_name),
+      phone = coalesce(phone, phone_name),
+      email = coalesce(email, email_name),
+      hours = coalesce(hours, hours_name),
+      website = coalesce(website, website_name),
+      description = coalesce(description, description_name)
+    ) %>%
     left_join(image_counts, by = "park_code") %>%
     mutate(image_count = replace_na(image_count, 0L)) %>%
-    select(-name_key)
+    select(-name_key, -ends_with("_name"))
   
   return(park_coords)
 }
@@ -202,7 +207,10 @@ load_park_point_data <- function() {
 }
 
 build_image_gallery_html <- function(park_name, image_df) {
-  images <- image_df %>% filter(Park_Name == park_name)
+  park_name_key <- normalize_park_name_key(park_name)
+  images <- image_df %>%
+    mutate(name_key = normalize_park_name_key(Park_Name)) %>%
+    filter(name_key == park_name_key)
   if (nrow(images) == 0) {
     return("<em>No images available.</em>")
   }
@@ -250,12 +258,12 @@ load_visit_time_defaults <- function() {
   visit_df <- read.csv("Public Use Statistics.csv", stringsAsFactors = FALSE, check.names = FALSE)
   visit_df %>%
     transmute(
-      park_code = str_to_lower(trimws(UnitCodeTotal)),
-      recreation_visits_total = as.numeric(gsub(",", "", RecreationVisitsTotal)),
-      recreation_hours_total = as.numeric(gsub(",", "", RecreationHoursTotal))
+      park_code = normalize_park_code(UnitCode),
+      recreation_visits = as.numeric(gsub(",", "", RecreationVisits)),
+      recreation_hours = as.numeric(gsub(",", "", RecreationHours))
     ) %>%
-    filter(!is.na(park_code), park_code != "", recreation_visits_total > 0) %>%
-    mutate(default_visit_hours = pmax(recreation_hours_total / recreation_visits_total, 0.5)) %>%
+    filter(!is.na(park_code), park_code != "", recreation_visits > 0) %>%
+    mutate(default_visit_hours = pmax(recreation_hours / recreation_visits, 0.5)) %>%
     group_by(park_code) %>%
     summarise(default_visit_hours = mean(default_visit_hours, na.rm = TRUE), .groups = "drop")
 }
@@ -279,8 +287,8 @@ get_zip_coordinates <- function(zipcode, zip_data = zip_codes) {
   zip_match <- zip_data %>% filter(zip == zip_clean) %>% slice(1)
   if (nrow(zip_match) == 0) return(NULL)
   list(
-    lat = as.numeric(zip_match$lat[[1]]),
-    lon = as.numeric(zip_match$lon[[1]]),
+    latitude = as.numeric(zip_match$lat[[1]]),  # Change 'lat' to 'latitude'
+    longitude = as.numeric(zip_match$lon[[1]]), # Change 'lon' to 'longitude'
     city = zip_match$city[[1]],
     state = zip_match$state_name[[1]],
     zip = zip_clean
@@ -292,8 +300,8 @@ geocode_location <- function(zipcode) {
     zip_match <- get_zip_coordinates(zipcode)
     if (!is.null(zip_match)) {
       return(list(
-        lat = zip_match$lat,
-        lon = zip_match$lon,
+        latitude = zip_match$latitude,   # Change 'lat' to 'latitude'
+        longitude = zip_match$longitude, # Change 'lon' to 'longitude'
         source_city = zip_match$city,
         source_state = zip_match$state,
         source_zip = zip_match$zip,
@@ -642,6 +650,7 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
   distance_to_next <- numeric(n)
   time_to_next <- numeric(n)
   travel_mode <- character(n)
+  segment_description <- character(n)
   segment_geometries <- vector("list", n)
   
   for (i in seq_len(n - 1)) {
@@ -734,6 +743,7 @@ ui <- dashboardPage(
     sidebarMenu(id = "main_tabs",
                 menuItem("Home", tabName = "home", icon = icon("home")),
                 menuItem("National Parks Map", tabName = "allparks", icon = icon("globe-americas")),
+                menuItem("Park Explorer", tabName = "viewpark", icon = icon("map")),
                 menuItem("Route Planner", tabName = "planner", icon = icon("route")),
                 menuItem("Optimal Route", tabName = "optimalroute", icon = icon("map-marked-alt")),
                 menuItem("About", tabName = "about", icon = icon("info-circle"))
@@ -762,8 +772,7 @@ ui <- dashboardPage(
           var nextIdx = (active + delta + slides.length) % slides.length;
           slides[nextIdx].classList.add('active');
         };
-      "))
-    ),
+      ")),
     
     tabItems(
       # Home Tab
@@ -813,7 +822,7 @@ ui <- dashboardPage(
                   width = 12,
                   fluidRow(
                     column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(6, p("Select a park by dropdown or click a marker; map zooms to the selected park."))
+                    column(6, p("Start in all parks U.S. view, then choose a park to zoom in and label park features."))
                   ),
                   leafletOutput("view_park_map", height = 500)
                 )
@@ -1061,6 +1070,7 @@ ui <- dashboardPage(
       )
     )
   )
+)
 
 ###################
 ### Server
@@ -1084,6 +1094,13 @@ server <- function(input, output, session) {
   segment_mode_overrides <- reactiveVal(character(0))
   park_visit_time_overrides <- reactiveVal(numeric(0))
   computed_route <- reactiveVal(NULL)
+  
+  get_named_value <- function(x, key) {
+    if (length(x) == 0 || is.null(names(x))) return(NULL)
+    value <- x[key]
+    if (length(value) == 0) return(NULL)
+    value[[1]]
+  }
   
   park_type_levels <- sort(unique(park_outline$type))
   park_type_palette <- colorFactor(
@@ -1138,17 +1155,12 @@ server <- function(input, output, session) {
       selected = "",
       server = TRUE
     )
-    updateSelectInput(session, "view_park_choice", choices = sort(unique(park_catalog$name)))
-  })
-  
-  observe({
-    if (is.null(selected_view_park())) {
-      selected_view_park(park_catalog$name[1])
-    }
+    park_choices <- c("All Parks (U.S.)" = "", sort(unique(park_catalog$name)))
+    updateSelectInput(session, "view_park_choice", choices = park_choices, selected = "")
   })
   
   observeEvent(input$view_park_choice, {
-    if (!is.null(input$view_park_choice) && nzchar(input$view_park_choice)) {
+    if (!is.null(input$view_park_choice)) {
       selected_view_park(input$view_park_choice)
     }
   })
@@ -1196,7 +1208,12 @@ server <- function(input, output, session) {
     selected_name <- selected_view_park()
     map_data <- add_popup_html(park_catalog)
     
-    selected_points <- tibble()
+    selected_points <- tibble(
+      entity_name = character(),
+      type = character(),
+      latitude = numeric(),
+      longitude = numeric()
+    )
     if (!is.null(selected_name) && nzchar(selected_name)) {
       selected_code <- park_catalog %>%
         filter(name == selected_name) %>%
@@ -1236,6 +1253,26 @@ server <- function(input, output, session) {
         popup = ~paste0("<b>", entity_name, "</b><br>", type),
         group = "park_features"
       ) %>%
+      addLabelOnlyMarkers(
+        data = selected_points,
+        lng = ~longitude,
+        lat = ~latitude,
+        label = ~entity_name,
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "top",
+          textOnly = TRUE,
+          style = list(
+            "font-size" = "11px",
+            "font-weight" = "600",
+            "color" = "#333333",
+            "background-color" = "rgba(255,255,255,0.75)",
+            "padding" = "2px 4px",
+            "border-radius" = "3px"
+          )
+        ),
+        group = "park_feature_labels"
+      ) %>%
       addLegend(
         "bottomright",
         pal = park_type_palette,
@@ -1247,11 +1284,16 @@ server <- function(input, output, session) {
   
   observe({
     park_name <- selected_view_park()
-    req(park_name)
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) {
+      leafletProxy("view_park_map") %>%
+        setView(lng = -98.5, lat = 39.8, zoom = 4)
+      return()
+    }
     selected_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
     req(nrow(selected_row) == 1)
     leafletProxy("view_park_map") %>%
-      setView(lng = selected_row$longitude, lat = selected_row$latitude, zoom = 9)
+      setView(lng = selected_row$longitude, lat = selected_row$latitude, zoom = 12)
   })
   
   observeEvent(input$view_park_map_marker_click, {
@@ -1264,7 +1306,10 @@ server <- function(input, output, session) {
   
   output$view_park_summary <- renderUI({
     park_name <- selected_view_park()
-    req(park_name)
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) {
+      return(HTML("<em>Select a park from the dropdown to view details.</em>"))
+    }
     selected_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
     req(nrow(selected_row) == 1)
     HTML(build_park_popup(selected_row, park_images))
@@ -1272,7 +1317,10 @@ server <- function(input, output, session) {
   
   output$view_park_activities <- renderDT({
     park_name <- selected_view_park()
-    req(park_name)
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) {
+      return(datatable(data.frame(Message = "Select a park to view activities."), options = list(dom = "t"), rownames = FALSE))
+    }
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_activities %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
@@ -1283,7 +1331,10 @@ server <- function(input, output, session) {
   
   output$view_park_things_to_do <- renderDT({
     park_name <- selected_view_park()
-    req(park_name)
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) {
+      return(datatable(data.frame(Message = "Select a park to view things to do."), options = list(dom = "t"), rownames = FALSE))
+    }
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
@@ -1293,7 +1344,10 @@ server <- function(input, output, session) {
   
   output$view_park_outline <- renderDT({
     park_name <- selected_view_park()
-    req(park_name)
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) {
+      return(datatable(data.frame(Message = "Select a park to view park features and outline data."), options = list(dom = "t"), rownames = FALSE))
+    }
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_outline %>%
       filter(tolower(.data$park_code) == tolower(park_code)) %>%
@@ -1312,8 +1366,7 @@ server <- function(input, output, session) {
   output$park_selector_map <- renderLeaflet({
     selected <- selected_park_names()
     map_data <- park_catalog %>%
-      mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
-      add_popup_html()
+      mutate(marker_color = if_else(name %in% selected, "green", "red")) 
     
     leaflet() %>%
       addTiles() %>%
@@ -1343,8 +1396,7 @@ server <- function(input, output, session) {
   observe({
     selected <- selected_park_names()
     map_data <- park_catalog %>%
-      mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
-      add_popup_html()
+      mutate(marker_color = if_else(name %in% selected, "green", "red"))
     
     leafletProxy("park_selector_map", data = map_data) %>%
       clearMarkers() %>%
@@ -1358,7 +1410,6 @@ server <- function(input, output, session) {
         fillColor = ~marker_color,
         fillOpacity = 0.85,
         weight = 2,
-        popup = ~popup_html,
         label = ~name
       ) %>%
       addLegend(
@@ -1690,7 +1741,7 @@ server <- function(input, output, session) {
       visit_overrides <- park_visit_time_overrides()
       visit_total <- if (nrow(parks_only) > 0) {
         sum(sapply(parks_only$name, function(park_name) {
-          value <- visit_overrides[[park_name]]
+          value <- get_named_value(visit_overrides, park_name)
           if (is.null(value) || !is.finite(value) || value < 0) get_default_visit_hours(park_name) else as.numeric(value)
         }))
       } else {
@@ -1757,7 +1808,7 @@ server <- function(input, output, session) {
       }
       
       if (!current_name %in% c("START", "END")) {
-        visit_hours <- visit_overrides[[current_name]]
+        visit_hours <- get_named_value(visit_overrides, current_name)
         if (is.null(visit_hours) || !is.finite(visit_hours) || visit_hours < 0) visit_hours <- get_default_visit_hours(current_name)
         rows[[row_id]] <- data.frame(
           Type = "Park Visit",
@@ -1984,7 +2035,7 @@ server <- function(input, output, session) {
       segment_id <- paste0("segment_", i)
       selected_value <- input[[segment_id]]
       if (!is.null(selected_value)) {
-        current_overrides[as.character(i)] <- selected_value
+        current_overrides[[as.character(i)]] <- selected_value
       }
     }
     segment_mode_overrides(current_overrides)
@@ -2004,7 +2055,7 @@ server <- function(input, output, session) {
       input_id <- paste0("visit_hours_", i)
       visit_value <- input[[input_id]]
       if (!is.null(visit_value) && is.finite(visit_value) && visit_value >= 0) {
-        visit_overrides[park_name] <- visit_value
+        visit_overrides[[park_name]] <- visit_value
       }
     }
     park_visit_time_overrides(visit_overrides)
@@ -2020,7 +2071,7 @@ server <- function(input, output, session) {
     
     route_indices <- result$ordered_indices
     for (i in seq_len(length(route_indices) - 1)) {
-      override_val <- overrides[[as.character(i)]]
+      override_val <- get_named_value(overrides, as.character(i))
       if (is.null(override_val) || identical(override_val, "auto")) next
       from_idx <- route_indices[i]
       to_idx <- route_indices[i + 1]
