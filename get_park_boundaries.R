@@ -53,6 +53,18 @@ tryCatch({
   boundary_sf <- st_read(shapefile_path, quiet = FALSE)
   message(paste("\n✓ Successfully read shapefile with", nrow(boundary_sf), "features"))
   
+  # Ensure coordinates are in lon/lat (WGS84) so downstream map bounds are valid.
+  current_crs <- st_crs(boundary_sf)
+  if (is.null(current_crs) || is.na(current_crs)) {
+    warning("Shapefile CRS is missing; geometry will be used as-is and may not align with lon/lat maps.")
+  } else {
+    message(paste("Detected CRS:", current_crs$input))
+    if (!st_is_longlat(boundary_sf)) {
+      message("Transforming shapefile geometry to EPSG:4326 (lon/lat)")
+      boundary_sf <- st_transform(boundary_sf, 4326)
+    }
+  }
+  
   # Show column names
   message("\n=== SHAPEFILE COLUMNS ===")
   print(names(boundary_sf))
@@ -146,8 +158,8 @@ tryCatch({
     }
   }
   
-  # Function to convert sf object to GeoJSON-like structure
-  sf_to_geojson_feature <- function(sf_row, feature_index) {
+  # Keep fields compatible with NPS mapdata format so National_parks.R can parse it.
+  sf_to_geojson_feature <- function(sf_row, feature_index, park_code, park_display_name) {
     geom <- st_geometry(sf_row)[[1]]
     coords <- st_coordinates(geom)
     geom_type <- st_geometry_type(geom)
@@ -193,13 +205,21 @@ tryCatch({
       )
     }
     
-    # Extract properties
-    props <- as.list(sf_row)
-    props$geometry <- NULL
+    # Extract properties and add API-compatible keys used downstream.
+    raw_props <- as.list(sf_row)
+    raw_props$geometry <- NULL
+    unit_name <- as.character(raw_props$UNIT_NAME[[1]])
+    if (is.na(unit_name) || !nzchar(unit_name)) unit_name <- park_display_name
+    props <- list(
+      name = ifelse(nzchar(unit_name), unit_name, park_display_name),
+      parkCode = toupper(park_code),
+      source = "nps_admin_boundaries_shapefile",
+      sourceProperties = raw_props
+    )
     
     list(
       type = "Feature",
-      id = paste0("shapefile-", feature_index),
+      id = paste0("shapefile-", tolower(park_code), "-", feature_index),
       geometry = geom_json,
       properties = props
     )
@@ -213,7 +233,12 @@ tryCatch({
     glba_geojson_features <- list()
     for (i in 1:nrow(glba_features)) {
       message(paste("Converting GLBA feature", i))
-      glba_geojson_features[[i]] <- sf_to_geojson_feature(glba_features[i, ], i)
+      glba_geojson_features[[i]] <- sf_to_geojson_feature(
+        glba_features[i, ],
+        i,
+        park_code = "GLBA",
+        park_display_name = "Glacier Bay"
+      )
     }
     shapefile_parks[["glba"]] <- list(
       type = "FeatureCollection",
@@ -227,7 +252,12 @@ tryCatch({
     katm_geojson_features <- list()
     for (i in 1:nrow(katm_features)) {
       message(paste("Converting KATM feature", i))
-      katm_geojson_features[[i]] <- sf_to_geojson_feature(katm_features[i, ], i)
+      katm_geojson_features[[i]] <- sf_to_geojson_feature(
+        katm_features[i, ],
+        i,
+        park_code = "KATM",
+        park_display_name = "Katmai"
+      )
     }
     shapefile_parks[["katm"]] <- list(
       type = "FeatureCollection",

@@ -381,6 +381,32 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
   
   boundary_json <- fromJSON(path, simplifyVector = FALSE)
   
+  mercator_to_wgs84 <- function(lng, lat) {
+    lon <- (lng / 20037508.34) * 180
+    lat_deg <- (atan(exp((lat / 20037508.34) * pi)) * 360 / pi) - 90
+    tibble(lng = lon, lat = lat_deg)
+  }
+  
+  normalize_boundary_crs <- function(coord_df, park_code = "") {
+    if (is.null(coord_df) || nrow(coord_df) == 0) return(coord_df)
+    valid <- coord_df %>% filter(!is.na(lng), !is.na(lat))
+    if (nrow(valid) == 0) return(coord_df)
+    looks_projected <- any(abs(valid$lng) > 180 | abs(valid$lat) > 90)
+    if (!looks_projected) return(coord_df)
+    converted <- mercator_to_wgs84(valid$lng, valid$lat)
+    idx <- !is.na(coord_df$lng) & !is.na(coord_df$lat)
+    coord_df$lng[idx] <- converted$lng
+    coord_df$lat[idx] <- converted$lat
+    warning(
+      paste0(
+        "Boundary coordinates for park code ", park_code,
+        " appeared projected; converted from Web Mercator to WGS84."
+      ),
+      call. = FALSE
+    )
+    coord_df
+  }
+  
   flatten_geometry_coords <- function(geometry) {
     geom_type <- as_scalar_character(geometry$type, "")
     coords <- geometry$coordinates
@@ -454,10 +480,12 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
     coords_df <- map_dfr(code_entry$features, function(feat) {
       flatten_geometry_coords(feat$geometry)
     })
+    coords_df <- normalize_boundary_crs(coords_df, normalize_park_code(park_code))
     boundary_paths <- code_entry$features %>%
       map(~ extract_boundary_paths(.x$geometry)) %>%
       unlist(recursive = FALSE) %>%
-      keep(~ is.data.frame(.x) && nrow(.x) > 2)
+      keep(~ is.data.frame(.x) && nrow(.x) > 2) %>%
+      map(~ normalize_boundary_crs(.x, normalize_park_code(park_code)))
     valid_coords <- coords_df %>% filter(!is.na(lng), !is.na(lat))
     if (nrow(valid_coords) == 0 || length(boundary_paths) == 0) {
       return(NULL)
