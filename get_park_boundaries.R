@@ -9,11 +9,35 @@ or_else <- function(x, default = NA_character_) {
 }
 
 fetch_park_boundaries <- function(limit = 600) {
-  url <- sprintf("https://developer.nps.gov/api/v1/parkboundaries?limit=%s&api_key=%s", limit, api_key)
-  response <- GET(url)
-  stop_for_status(response)
-  payload <- fromJSON(content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
-  payload$data
+  endpoints <- c("parkboundaries", "parks")
+  last_error <- NULL
+  
+  for (endpoint in endpoints) {
+    url <- sprintf("https://developer.nps.gov/api/v1/%s?limit=%s&api_key=%s", endpoint, limit, api_key)
+    response <- tryCatch(GET(url), error = function(e) e)
+    
+    if (inherits(response, "error")) {
+      last_error <- response$message
+      next
+    }
+    
+    if (status_code(response) == 404) {
+      last_error <- sprintf("Not Found (HTTP 404) for endpoint '%s'", endpoint)
+      next
+    }
+    
+    stop_for_status(response)
+    
+    payload <- fromJSON(content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+    data <- payload$data
+    
+    if (!is.null(data) && length(data) > 0) {
+      message(sprintf("Fetched park boundary source data from endpoint: %s", endpoint))
+      return(data)
+    }
+  }
+  
+  stop(sprintf("Unable to fetch park boundaries from NPS API. Last error: %s", or_else(last_error, "Unknown error")))
 }
 
 extract_coords_from_geometry <- function(geometry_raw) {
@@ -47,7 +71,36 @@ extract_coords_from_geometry <- function(geometry_raw) {
     filter(!is.na(lng), !is.na(lat))
 }
 
+load_point_extents <- function(path = "nps_all_coordinates.csv") {
+  if (!file.exists(path)) {
+    return(tibble(
+      park_code = character(),
+      min_lng_points = numeric(),
+      min_lat_points = numeric(),
+      max_lng_points = numeric(),
+      max_lat_points = numeric()
+    ))
+  }
+  
+  read.csv(path, stringsAsFactors = FALSE) %>%
+    transmute(
+      park_code = toupper(as.character(park_code)),
+      latitude = suppressWarnings(as.numeric(latitude)),
+      longitude = suppressWarnings(as.numeric(longitude))
+    ) %>%
+    filter(!is.na(park_code), nzchar(park_code), !is.na(latitude), !is.na(longitude)) %>%
+    group_by(park_code) %>%
+    summarise(
+      min_lng_points = min(longitude, na.rm = TRUE),
+      min_lat_points = min(latitude, na.rm = TRUE),
+      max_lng_points = max(longitude, na.rm = TRUE),
+      max_lat_points = max(latitude, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
 boundaries_raw <- fetch_park_boundaries()
+point_extents <- load_point_extents()
 
 boundary_rows <- map_dfr(boundaries_raw, function(item) {
   park_code <- or_else(item$parkCode, NA_character_)
@@ -73,8 +126,16 @@ boundary_rows <- map_dfr(boundaries_raw, function(item) {
     max_lat = max(coords$lat, na.rm = TRUE)
   )
 }) %>%
-  distinct(park_code, .keep_all = TRUE)
+  distinct(park_code, .keep_all = TRUE) %>%
+  left_join(point_extents, by = "park_code") %>%
+  mutate(
+    has_single_point_box = (min_lng == max_lng) | (min_lat == max_lat),
+    min_lng = if_else(has_single_point_box & !is.na(min_lng_points), min_lng_points, min_lng),
+    min_lat = if_else(has_single_point_box & !is.na(min_lat_points), min_lat_points, min_lat),
+    max_lng = if_else(has_single_point_box & !is.na(max_lng_points), max_lng_points, max_lng),
+    max_lat = if_else(has_single_point_box & !is.na(max_lat_points), max_lat_points, max_lat)
+  ) %>%
+  select(park_code, min_lng, min_lat, max_lng, max_lat)
 
-dir.create("mapdata", showWarnings = FALSE)
-write.csv(boundary_rows, "mapdata/parkboundaries.csv", row.names = FALSE)
-message(sprintf("Saved %d park boundary extents to mapdata/parkboundaries.csv", nrow(boundary_rows)))
+write.csv(boundary_rows, "parkboundaries.csv", row.names = FALSE)
+message(sprintf("Saved %d park boundary extents to parkboundaries.csv", nrow(boundary_rows)))

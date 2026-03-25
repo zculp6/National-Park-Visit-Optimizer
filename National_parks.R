@@ -117,6 +117,11 @@ load_park_data <- function() {
     )
   }
   
+  first_non_missing <- function(x) {
+    vals <- x[!is.na(x) & nzchar(trimws(as.character(x)))]
+    if (length(vals) == 0) NA_character_ else as.character(vals[[1]])
+  }
+  
   details_clean <- park_details %>%
     mutate(
       name_key = normalize_park_name_key(Park_Name),
@@ -133,19 +138,35 @@ load_park_data <- function() {
       website = Website_URL,
       description = Description
     ) %>%
-    distinct(park_code, .keep_all = TRUE)
+    group_by(park_code, name_key) %>%
+    summarise(
+      city = first_non_missing(city),
+      phone = first_non_missing(phone),
+      email = first_non_missing(email),
+      hours = first_non_missing(hours),
+      website = first_non_missing(website),
+      description = first_non_missing(description),
+      .groups = "drop"
+    )
   
   image_counts <- park_images %>%
-    mutate(park_code = normalize_park_code(Park_Code)) %>%
-    group_by(park_code) %>%
+    mutate(
+      park_code = normalize_park_code(Park_Code),
+      image_name_key = normalize_park_name_key(Park_Name)
+    ) %>%
+    group_by(park_code, image_name_key) %>%
     summarise(image_count = n(), .groups = "drop") %>%
     mutate(park_code = as.character(park_code))
   
   park_coords <- park_coords %>%
     mutate(name_key = normalize_park_name_key(name)) %>%
     left_join(details_clean, by = "name_key") %>%
-    left_join(image_counts, by = "park_code") %>%
-    mutate(image_count = replace_na(image_count, 0L))
+    left_join(image_counts %>% select(park_code, image_count), by = "park_code") %>%
+    left_join(
+      image_counts %>% select(image_name_key, image_count_by_name = image_count),
+      by = c("name_key" = "image_name_key")
+    ) %>%
+    mutate(image_count = coalesce(image_count, image_count_by_name, 0L))
   
   name_to_code_fallback <- tribble(
     ~name, ~fallback_code,
@@ -175,19 +196,28 @@ load_park_data <- function() {
       fallback_description = description
     )
   
+  fallback_images <- image_counts %>%
+    select(
+      fallback_code = park_code,
+      fallback_image_count = image_count
+    ) %>%
+    distinct(fallback_code, .keep_all = TRUE)
+  
   park_coords <- park_coords %>%
     left_join(name_to_code_fallback, by = "name") %>%
     left_join(fallback_details, by = "fallback_code") %>%
+    left_join(fallback_images, by = "fallback_code") %>%
     mutate(
       city = coalesce(city, fallback_city),
       phone = coalesce(phone, fallback_phone),
       email = coalesce(email, fallback_email),
       hours = coalesce(hours, fallback_hours),
       website = coalesce(website, fallback_website),
-      description = coalesce(description, fallback_description)
+      description = coalesce(description, fallback_description),
+      image_count = coalesce(image_count, fallback_image_count, 0L)
     ) %>%
     select(-starts_with("fallback_")) %>%
-    select(-name_key)
+    select(-name_key, -image_count_by_name)
   
   return(park_coords)
 }
@@ -280,11 +310,19 @@ categorize_park_feature <- function(type, entity_name) {
   "Additional Areas"
 }
 
-build_image_gallery_html <- function(park_name, image_df) {
+build_image_gallery_html <- function(park_name, image_df, park_code = NA_character_) {
   park_name_key <- normalize_park_name_key(park_name)
+  park_code_key <- normalize_park_code(park_code)
   images <- image_df %>%
-    mutate(name_key = normalize_park_name_key(Park_Name)) %>%
-    filter(name_key == park_name_key)
+    mutate(
+      name_key = normalize_park_name_key(Park_Name),
+      park_code_clean = normalize_park_code(Park_Code)
+    ) %>%
+    filter(
+      (!is.na(park_code_key) & nzchar(park_code_key) & park_code_clean == park_code_key) |
+        name_key == park_name_key
+    ) %>%
+    distinct(Image_URL, .keep_all = TRUE)
   if (nrow(images) == 0) {
     return("<em>No images available.</em>")
   }
@@ -300,7 +338,7 @@ build_image_gallery_html <- function(park_name, image_df) {
   ), collapse = "")
   
   paste0(
-    "<div class='park-gallery' id='", gallery_id, "' style='width:min(780px, 92vw);'>",
+    "<div class='park-gallery' id='", gallery_id, "' style='width:min(500, 95vw);'>",
     slides,
     "<div class='gallery-counter' data-gallery='", gallery_id, "' style='font-size:12px;text-align:center;margin-top:6px;'>1 of ", nrow(images), "</div>",
     "<div style='display:flex;justify-content:space-between;margin-top:6px;'>",
@@ -311,7 +349,7 @@ build_image_gallery_html <- function(park_name, image_df) {
 }
 
 build_park_popup <- function(park_row, image_df) {
-  gallery_html <- build_image_gallery_html(park_row$name, image_df)
+  gallery_html <- build_image_gallery_html(park_row$name, image_df, park_row$park_code)
   modal_id <- paste0("gallery_modal_", gsub("[^a-zA-Z0-9]", "_", park_row$name))
   paste0(
     "<h4><b>", park_row$name, "</b></h4>",
@@ -856,7 +894,7 @@ ui <- dashboardPage(
           margin: 8% auto;
           padding: 16px;
           border-radius: 8px;
-          width: min(900px, 94vw);
+          width: min(500px, 97vw);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
         .park-gallery-close {
