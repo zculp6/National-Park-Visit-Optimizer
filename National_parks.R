@@ -371,6 +371,7 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
       park_code = character(),
       park_name = character(),
       boundary_coords = list(),
+      boundary_paths = list(),
       min_lng = numeric(),
       min_lat = numeric(),
       max_lng = numeric(),
@@ -413,6 +414,38 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
     bind_rows(rows)
   }
   
+  extract_boundary_paths <- function(geometry) {
+    geom_type <- as_scalar_character(geometry$type, "")
+    coords <- geometry$coordinates
+    if (is.null(coords)) return(list())
+    
+    build_ring <- function(ring_coords) {
+      if (is.null(ring_coords) || length(ring_coords) == 0) return(NULL)
+      ring_matrix <- do.call(rbind, ring_coords)
+      if (is.null(ring_matrix) || nrow(ring_matrix) == 0) return(NULL)
+      tibble(
+        lng = as.numeric(ring_matrix[, 1]),
+        lat = as.numeric(ring_matrix[, 2])
+      ) %>%
+        filter(!is.na(lng), !is.na(lat))
+    }
+    
+    if (identical(geom_type, "Polygon")) {
+      outer <- build_ring(coords[[1]])
+      return(compact(list(outer)))
+    }
+    
+    if (identical(geom_type, "MultiPolygon")) {
+      return(
+        coords %>%
+          map(~ build_ring(.x[[1]])) %>%
+          compact()
+      )
+    }
+    
+    list()
+  }
+  
   boundary_tbl <- imap_dfr(boundary_json, function(code_entry, park_code) {
     if (is.null(code_entry$features) || length(code_entry$features) == 0) {
       return(NULL)
@@ -421,8 +454,12 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
     coords_df <- map_dfr(code_entry$features, function(feat) {
       flatten_geometry_coords(feat$geometry)
     })
+    boundary_paths <- code_entry$features %>%
+      map(~ extract_boundary_paths(.x$geometry)) %>%
+      unlist(recursive = FALSE) %>%
+      keep(~ is.data.frame(.x) && nrow(.x) > 2)
     valid_coords <- coords_df %>% filter(!is.na(lng), !is.na(lat))
-    if (nrow(valid_coords) == 0) {
+    if (nrow(valid_coords) == 0 || length(boundary_paths) == 0) {
       return(NULL)
     }
     park_name <- as_scalar_character(code_entry$features[[1]]$properties$name, "")
@@ -431,6 +468,7 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
       park_code = normalize_park_code(park_code),
       park_name = park_name,
       boundary_coords = list(coords_df),
+      boundary_paths = list(boundary_paths),
       min_lng = min(valid_coords$lng, na.rm = TRUE),
       min_lat = min(valid_coords$lat, na.rm = TRUE),
       max_lng = max(valid_coords$lng, na.rm = TRUE),
@@ -443,6 +481,7 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
       park_code = character(),
       park_name = character(),
       boundary_coords = list(),
+      boundary_paths = list(),
       min_lng = numeric(),
       min_lat = numeric(),
       max_lng = numeric(),
@@ -1901,20 +1940,26 @@ server <- function(input, output, session) {
       setView(lng = selected_center$lng, lat = selected_center$lat, zoom = 8) %>%
       {
         if (nrow(selected_boundary_shape) > 0) {
-          shape_coords <- selected_boundary_shape$boundary_coords[[1]]
-          addPolygons(
-            .,
-            lng = shape_coords$lng,
-            lat = shape_coords$lat,
-            stroke = TRUE,
-            color = "#006d2c",
-            weight = 2,
-            opacity = 0.9,
-            fillColor = "#31a354",
-            fillOpacity = 0.25,
-            group = "park_boundary",
-            popup = selected_boundary_shape$park_name[[1]]
-          )
+          shape_paths <- selected_boundary_shape$boundary_paths[[1]]
+          if (is.null(shape_paths) || length(shape_paths) == 0) {
+            shape_coords <- selected_boundary_shape$boundary_coords[[1]]
+            shape_paths <- list(shape_coords %>% filter(!is.na(lng), !is.na(lat)))
+          }
+          reduce(shape_paths, function(map_acc, path) {
+            addPolygons(
+              map_acc,
+              lng = path$lng,
+              lat = path$lat,
+              stroke = TRUE,
+              color = "#006d2c",
+              weight = 2,
+              opacity = 0.9,
+              fillColor = "#31a354",
+              fillOpacity = 0.25,
+              group = "park_boundary",
+              popup = selected_boundary_shape$park_name[[1]]
+            )
+          }, .init = .)
         } else .
       } %>%
       addCircleMarkers(
