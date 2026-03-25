@@ -1288,13 +1288,13 @@ server <- function(input, output, session) {
   }
   
   filter_outline_for_park <- function(outline_df, selected_park_row) {
-    park_code <- normalize_park_code(selected_park_row$park_code[[1]])
-    if (is.na(park_code) || !nzchar(park_code)) {
+    selected_code <- normalize_park_code(selected_park_row$park_code[[1]])
+    if (is.na(selected_code) || !nzchar(selected_code)) {
       return(outline_df %>% slice(0))
     }
     
     outline_df %>%
-      filter(normalize_park_code(.data$park_code) == park_code)
+      filter(normalize_park_code(.data$park_code) == .env$selected_code)
   }
   
   park_outline <- park_outline %>%
