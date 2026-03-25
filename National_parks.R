@@ -1494,6 +1494,19 @@ ui <- dashboardPage(
 ###################
 server <- function(input, output, session) {
   
+  map_debug_targets <- c("GLBA", "KATM", "KOVA")
+  
+  log_map_debug <- function(..., .park_code = NULL, .park_name = NULL) {
+    code_clean <- normalize_park_code(.park_code)
+    name_clean <- normalize_park_name_key(.park_name)
+    target_names <- normalize_park_name_key(c("Glacier Bay", "Katmai", "Kobuk Valley"))
+    should_log <- (!is.na(code_clean) && nzchar(code_clean) && code_clean %in% map_debug_targets) ||
+      (!is.na(name_clean) && nzchar(name_clean) && name_clean %in% target_names)
+    if (isTRUE(should_log)) {
+      message(sprintf("[MAP DEBUG] %s", paste0(..., collapse = "")))
+    }
+  }
+  
   # Load park data
   park_data <- load_park_data()
   park_images <- read.csv("national_parks_images.csv", stringsAsFactors = FALSE)
@@ -1539,19 +1552,62 @@ server <- function(input, output, session) {
   }
   
   get_boundary_shape_for_park <- function(selected_park_row) {
+    raw_code <- selected_park_row$park_code[[1]]
+    raw_name <- selected_park_row$name[[1]]
     selected_code <- resolve_boundary_code(
-      selected_park_row$park_code[[1]],
-      selected_park_row$name[[1]],
+      raw_code,
+      raw_name,
       known_boundary_codes = park_boundary_shapes$park_code
+    )
+    log_map_debug(
+      "Resolving boundary shape for park='", raw_name,
+      "' raw_code='", raw_code,
+      "' resolved_code='", selected_code,
+      "'",
+      .park_code = selected_code,
+      .park_name = raw_name
     )
     shape <- park_boundary_shapes %>%
       filter(park_code == selected_code)
+    if (nrow(shape) > 0) {
+      shape_one <- shape %>% slice(1)
+      shape_points <- nrow(shape_one$boundary_coords[[1]] %>% filter(!is.na(lng), !is.na(lat)))
+      log_map_debug(
+        "Boundary shape found by code. bounds=[",
+        round(shape_one$min_lng[[1]], 4), ", ",
+        round(shape_one$min_lat[[1]], 4), "] to [",
+        round(shape_one$max_lng[[1]], 4), ", ",
+        round(shape_one$max_lat[[1]], 4), "], points=",
+        shape_points,
+        .park_code = selected_code,
+        .park_name = raw_name
+      )
+      return(shape_one)
+    }
     if (nrow(shape) > 0) return(shape %>% slice(1))
     
-    selected_name_key <- normalize_park_name_key(selected_park_row$name[[1]])
+    selected_name_key <- normalize_park_name_key(raw_name)
     name_shape <- park_boundary_shapes_named %>%
       filter(name_key == selected_name_key)
-    if (nrow(name_shape) > 0) return(name_shape %>% slice(1) %>% select(-name_key))
+    if (nrow(name_shape) > 0) {
+      shape_one <- name_shape %>% slice(1) %>% select(-name_key)
+      shape_points <- nrow(shape_one$boundary_coords[[1]] %>% filter(!is.na(lng), !is.na(lat)))
+      log_map_debug(
+        "Boundary shape found by normalized name. park_name='",
+        shape_one$park_name[[1]],
+        "', points=",
+        shape_points,
+        .park_code = selected_code,
+        .park_name = raw_name
+      )
+      return(shape_one)
+    }
+    log_map_debug(
+      "No boundary shape found for park='", raw_name,
+      "' resolved_code='", selected_code, "'",
+      .park_code = selected_code,
+      .park_name = raw_name
+    )
     
     tibble(
       park_code = character(),
@@ -1586,13 +1642,27 @@ server <- function(input, output, session) {
   }
   
   filter_outline_for_park <- function(outline_df, selected_park_row) {
+    selected_name <- selected_park_row$name[[1]]
     selected_code <- normalize_park_code(selected_park_row$park_code[[1]])
     if (is.na(selected_code) || !nzchar(selected_code)) {
+      log_map_debug(
+        "Outline filter skipped due to missing selected code for park='",
+        selected_name, "'",
+        .park_name = selected_name
+      )
       return(outline_df %>% slice(0))
     }
     
-    outline_df %>%
+    filtered <- outline_df %>%
       filter(normalize_park_code(.data$park_code) == .env$selected_code)
+    log_map_debug(
+      "Outline filter park='", selected_name,
+      "' code='", selected_code,
+      "' matched_points=", nrow(filtered),
+      .park_code = selected_code,
+      .park_name = selected_name
+    )
+    filtered
   }
   
   park_outline <- park_outline %>%
@@ -1730,6 +1800,9 @@ server <- function(input, output, session) {
         if (nrow(selected_boundary_shape) > 0) {
           boundary_pad_lng <- pmax((selected_boundary_shape$max_lng[[1]] - selected_boundary_shape$min_lng[[1]]) * 0.2, 0.02)
           boundary_pad_lat <- pmax((selected_boundary_shape$max_lat[[1]] - selected_boundary_shape$min_lat[[1]]) * 0.2, 0.02)
+          pre_bbox_points <- selected_points
+          pre_filter_n <- nrow(pre_bbox_points)
+          filtered_points <- pre_bbox_points %>%
           selected_points <- selected_points %>%
             filter(
               longitude >= selected_boundary_shape$min_lng[[1]] - boundary_pad_lng,
@@ -1737,6 +1810,26 @@ server <- function(input, output, session) {
               latitude >= selected_boundary_shape$min_lat[[1]] - boundary_pad_lat,
               latitude <= selected_boundary_shape$max_lat[[1]] + boundary_pad_lat
             )
+          if (nrow(filtered_points) == 0 && pre_filter_n > 0) {
+            selected_points <- pre_bbox_points
+            log_map_debug(
+              "Boundary bbox removed all points for park='", selected_name,
+              "'. Keeping unfiltered points for visibility/debugging.",
+              .park_code = selected_code$park_code[[1]],
+              .park_name = selected_name
+            )
+          } else {
+            selected_points <- filtered_points
+          }
+          log_map_debug(
+            "Boundary bbox filter park='", selected_name,
+            "' pre_points=", pre_filter_n,
+            ", post_points=", nrow(selected_points),
+            ", pad_lng=", round(boundary_pad_lng, 4),
+            ", pad_lat=", round(boundary_pad_lat, 4),
+            .park_code = selected_code$park_code[[1]],
+            .park_name = selected_name
+          )
         }
         selected_types <- selected_feature_types(input$view_feature_type)
         if (length(selected_types) > 0) {
@@ -1746,6 +1839,22 @@ server <- function(input, output, session) {
         }
       }
     }
+    
+    selected_points <- selected_points %>%
+      mutate(
+        latitude = suppressWarnings(as.numeric(unlist(latitude, use.names = FALSE))),
+        longitude = suppressWarnings(as.numeric(unlist(longitude, use.names = FALSE))),
+        entity_name = as.character(unlist(entity_name, use.names = FALSE)),
+        feature_type = as.character(unlist(feature_type, use.names = FALSE))
+      ) %>%
+      filter(
+        is.finite(latitude),
+        is.finite(longitude),
+        !is.na(entity_name),
+        nzchar(entity_name),
+        !is.na(feature_type),
+        nzchar(feature_type)
+      )
     
     base_map <- if (!is.null(selected_name) && nzchar(selected_name)) {
       map_data %>% filter(name == selected_name)
@@ -1766,6 +1875,13 @@ server <- function(input, output, session) {
       selected_row <- park_catalog %>% filter(name == selected_name) %>% slice(1)
       if (nrow(selected_row) > 0) {
         selected_boundary_shape <- get_boundary_shape_for_park(selected_row)
+        if (nrow(selected_boundary_shape) == 0) {
+          log_map_debug(
+            "No boundary available for map render park='", selected_name, "'",
+            .park_code = selected_row$park_code[[1]],
+            .park_name = selected_name
+          )
+        }
       }
     }
     
@@ -1826,26 +1942,31 @@ server <- function(input, output, session) {
         popup = ~paste0("<b>", entity_name, "</b><br>", feature_type),
         group = "park_features"
       ) %>%
-      addLabelOnlyMarkers(
-        data = selected_points,
-        lng = ~longitude,
-        lat = ~latitude,
-        label = ~entity_name,
-        labelOptions = labelOptions(
-          noHide = TRUE,
-          direction = "top",
-          textOnly = TRUE,
-          style = list(
-            "font-size" = "11px",
-            "font-weight" = "600",
-            "color" = "#333333",
-            "background-color" = "rgba(255,255,255,0.75)",
-            "padding" = "2px 4px",
-            "border-radius" = "3px"
+      {
+        if (nrow(selected_points) > 0) {
+          addLabelOnlyMarkers(
+            .,
+            data = selected_points,
+            lng = ~longitude,
+            lat = ~latitude,
+            label = ~entity_name,
+            labelOptions = labelOptions(
+              noHide = TRUE,
+              direction = "top",
+              textOnly = TRUE,
+              style = list(
+                "font-size" = "11px",
+                "font-weight" = "600",
+                "color" = "#333333",
+                "background-color" = "rgba(255,255,255,0.75)",
+                "padding" = "2px 4px",
+                "border-radius" = "3px"
+              )
+            ),
+            group = "park_feature_labels"
           )
-        ),
-        group = "park_feature_labels"
-      ) %>%
+        } else .
+      } %>%
       {
         if (nrow(selected_points) > 0) {
           addLegend(
