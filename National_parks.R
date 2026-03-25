@@ -32,6 +32,31 @@ normalize_park_name_key <- function(x) {
     str_replace_all("[^a-z0-9]+", " ") %>%
     str_squish()
 }
+
+resolve_boundary_code <- function(park_code, park_name = NA_character_) {
+  code_clean <- normalize_park_code(park_code)
+  name_clean <- normalize_park_name_key(park_name)
+  
+  boundary_name_to_code <- c(
+    "glacier bay" = "GLBA",
+    "katmai" = "KATM",
+    "kobuk valley" = "KOVA",
+    "kings canyon" = "SEKI",
+    "sequoia" = "SEKI",
+    "sequoia and kings canyon" = "SEKI"
+  )
+  
+  if (!is.na(code_clean) && nzchar(code_clean)) {
+    return(code_clean)
+  }
+  
+  if (!is.na(name_clean) && nzchar(name_clean) && name_clean %in% names(boundary_name_to_code)) {
+    return(boundary_name_to_code[[name_clean]])
+  }
+  
+  NA_character_
+}
+
 # Zip code data from: https://simplemaps.com/data/us-zips
 # Other data from NPS API
 
@@ -1545,8 +1570,12 @@ server <- function(input, output, session) {
         filter(name == selected_name) %>% slice(1)
       if (nrow(selected_code) == 1) {
         selected_points <- filter_outline_for_park(park_outline, selected_code)
+        resolved_boundary_code <- resolve_boundary_code(
+          selected_code$park_code[[1]],
+          selected_code$name[[1]]
+        )
         selected_boundary_shape <- park_boundary_shapes %>%
-          filter(park_code == normalize_park_code(selected_code$park_code[[1]]))
+          filter(park_code == resolved_boundary_code)
         if (nrow(selected_boundary_shape) > 0) {
           boundary_pad_lng <- pmax((selected_boundary_shape$max_lng[[1]] - selected_boundary_shape$min_lng[[1]]) * 0.2, 0.02)
           boundary_pad_lat <- pmax((selected_boundary_shape$max_lat[[1]] - selected_boundary_shape$min_lat[[1]]) * 0.2, 0.02)
@@ -1583,13 +1612,14 @@ server <- function(input, output, session) {
       max_lat = numeric()
     )
     if (!is.null(selected_name) && nzchar(selected_name)) {
-      selected_code <- park_catalog %>%
-        filter(name == selected_name) %>%
-        pull(park_code) %>%
-        .[1]
-      if (!is.null(selected_code) && nzchar(selected_code)) {
+      selected_row <- park_catalog %>% filter(name == selected_name) %>% slice(1)
+      if (nrow(selected_row) > 0) {
+        selected_code <- resolve_boundary_code(
+          selected_row$park_code[[1]],
+          selected_row$name[[1]]
+        )
         selected_boundary_shape <- park_boundary_shapes %>%
-          filter(park_code == normalize_park_code(selected_code))
+          filter(park_code == selected_code)
       }
     }
     
@@ -1732,7 +1762,7 @@ server <- function(input, output, session) {
       dat,
       options = list(
         pageLength = 8,
-        dom = "ltip",
+        dom = "tip",
         columnDefs = list(list(targets = "_all", className = "dt-wrap"))
       ),
       rownames = FALSE
@@ -1775,7 +1805,7 @@ server <- function(input, output, session) {
       dat,
       options = list(
         pageLength = 2,
-        dom = "ltip",
+        dom = "tip",
         columnDefs = things_col_defs
       ),
       rownames = FALSE
