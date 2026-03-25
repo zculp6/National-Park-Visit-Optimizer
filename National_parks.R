@@ -38,12 +38,12 @@ resolve_boundary_code <- function(park_code, park_name = NA_character_) {
   name_clean <- normalize_park_name_key(park_name)
   
   boundary_name_to_code <- c(
-    "glacier bay" = "GLBA",
-    "katmai" = "KATM",
-    "kobuk valley" = "KOVA",
-    "kings canyon" = "SEKI",
-    "sequoia" = "SEKI",
-    "sequoia and kings canyon" = "SEKI"
+    "glacier bay" = "glba",
+    "katmai" = "katm",
+    "kobuk valley" = "kova",
+    "kings canyon" = "seki",
+    "sequoia" = "seki",
+    "sequoia and kings canyon" = "seki"
   )
   
   if (!is.na(code_clean) && nzchar(code_clean)) {
@@ -238,6 +238,7 @@ load_park_data <- function() {
     left_join(fallback_details, by = "fallback_code") %>%
     left_join(fallback_images, by = "fallback_code") %>%
     mutate(
+      park_code = coalesce(park_code, fallback_code),
       city = coalesce(city, fallback_city),
       phone = coalesce(phone, fallback_phone),
       email = coalesce(email, fallback_email),
@@ -1042,9 +1043,52 @@ ui <- dashboardPage(
         }
         .park-table-box {
           width: 100%;
+          display: flex;
+          flex-direction: column;
         }
         .park-table-box .box-body {
           min-height: 390px;
+          display: flex;
+          flex-direction: column;
+        }
+        .park-table-box .dataTables_wrapper {
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
+        }
+        .park-table-box .dataTables_wrapper .dataTables_info,
+        .park-table-box .dataTables_wrapper .dataTables_paginate {
+          margin-top: auto;
+        }
+        .park-table-box .dataTables_wrapper .dataTable td,
+        .park-table-box .dataTables_wrapper .dataTable th {
+          white-space: normal !important;
+          word-break: break-word;
+          vertical-align: top;
+        }
+        .park-table-box .dataTables_wrapper .dataTable td.dt-nowrap,
+        .park-table-box .dataTables_wrapper .dataTable th.dt-nowrap {
+          white-space: nowrap !important;
+          word-break: normal;
+        }
+        .viewpark-controls {
+          position: relative;
+          z-index: 1200;
+          margin-bottom: 0px;
+          padding: 0 10px;
+        }
+        .viewpark-controls .form-group {
+          margin-bottom: 0;
+        }
+        .viewpark-map-wrap {
+          position: relative;
+          z-index: 1100;
+          padding-top: 56px;
+        }
+        .viewpark-controls .selectize-dropdown,
+        .viewpark-controls .dropdown-menu,
+        .viewpark-controls .bootstrap-select .dropdown-menu {
+          z-index: 2200 !important;
         }
         .park-table-box .dataTables_wrapper .dataTable td,
         .park-table-box .dataTables_wrapper .dataTable th {
@@ -1133,13 +1177,18 @@ ui <- dashboardPage(
                   status = "primary",
                   solidHeader = TRUE,
                   width = 12,
-                  fluidRow(
-                    column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(3, pickerInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = NULL, multiple = TRUE, options = list(`actions-box` = TRUE, `live-search` = FALSE))),
-                    column(3, p("Start in all parks U.S. view, then choose a park to zoom in and filter park features."))
+                  div(
+                    class = "viewpark-controls",
+                    fluidRow(
+                      column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
+                      column(3, pickerInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = NULL, multiple = TRUE, options = list(`actions-box` = TRUE, `live-search` = FALSE)))
+                    )
                   ),
                   uiOutput("view_feature_message"),
-                  leafletOutput("view_park_map", height = 500)
+                  div(
+                    class = "viewpark-map-wrap",
+                    leafletOutput("view_park_map", height = 500)
+                  )
                 )
               ),
               fluidRow(
