@@ -916,6 +916,30 @@ ui <- dashboardPage(
           cursor: pointer;
           line-height: 1;
         }
+        .park-table-row {
+          display: flex;
+          flex-wrap: wrap;
+        }
+        .park-table-row > [class*='col-sm-'] {
+          display: flex;
+        }
+        .park-table-box {
+          width: 100%;
+        }
+        .park-table-box .box-body {
+          min-height: 390px;
+        }
+        .park-table-box .dataTables_wrapper .dataTable td,
+        .park-table-box .dataTables_wrapper .dataTable th {
+          white-space: normal !important;
+          word-break: break-word;
+          vertical-align: top;
+        }
+        .park-table-box .dataTables_wrapper .dataTable td.dt-nowrap,
+        .park-table-box .dataTables_wrapper .dataTable th.dt-nowrap {
+          white-space: nowrap !important;
+          word-break: normal;
+        }
       "))
     ),
     tags$script(HTML("
@@ -1011,8 +1035,9 @@ ui <- dashboardPage(
                 )
               ),
               fluidRow(
-                box(title = "Activities", status = "success", solidHeader = TRUE, width = 6, height = 430, DTOutput("view_park_activities")),
-                box(title = "Things To Do", status = "warning", solidHeader = TRUE, width = 6, height = 430, DTOutput("view_park_things_to_do"))
+                class = "park-table-row",
+                box(title = "Activities", status = "success", solidHeader = TRUE, width = 6, class = "park-table-box", DTOutput("view_park_activities")),
+                box(title = "Things To Do", status = "warning", solidHeader = TRUE, width = 6, class = "park-table-box", DTOutput("view_park_things_to_do"))
               )
       ),
       
@@ -1586,9 +1611,9 @@ server <- function(input, output, session) {
     datatable(
       dat,
       options = list(
-        pageLength = 25,
-        lengthMenu = list(c(10, 25, 50, 100), c("10", "25", "50", "100")),
-        dom = "ltip"
+        pageLength = 8,
+        dom = "ltip",
+        columnDefs = list(list(targets = "_all", className = "dt-wrap"))
       ),
       rownames = FALSE
     )
@@ -1604,12 +1629,34 @@ server <- function(input, output, session) {
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
       select(any_of(c("Title", "Duration", "Short_Description")))
+    title_target <- which(names(dat) == "Title") - 1
+    duration_target <- which(names(dat) == "Duration") - 1
+    short_desc_target <- which(names(dat) == "Short_Description") - 1
+    things_col_defs <- list(list(targets = "_all", className = "dt-wrap"))
+    if (length(title_target) == 1 && title_target >= 0) {
+      things_col_defs <- append(
+        things_col_defs,
+        list(list(targets = title_target, width = "25%"))
+      )
+    }
+    if (length(duration_target) == 1 && duration_target >= 0) {
+      things_col_defs <- append(
+        things_col_defs,
+        list(list(targets = duration_target, className = "dt-nowrap", width = "15%"))
+      )
+    }
+    if (length(short_desc_target) == 1 && short_desc_target >= 0) {
+      things_col_defs <- append(
+        things_col_defs,
+        list(list(targets = short_desc_target, width = "60%"))
+      )
+    }
     datatable(
       dat,
       options = list(
-        pageLength = 25,
-        lengthMenu = list(c(10, 25, 50, 100), c("10", "25", "50", "100")),
-        dom = "ltip"
+        pageLength = 2,
+        dom = "ltip",
+        columnDefs = things_col_defs
       ),
       rownames = FALSE
     )
