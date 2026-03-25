@@ -347,7 +347,7 @@ build_image_gallery_html <- function(park_name, image_df, park_code = NA_charact
   ), collapse = "")
   
   paste0(
-    "<div class='park-gallery' id='", gallery_id, "' style='width:100%;max-width:360px;'>",
+    "<div class='park-gallery' id='", gallery_id, "' style='width:100%;max-width:340px;'>",
     slides,
     "<div class='gallery-counter' data-gallery='", gallery_id, "' style='font-size:12px;text-align:center;margin-top:6px;'>1 of ", nrow(images), "</div>",
     "<div style='display:flex;justify-content:space-between;margin-top:6px;'>",
@@ -903,7 +903,7 @@ ui <- dashboardPage(
           margin: 8% auto;
           padding: 16px;
           border-radius: 8px;
-          width: min(360px, 97vw);
+          width: min(340px, 97vw);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
         .park-gallery-close {
