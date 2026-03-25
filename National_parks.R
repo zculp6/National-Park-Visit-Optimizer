@@ -80,6 +80,14 @@ as_scalar_numeric <- function(x, default = NA_real_) {
   vals[[1]]
 }
 
+as_scalar_character <- function(x, default = "") {
+  vals <- unlist(x, use.names = FALSE)
+  if (length(vals) == 0) return(default)
+  val <- as.character(vals[[1]])
+  if (is.na(val) || !nzchar(val)) return(default)
+  val
+}
+
 # Zip code data from: https://simplemaps.com/data/us-zips
 # Other data from NPS API
 
@@ -270,6 +278,12 @@ load_park_data <- function() {
       description = coalesce(description, fallback_description),
       image_count = coalesce(image_count, fallback_image_count, 0L)
     ) %>%
+    mutate(
+      image_count = case_when(
+        normalize_park_name_key(name) %in% c("sequoia", "kings canyon", "sequoia and kings canyon") ~ 5L,
+        TRUE ~ as.integer(image_count)
+      )
+    ) %>%
     select(-starts_with("fallback_")) %>%
     select(-name_key, -image_count_by_name)
   
@@ -362,12 +376,9 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
   }
   
   boundary_json <- fromJSON(path, simplifyVector = FALSE)
-  null_or <- function(x, default = "") {
-    if (is.null(x) || length(x) == 0) default else x
-  }
   
   flatten_geometry_coords <- function(geometry) {
-    geom_type <- null_or(geometry$type, "")
+    geom_type <- as_scalar_character(geometry$type, "")
     coords <- geometry$coordinates
     if (is.null(coords)) {
       return(tibble(lng = numeric(), lat = numeric()))
@@ -411,7 +422,7 @@ load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
     if (nrow(valid_coords) == 0) {
       return(NULL)
     }
-    park_name <- null_or(code_entry$features[[1]]$properties$name, "")
+    park_name <- as_scalar_character(code_entry$features[[1]]$properties$name, "")
     
     tibble(
       park_code = normalize_park_code(park_code),
@@ -1872,7 +1883,14 @@ server <- function(input, output, session) {
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
-      select(any_of(c("Title", "Duration", "Short_Description")))
+      select(any_of(c("Title", "Duration", "Short_Description"))) %>%
+      mutate(
+        Duration = ifelse(
+          !is.na(Duration) & grepl("^\\s*\\d+(?:\\.\\d+)?\\s*$", Duration, perl = TRUE),
+          paste0(trimws(Duration), " hours"),
+          Duration
+        )
+      )
     title_target <- which(names(dat) == "Title") - 1
     duration_target <- which(names(dat) == "Duration") - 1
     short_desc_target <- which(names(dat) == "Short_Description") - 1
