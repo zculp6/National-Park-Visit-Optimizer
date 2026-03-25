@@ -33,9 +33,14 @@ normalize_park_name_key <- function(x) {
     str_squish()
 }
 
-resolve_boundary_code <- function(park_code, park_name = NA_character_) {
+resolve_boundary_code <- function(park_code, park_name = NA_character_, known_boundary_codes = NULL) {
   code_clean <- normalize_park_code(park_code)
   name_clean <- normalize_park_name_key(park_name)
+  boundary_codes_clean <- known_boundary_codes %>%
+    unlist(use.names = FALSE) %>%
+    as.character() %>%
+    normalize_park_code() %>%
+    unique()
   
   boundary_name_to_code <- c(
     "glacier bay" = "glba",
@@ -45,16 +50,34 @@ resolve_boundary_code <- function(park_code, park_name = NA_character_) {
     "sequoia" = "seki",
     "sequoia and kings canyon" = "seki"
   )
+  boundary_code_aliases <- c(
+    "GLAC" = "GLBA",
+    "KOBU" = "KOVA"
+  )
   
   if (!is.na(code_clean) && nzchar(code_clean)) {
-    return(code_clean)
+    if (length(boundary_codes_clean) > 0) {
+      if (code_clean %in% boundary_codes_clean) return(code_clean)
+      if (code_clean %in% names(boundary_code_aliases)) {
+        alias_code <- normalize_park_code(boundary_code_aliases[[code_clean]])
+        if (alias_code %in% boundary_codes_clean) return(alias_code)
+      }
+    } else {
+      return(code_clean)
+    }
   }
   
   if (!is.na(name_clean) && nzchar(name_clean) && name_clean %in% names(boundary_name_to_code)) {
-    return(boundary_name_to_code[[name_clean]])
+    return(normalize_park_code(boundary_name_to_code[[name_clean]]))
   }
   
   NA_character_
+}
+
+as_scalar_numeric <- function(x, default = NA_real_) {
+  vals <- suppressWarnings(as.numeric(unlist(x, use.names = FALSE)))
+  if (length(vals) == 0 || is.na(vals[[1]])) return(default)
+  vals[[1]]
 }
 
 # Zip code data from: https://simplemaps.com/data/us-zips
@@ -1047,7 +1070,7 @@ ui <- dashboardPage(
           flex-direction: column;
         }
         .park-table-box .box-body {
-          min-height: 390px;
+          min-height: 450px;
           display: flex;
           flex-direction: column;
         }
@@ -1055,10 +1078,28 @@ ui <- dashboardPage(
           display: flex;
           flex-direction: column;
           flex: 1 1 auto;
+          height: 100%
         }
         .park-table-box .dataTables_wrapper .dataTables_info,
         .park-table-box .dataTables_wrapper .dataTables_paginate {
           margin-top: auto;
+        }
+        .park-table-box .dt-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          margin-top: auto;
+          margin-top: 10px;
+        }
+        .park-table-box .dt-footer .dataTables_info {
+          padding-top: 0;
+          margin-right: 12px;
+        }
+        .park-table-box .dt-footer .dataTables_paginate {
+          float: none;
+          margin-left: auto;
+          text-align: right;
         }
         .park-table-box .dataTables_wrapper .dataTable td,
         .park-table-box .dataTables_wrapper .dataTable th {
@@ -1621,7 +1662,8 @@ server <- function(input, output, session) {
         selected_points <- filter_outline_for_park(park_outline, selected_code)
         resolved_boundary_code <- resolve_boundary_code(
           selected_code$park_code[[1]],
-          selected_code$name[[1]]
+          selected_code$name[[1]],
+          known_boundary_codes = park_boundary_shapes$park_code
         )
         selected_boundary_shape <- park_boundary_shapes %>%
           filter(park_code == resolved_boundary_code)
@@ -1665,7 +1707,8 @@ server <- function(input, output, session) {
       if (nrow(selected_row) > 0) {
         selected_code <- resolve_boundary_code(
           selected_row$park_code[[1]],
-          selected_row$name[[1]]
+          selected_row$name[[1]],
+          known_boundary_codes = park_boundary_shapes$park_code
         )
         selected_boundary_shape <- park_boundary_shapes %>%
           filter(park_code == selected_code)
@@ -1811,7 +1854,9 @@ server <- function(input, output, session) {
       dat,
       options = list(
         pageLength = 8,
-        dom = "tip",
+        dom = "t<'dt-footer'ip>",
+        scrollY = "350px",
+        scrollCollapse = FALSE,
         columnDefs = list(list(targets = "_all", className = "dt-wrap"))
       ),
       rownames = FALSE
@@ -1854,7 +1899,9 @@ server <- function(input, output, session) {
       dat,
       options = list(
         pageLength = 2,
-        dom = "tip",
+        dom = "t<'dt-footer'ip>",
+        scrollY = "350px",
+        scrollCollapse = FALSE,
         columnDefs = things_col_defs
       ),
       rownames = FALSE
