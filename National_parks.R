@@ -1288,15 +1288,13 @@ server <- function(input, output, session) {
   }
   
   filter_outline_for_park <- function(outline_df, selected_park_row) {
-    park_code <- selected_park_row$park_code[[1]]
-    selected_park_name_key <- normalize_park_name_key(selected_park_row$name[[1]])
+    park_code <- normalize_park_code(selected_park_row$park_code[[1]])
+    if (is.na(park_code) || !nzchar(park_code)) {
+      return(outline_df %>% slice(0))
+    }
     
     outline_df %>%
-      mutate(outline_park_name_key = normalize_park_name_key(park_name)) %>%
-      filter(
-        tolower(.data$park_code) == tolower(park_code) |
-          outline_park_name_key == selected_park_name_key
-      )
+      filter(normalize_park_code(.data$park_code) == park_code)
   }
   
   park_outline <- park_outline %>%
@@ -1430,6 +1428,20 @@ server <- function(input, output, session) {
         filter(name == selected_name) %>% slice(1)
       if (nrow(selected_code) == 1) {
         selected_points <- filter_outline_for_park(park_outline, selected_code)
+        selected_boundary <- park_boundaries %>%
+          filter(tolower(park_code) == tolower(selected_code$park_code[[1]])) %>%
+          slice(1)
+        if (nrow(selected_boundary) == 1) {
+          boundary_pad_lng <- pmax((selected_boundary$max_lng - selected_boundary$min_lng) * 0.2, 0.02)
+          boundary_pad_lat <- pmax((selected_boundary$max_lat - selected_boundary$min_lat) * 0.2, 0.02)
+          selected_points <- selected_points %>%
+            filter(
+              longitude >= selected_boundary$min_lng - boundary_pad_lng,
+              longitude <= selected_boundary$max_lng + boundary_pad_lng,
+              latitude >= selected_boundary$min_lat - boundary_pad_lat,
+              latitude <= selected_boundary$max_lat + boundary_pad_lat
+            )
+        }
         selected_types <- selected_feature_types(input$view_feature_type)
         if (length(selected_types) > 0) {
           selected_points <- selected_points %>% filter(feature_type %in% selected_types)
@@ -1571,7 +1583,15 @@ server <- function(input, output, session) {
       filter(tolower(Park_Code) == tolower(park_code)) %>%
       distinct(Activity_Name, .keep_all = TRUE) %>%
       select(Activity_Name)
-    datatable(dat, options = list(pageLength = 8, dom = "tip", scrollY = "280px", scrollCollapse = TRUE), rownames = FALSE)
+    datatable(
+      dat,
+      options = list(
+        pageLength = 25,
+        lengthMenu = list(c(10, 25, 50, 100), c("10", "25", "50", "100")),
+        dom = "ltip"
+      ),
+      rownames = FALSE
+    )
   })
   
   output$view_park_things_to_do <- renderDT({
@@ -1584,7 +1604,15 @@ server <- function(input, output, session) {
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
       select(any_of(c("Title", "Duration", "Short_Description")))
-    datatable(dat, options = list(pageLength = 8, dom = "tip", scrollY = "280px", scrollCollapse = TRUE), rownames = FALSE)
+    datatable(
+      dat,
+      options = list(
+        pageLength = 25,
+        lengthMenu = list(c(10, 25, 50, 100), c("10", "25", "50", "100")),
+        dom = "ltip"
+      ),
+      rownames = FALSE
+    )
   })
   
   output$view_feature_message <- renderUI({
