@@ -55,6 +55,13 @@ resolve_boundary_code <- function(park_code, park_name = NA_character_, known_bo
     "KOBU" = "KOVA"
   )
   
+  if (!is.na(name_clean) && nzchar(name_clean) && name_clean %in% names(boundary_name_to_code)) {
+    canonical_code <- normalize_park_code(boundary_name_to_code[[name_clean]])
+    if (length(boundary_codes_clean) == 0 || canonical_code %in% boundary_codes_clean) {
+      return(canonical_code)
+    }
+  }
+  
   if (!is.na(code_clean) && nzchar(code_clean)) {
     if (length(boundary_codes_clean) > 0) {
       if (code_clean %in% boundary_codes_clean) return(code_clean)
@@ -65,10 +72,6 @@ resolve_boundary_code <- function(park_code, park_name = NA_character_, known_bo
     } else {
       return(code_clean)
     }
-  }
-  
-  if (!is.na(name_clean) && nzchar(name_clean) && name_clean %in% names(boundary_name_to_code)) {
-    return(normalize_park_code(boundary_name_to_code[[name_clean]]))
   }
   
   NA_character_
@@ -1498,6 +1501,8 @@ server <- function(input, output, session) {
   park_things_to_do <- read.csv("nps_things_to_do.csv", stringsAsFactors = FALSE)
   park_outline <- load_park_point_data()
   park_boundary_shapes <- load_park_boundary_shapes()
+  park_boundary_shapes_named <- park_boundary_shapes %>%
+    mutate(name_key = normalize_park_name_key(park_name))
   visit_time_defaults <- load_visit_time_defaults()
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
@@ -1526,8 +1531,58 @@ server <- function(input, output, session) {
   }
   
   selected_feature_types <- function(x) {
-    if (is.null(x) || length(x) == 0) return(park_type_levels)
-    as.character(unlist(x, use.names = FALSE))
+    if (is.null(x)) return(park_type_levels)
+    values <- as.character(unlist(x, use.names = FALSE))
+    values <- values[!is.na(values) & nzchar(str_trim(values))]
+    if (length(values) == 0) return(character(0))
+    unique(values)
+  }
+  
+  get_boundary_shape_for_park <- function(selected_park_row) {
+    selected_code <- resolve_boundary_code(
+      selected_park_row$park_code[[1]],
+      selected_park_row$name[[1]],
+      known_boundary_codes = park_boundary_shapes$park_code
+    )
+    shape <- park_boundary_shapes %>%
+      filter(park_code == selected_code)
+    if (nrow(shape) > 0) return(shape %>% slice(1))
+    
+    selected_name_key <- normalize_park_name_key(selected_park_row$name[[1]])
+    name_shape <- park_boundary_shapes_named %>%
+      filter(name_key == selected_name_key)
+    if (nrow(name_shape) > 0) return(name_shape %>% slice(1) %>% select(-name_key))
+    
+    tibble(
+      park_code = character(),
+      park_name = character(),
+      boundary_coords = list(),
+      min_lng = numeric(),
+      min_lat = numeric(),
+      max_lng = numeric(),
+      max_lat = numeric()
+    )
+  }
+  
+  boundary_check_codes <- c("GLBA", "KATM", "KOVA")
+  missing_boundary_codes <- setdiff(boundary_check_codes, park_boundary_shapes$park_code)
+  malformed_boundary_codes <- park_boundary_shapes %>%
+    filter(
+      park_code %in% boundary_check_codes,
+      is.na(min_lng) | is.na(min_lat) | is.na(max_lng) | is.na(max_lat)
+    ) %>%
+    pull(park_code)
+  if (length(missing_boundary_codes) > 0 || length(malformed_boundary_codes) > 0) {
+    warning(
+      paste0(
+        "Boundary JSON diagnostic: missing codes [",
+        paste(missing_boundary_codes, collapse = ", "),
+        "], malformed bounds [",
+        paste(malformed_boundary_codes, collapse = ", "),
+        "]."
+      ),
+      call. = FALSE
+    )
   }
   
   filter_outline_for_park <- function(outline_df, selected_park_row) {
@@ -1671,13 +1726,7 @@ server <- function(input, output, session) {
         filter(name == selected_name) %>% slice(1)
       if (nrow(selected_code) == 1) {
         selected_points <- filter_outline_for_park(park_outline, selected_code)
-        resolved_boundary_code <- resolve_boundary_code(
-          selected_code$park_code[[1]],
-          selected_code$name[[1]],
-          known_boundary_codes = park_boundary_shapes$park_code
-        )
-        selected_boundary_shape <- park_boundary_shapes %>%
-          filter(park_code == resolved_boundary_code)
+        selected_boundary_shape <- get_boundary_shape_for_park(selected_code)
         if (nrow(selected_boundary_shape) > 0) {
           boundary_pad_lng <- pmax((selected_boundary_shape$max_lng[[1]] - selected_boundary_shape$min_lng[[1]]) * 0.2, 0.02)
           boundary_pad_lat <- pmax((selected_boundary_shape$max_lat[[1]] - selected_boundary_shape$min_lat[[1]]) * 0.2, 0.02)
@@ -1716,13 +1765,7 @@ server <- function(input, output, session) {
     if (!is.null(selected_name) && nzchar(selected_name)) {
       selected_row <- park_catalog %>% filter(name == selected_name) %>% slice(1)
       if (nrow(selected_row) > 0) {
-        selected_code <- resolve_boundary_code(
-          selected_row$park_code[[1]],
-          selected_row$name[[1]],
-          known_boundary_codes = park_boundary_shapes$park_code
-        )
-        selected_boundary_shape <- park_boundary_shapes %>%
-          filter(park_code == selected_code)
+        selected_boundary_shape <- get_boundary_shape_for_park(selected_row)
       }
     }
     
