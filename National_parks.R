@@ -994,7 +994,7 @@ ui <- dashboardPage(
                   width = 12,
                   fluidRow(
                     column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(3, pickerInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = "all", multiple = TRUE, options = list(`actions-box` = TRUE, `live-search` = FALSE))),
+                    column(3, pickerInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = NULL, multiple = TRUE, options = list(`actions-box` = TRUE, `live-search` = FALSE))),
                     column(3, p("Start in all parks U.S. view, then choose a park to zoom in and filter park features."))
                   ),
                   uiOutput("view_feature_message"),
@@ -1011,11 +1011,8 @@ ui <- dashboardPage(
                 )
               ),
               fluidRow(
-                box(title = "Activities", status = "success", solidHeader = TRUE, width = 6, DTOutput("view_park_activities")),
-                box(title = "Things To Do", status = "warning", solidHeader = TRUE, width = 6, DTOutput("view_park_things_to_do"))
-              ),
-              fluidRow(
-                box(title = "Park Outline (Selected Park Only: Visitor Centers, Trails, Campgrounds, Additional Areas)", status = "primary", solidHeader = TRUE, width = 12, DTOutput("view_park_outline"))
+                box(title = "Activities", status = "success", solidHeader = TRUE, width = 6, height = 430, DTOutput("view_park_activities")),
+                box(title = "Things To Do", status = "warning", solidHeader = TRUE, width = 6, height = 430, DTOutput("view_park_things_to_do"))
               )
       ),
       
@@ -1286,7 +1283,7 @@ server <- function(input, output, session) {
   }
   
   selected_feature_types <- function(x) {
-    if (is.null(x) || length(x) == 0) return("all")
+    if (is.null(x) || length(x) == 0) return(park_type_levels)
     as.character(unlist(x, use.names = FALSE))
   }
   
@@ -1574,7 +1571,7 @@ server <- function(input, output, session) {
       filter(tolower(Park_Code) == tolower(park_code)) %>%
       distinct(Activity_Name, .keep_all = TRUE) %>%
       select(Activity_Name)
-    datatable(dat, options = list(pageLength = 8, dom = "tip"), rownames = FALSE)
+    datatable(dat, options = list(pageLength = 8, dom = "tip", scrollY = "280px", scrollCollapse = TRUE), rownames = FALSE)
   })
   
   output$view_park_things_to_do <- renderDT({
@@ -1586,35 +1583,8 @@ server <- function(input, output, session) {
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
-      select(any_of(c("Record_Type", "Title", "Duration", "Short_Description")))
-    datatable(dat, options = list(pageLength = 8, dom = "tip"), rownames = FALSE)
-  })
-  
-  output$view_park_outline <- renderDT({
-    park_name <- selected_view_park()
-    req(!is.null(park_name))
-    if (!nzchar(park_name)) {
-      return(datatable(data.frame(Message = "Select a park to view park features and outline data."), options = list(dom = "t"), rownames = FALSE))
-    }
-    park_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
-    dat <- filter_outline_for_park(park_outline, park_row) %>%
-      filter(tolower(.data$park_code) == tolower(park_code)) %>%
-      {
-        selected_types <- selected_feature_types(input$view_feature_type)
-        if (length(selected_types) > 0) {
-          filter(., feature_type %in% selected_types)
-        } else {
-          slice(., 0)
-        }
-      } %>%
-      select(entity_name, feature_type, latitude, longitude) %>%
-      rename(
-        `Feature Name` = entity_name,
-        `Feature Type` = feature_type,
-        Latitude = latitude,
-        Longitude = longitude
-      )
-    datatable(dat, options = list(pageLength = 5, dom = "tip"), rownames = FALSE)
+      select(any_of(c("Title", "Duration", "Short_Description")))
+    datatable(dat, options = list(pageLength = 8, dom = "tip", scrollY = "280px", scrollCollapse = TRUE), rownames = FALSE)
   })
   
   output$view_feature_message <- renderUI({
