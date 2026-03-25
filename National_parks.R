@@ -1803,7 +1803,6 @@ server <- function(input, output, session) {
           pre_bbox_points <- selected_points
           pre_filter_n <- nrow(pre_bbox_points)
           filtered_points <- pre_bbox_points %>%
-          selected_points <- selected_points %>%
             filter(
               longitude >= selected_boundary_shape$min_lng[[1]] - boundary_pad_lng,
               longitude <= selected_boundary_shape$max_lng[[1]] + boundary_pad_lng,
