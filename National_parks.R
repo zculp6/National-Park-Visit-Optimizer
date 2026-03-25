@@ -8,6 +8,7 @@ library(igraph)
 library(httr)
 library(DT)
 library(shinyWidgets)
+library(jsonlite)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -296,6 +297,52 @@ load_park_boundaries <- function(path = "mapdata/parkboundaries.csv") {
       !is.na(min_lng), !is.na(min_lat), !is.na(max_lng), !is.na(max_lat)
     ) %>%
     distinct(park_code, .keep_all = TRUE)
+}
+
+load_park_boundary_shapes <- function(path = "all_park_boundaries.json") {
+  if (!file.exists(path)) {
+    return(st_sf(
+      park_code = character(),
+      park_name = character(),
+      geometry = st_sfc(crs = 4326)
+    ))
+  }
+  
+  boundary_json <- fromJSON(path, simplifyVector = FALSE)
+  
+  boundary_sf <- imap_dfr(boundary_json, function(code_entry, park_code) {
+    if (is.null(code_entry$features) || length(code_entry$features) == 0) {
+      return(NULL)
+    }
+    
+    geojson_fc <- toJSON(
+      list(type = "FeatureCollection", features = code_entry$features),
+      auto_unbox = TRUE
+    )
+    tmp_geojson <- tempfile(fileext = ".geojson")
+    writeLines(geojson_fc, tmp_geojson)
+    
+    park_shape <- st_read(tmp_geojson, quiet = TRUE) %>%
+      st_transform(4326) %>%
+      mutate(
+        park_code = normalize_park_code(park_code),
+        park_name = coalesce(name, "")
+      ) %>%
+      select(park_code, park_name, geometry)
+    unlink(tmp_geojson)
+    
+    park_shape
+  })
+  
+  if (nrow(boundary_sf) == 0) {
+    return(st_sf(
+      park_code = character(),
+      park_name = character(),
+      geometry = st_sfc(crs = 4326)
+    ))
+  }
+  
+  boundary_sf
 }
 
 categorize_park_feature <- function(type, entity_name) {
@@ -1279,7 +1326,7 @@ server <- function(input, output, session) {
   park_activities <- read.csv("nps_activities_by_park.csv", stringsAsFactors = FALSE)
   park_things_to_do <- read.csv("nps_things_to_do.csv", stringsAsFactors = FALSE)
   park_outline <- load_park_point_data()
-  park_boundaries <- load_park_boundaries()
+  park_boundary_shapes <- load_park_boundary_shapes()
   visit_time_defaults <- load_visit_time_defaults()
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
@@ -1453,18 +1500,18 @@ server <- function(input, output, session) {
         filter(name == selected_name) %>% slice(1)
       if (nrow(selected_code) == 1) {
         selected_points <- filter_outline_for_park(park_outline, selected_code)
-        selected_boundary <- park_boundaries %>%
-          filter(tolower(park_code) == tolower(selected_code$park_code[[1]])) %>%
-          slice(1)
-        if (nrow(selected_boundary) == 1) {
-          boundary_pad_lng <- pmax((selected_boundary$max_lng - selected_boundary$min_lng) * 0.2, 0.02)
-          boundary_pad_lat <- pmax((selected_boundary$max_lat - selected_boundary$min_lat) * 0.2, 0.02)
+        selected_boundary_shape <- park_boundary_shapes %>%
+          filter(park_code == normalize_park_code(selected_code$park_code[[1]]))
+        if (nrow(selected_boundary_shape) > 0) {
+          boundary_box <- st_bbox(selected_boundary_shape)
+          boundary_pad_lng <- pmax((boundary_box$xmax - boundary_box$xmin) * 0.2, 0.02)
+          boundary_pad_lat <- pmax((boundary_box$ymax - boundary_box$ymin) * 0.2, 0.02)
           selected_points <- selected_points %>%
             filter(
-              longitude >= selected_boundary$min_lng - boundary_pad_lng,
-              longitude <= selected_boundary$max_lng + boundary_pad_lng,
-              latitude >= selected_boundary$min_lat - boundary_pad_lat,
-              latitude <= selected_boundary$max_lat + boundary_pad_lat
+              longitude >= boundary_box$xmin - boundary_pad_lng,
+              longitude <= boundary_box$xmax + boundary_pad_lng,
+              latitude >= boundary_box$ymin - boundary_pad_lat,
+              latitude <= boundary_box$ymax + boundary_pad_lat
             )
         }
         selected_types <- selected_feature_types(input$view_feature_type)
@@ -1482,9 +1529,41 @@ server <- function(input, output, session) {
       map_data
     }
     
+    selected_boundary_shape <- st_sf(
+      park_code = character(),
+      park_name = character(),
+      geometry = st_sfc(crs = 4326)
+    )
+    if (!is.null(selected_name) && nzchar(selected_name)) {
+      selected_code <- park_catalog %>%
+        filter(name == selected_name) %>%
+        pull(park_code) %>%
+        .[1]
+      if (!is.null(selected_code) && nzchar(selected_code)) {
+        selected_boundary_shape <- park_boundary_shapes %>%
+          filter(park_code == normalize_park_code(selected_code))
+      }
+    }
+    
     leaflet(base_map) %>%
       addTiles(options = tileOptions(noWrap = TRUE)) %>%
       setView(lng = -98.5, lat = 39.8, zoom = 4) %>%
+      {
+        if (nrow(selected_boundary_shape) > 0) {
+          addPolygons(
+            .,
+            data = selected_boundary_shape,
+            stroke = TRUE,
+            color = "#006d2c",
+            weight = 2,
+            opacity = 0.9,
+            fillColor = "#31a354",
+            fillOpacity = 0.25,
+            group = "park_boundary",
+            popup = ~park_name
+          )
+        } else .
+      } %>%
       addCircleMarkers(
         data = base_map,
         layerId = ~name,
@@ -1553,19 +1632,19 @@ server <- function(input, output, session) {
     }
     selected_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
     req(nrow(selected_row) == 1)
-    selected_boundary <- park_boundaries %>%
-      filter(tolower(park_code) == tolower(selected_row$park_code)) %>%
-      slice(1)
+    selected_boundary_shape <- park_boundary_shapes %>%
+      filter(park_code == normalize_park_code(selected_row$park_code[[1]]))
     
-    if (nrow(selected_boundary) == 1) {
-      lng_pad <- pmax((selected_boundary$max_lng - selected_boundary$min_lng) * 0.12, 0.02)
-      lat_pad <- pmax((selected_boundary$max_lat - selected_boundary$min_lat) * 0.12, 0.02)
+    if (nrow(selected_boundary_shape) > 0) {
+      boundary_box <- st_bbox(selected_boundary_shape)
+      lng_pad <- pmax((boundary_box$xmax - boundary_box$xmin) * 0.08, 0.005)
+      lat_pad <- pmax((boundary_box$ymax - boundary_box$ymin) * 0.08, 0.005)
       leafletProxy("view_park_map") %>%
         fitBounds(
-          lng1 = selected_boundary$min_lng - lng_pad,
-          lat1 = selected_boundary$min_lat - lat_pad,
-          lng2 = selected_boundary$max_lng + lng_pad,
-          lat2 = selected_boundary$max_lat + lat_pad
+          lng1 = boundary_box$xmin - lng_pad,
+          lat1 = boundary_box$ymin - lat_pad,
+          lng2 = boundary_box$xmax + lng_pad,
+          lat2 = boundary_box$ymax + lat_pad
         )
       return()
     }
