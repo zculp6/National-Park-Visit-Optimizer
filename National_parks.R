@@ -7,6 +7,7 @@ library(geosphere)
 library(igraph)
 library(httr)
 library(DT)
+library(shinyWidgets)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -22,7 +23,10 @@ normalize_park_name_key <- function(x) {
     str_replace_all("\\bst\\.?\\b", "saint") %>%
     str_replace_all("\\bu\\.?\\s*s\\.?\\b", " ") %>%
     str_replace_all("&", " and ") %>%
-    str_replace_all("\\b(national\\s+park|national\\s+parks|national\\s+and\\s+state\\s+parks|state\\s+parks|preserve|np|n\\.p\\.)\\b", " ") %>%
+    str_replace_all("\\bnational\\s+parks?\\s+and\\s+preserves?\\b", " ") %>%
+    str_replace_all("\\bnational\\s+park\\s+and\\s+preserves?\\b", " ") %>%
+    str_replace_all("\\bnational\\s+park\\s+and\\s+reserve?s?\\b", " ") %>%
+    str_replace_all("\\b(national\\s+park|national\\s+parks|national\\s+and\\s+state\\s+parks|state\\s+parks|preserve|preserves|reserve|reserves|np|n\\.p\\.)\\b", " ") %>%
     str_replace_all("\\bof\\b", " ") %>%
     str_replace_all("[^a-z0-9]+", " ") %>%
     str_squish()
@@ -313,16 +317,21 @@ categorize_park_feature <- function(type, entity_name) {
 build_image_gallery_html <- function(park_name, image_df, park_code = NA_character_) {
   park_name_key <- normalize_park_name_key(park_name)
   park_code_key <- normalize_park_code(park_code)
-  images <- image_df %>%
+  images_clean <- image_df %>%
     mutate(
       name_key = normalize_park_name_key(Park_Name),
       park_code_clean = normalize_park_code(Park_Code)
-    ) %>%
-    filter(
-      (!is.na(park_code_key) & nzchar(park_code_key) & park_code_clean == park_code_key) |
-        name_key == park_name_key
-    ) %>%
+    )
+  
+  images <- if (!is.na(park_code_key) && nzchar(park_code_key)) {
+    images_clean %>% filter(park_code_clean == park_code_key)
+  } else {
+    images_clean %>% filter(name_key == park_name_key)
+  }
+  
+  images <- images %>%
     distinct(Image_URL, .keep_all = TRUE)
+  
   if (nrow(images) == 0) {
     return("<em>No images available.</em>")
   }
@@ -338,7 +347,7 @@ build_image_gallery_html <- function(park_name, image_df, park_code = NA_charact
   ), collapse = "")
   
   paste0(
-    "<div class='park-gallery' id='", gallery_id, "' style='width:min(500, 95vw);'>",
+    "<div class='park-gallery' id='", gallery_id, "' style='width:100%;max-width:360px;'>",
     slides,
     "<div class='gallery-counter' data-gallery='", gallery_id, "' style='font-size:12px;text-align:center;margin-top:6px;'>1 of ", nrow(images), "</div>",
     "<div style='display:flex;justify-content:space-between;margin-top:6px;'>",
@@ -894,7 +903,7 @@ ui <- dashboardPage(
           margin: 8% auto;
           padding: 16px;
           border-radius: 8px;
-          width: min(500px, 97vw);
+          width: min(360px, 97vw);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
         .park-gallery-close {
@@ -947,13 +956,15 @@ ui <- dashboardPage(
                   p("Use the sidebar or buttons below to move through the app quickly."),
                   tags$ul(
                     tags$li(strong("National Parks Map:"), "Browse every U.S. national park with contact details and image galleries."),
-                    tags$li(strong("View Park:"), "Explore one park at a time with map zoom, activities, things to do, and park outline details."),
+                    tags$li(strong("Park Explorer:"), "Explore one park at a time with map zoom, activities, things to do, and park outline details."),
                     tags$li(strong("Route Planner:"), "Select parks and configure your trip."),
                     tags$li(strong("Optimal Route:"), "See the calculated route drawn on the map with segment details."),
                     tags$li(strong("About:"), "Review features and route logic details.")
                   ),
                   br(),
                   actionButton("go_allparks", "See Map", class = "btn-primary"),
+                  tags$span("  "),
+                  actionButton("go_viewpark", "Individual Parks Info", class = "btn-info"),
                   tags$span("  "),
                   actionButton("go_planner", "Plan Route", class = "btn-success")
                 )
@@ -983,7 +994,7 @@ ui <- dashboardPage(
                   width = 12,
                   fluidRow(
                     column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(3, selectizeInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = "all", multiple = TRUE)),
+                    column(3, pickerInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = "all", multiple = TRUE, options = list(`actions-box` = TRUE, `live-search` = FALSE))),
                     column(3, p("Start in all parks U.S. view, then choose a park to zoom in and filter park features."))
                   ),
                   uiOutput("view_feature_message"),
@@ -996,7 +1007,7 @@ ui <- dashboardPage(
                   status = "info",
                   solidHeader = TRUE,
                   width = 12,
-                  htmlOutput("view_park_summary")
+                  div(style = "width: 100%; max-width: 1400px;", htmlOutput("view_park_summary"))
                 )
               ),
               fluidRow(
@@ -1251,10 +1262,12 @@ server <- function(input, output, session) {
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
   park_catalog <- park_catalog %>%
-    left_join(visit_time_defaults, by = c("park_code" = "park_code"))
+    left_join(visit_time_defaults, by = c("park_code" = "park_code")) %>%
+    arrange(name)
   
   selected_park_names <- reactiveVal(character(0))
-  selected_view_park <- reactiveVal(NULL)
+  initial_view_park <- park_catalog %>% pull(name) %>% .[1]
+  selected_view_park <- reactiveVal(initial_view_park)
   segment_mode_overrides <- reactiveVal(character(0))
   park_visit_time_overrides <- reactiveVal(numeric(0))
   computed_route <- reactiveVal(NULL)
@@ -1270,6 +1283,23 @@ server <- function(input, output, session) {
   first_or <- function(x, default) {
     if (is.null(x) || length(x) == 0) return(default)
     x
+  }
+  
+  selected_feature_types <- function(x) {
+    if (is.null(x) || length(x) == 0) return("all")
+    as.character(unlist(x, use.names = FALSE))
+  }
+  
+  filter_outline_for_park <- function(outline_df, selected_park_row) {
+    park_code <- selected_park_row$park_code[[1]]
+    selected_park_name_key <- normalize_park_name_key(selected_park_row$name[[1]])
+    
+    outline_df %>%
+      mutate(outline_park_name_key = normalize_park_name_key(park_name)) %>%
+      filter(
+        tolower(.data$park_code) == tolower(park_code) |
+          outline_park_name_key == selected_park_name_key
+      )
   }
   
   park_outline <- park_outline %>%
@@ -1333,14 +1363,13 @@ server <- function(input, output, session) {
       selected = "",
       server = TRUE
     )
-    park_choices <- c("All Parks (U.S.)" = "", sort(unique(park_catalog$name)))
-    updateSelectInput(session, "view_park_choice", choices = park_choices, selected = "")
-    updateSelectizeInput(
+    park_choices <- sort(unique(park_catalog$name))
+    updateSelectInput(session, "view_park_choice", choices = park_choices, selected = initial_view_park)
+    updatePickerInput(
       session,
       "view_feature_type",
-      choices = c("All Feature Types" = "all", setNames(park_type_levels, park_type_levels)),
-      selected = "all",
-      server = FALSE
+      choices = setNames(park_type_levels, park_type_levels),
+      selected = park_type_levels
     )
   })
   
@@ -1401,15 +1430,14 @@ server <- function(input, output, session) {
     )
     if (!is.null(selected_name) && nzchar(selected_name)) {
       selected_code <- park_catalog %>%
-        filter(name == selected_name) %>%
-        pull(park_code) %>%
-        .[1]
-      if (!is.null(selected_code) && !is.na(selected_code) && nzchar(selected_code)) {
-        selected_points <- park_outline %>%
-          filter(tolower(.data$park_code) == tolower(selected_code))
-        selected_types <- first_or(input$view_feature_type, "all")
-        if (!("all" %in% selected_types)) {
+        filter(name == selected_name) %>% slice(1)
+      if (nrow(selected_code) == 1) {
+        selected_points <- filter_outline_for_park(park_outline, selected_code)
+        selected_types <- selected_feature_types(input$view_feature_type)
+        if (length(selected_types) > 0) {
           selected_points <- selected_points %>% filter(feature_type %in% selected_types)
+        } else {
+          selected_points <- selected_points %>% slice(0)
         }
       }
     }
@@ -1467,13 +1495,18 @@ server <- function(input, output, session) {
         ),
         group = "park_feature_labels"
       ) %>%
-      addLegend(
-        "bottomright",
-        pal = park_type_palette,
-        values = selected_points$feature_type,
-        title = "Feature Type",
-        opacity = 1
-      )
+      {
+        if (nrow(selected_points) > 0) {
+          addLegend(
+            .,
+            "bottomright",
+            pal = park_type_palette,
+            values = selected_points$feature_type,
+            title = "Feature Type",
+            opacity = 1
+          )
+        } else .
+      }
   })
   
   observe({
@@ -1553,7 +1586,7 @@ server <- function(input, output, session) {
     park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
     dat <- park_things_to_do %>%
       filter(tolower(Park_Code) == tolower(park_code)) %>%
-      select(Title, Duration, Short_Description)
+      select(any_of(c("Record_Type", "Title", "Duration", "Short_Description")))
     datatable(dat, options = list(pageLength = 8, dom = "tip"), rownames = FALSE)
   })
   
@@ -1563,14 +1596,16 @@ server <- function(input, output, session) {
     if (!nzchar(park_name)) {
       return(datatable(data.frame(Message = "Select a park to view park features and outline data."), options = list(dom = "t"), rownames = FALSE))
     }
-    park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
-    dat <- park_outline %>%
+    park_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
+    dat <- filter_outline_for_park(park_outline, park_row) %>%
       filter(tolower(.data$park_code) == tolower(park_code)) %>%
       {
-        selected_types <- first_or(input$view_feature_type, "all")
-        if (!("all" %in% selected_types)) {
+        selected_types <- selected_feature_types(input$view_feature_type)
+        if (length(selected_types) > 0) {
           filter(., feature_type %in% selected_types)
-        } else .
+        } else {
+          slice(., 0)
+        }
       } %>%
       select(entity_name, feature_type, latitude, longitude) %>%
       rename(
@@ -1587,12 +1622,16 @@ server <- function(input, output, session) {
     req(!is.null(park_name))
     if (!nzchar(park_name)) return(NULL)
     
-    selected_types <- first_or(input$view_feature_type, "all")
-    if ("all" %in% selected_types) return(NULL)
+    selected_types <- selected_feature_types(input$view_feature_type)
+    if (length(selected_types) == 0) {
+      return(tags$div(
+        style = "padding: 8px 10px; margin: 4px 0 8px 0; background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 4px; color: #664d03;",
+        "No feature types selected. Check one or more feature types to display park features."
+      ))
+    }
     
-    park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
-    available_types <- park_outline %>%
-      filter(tolower(.data$park_code) == tolower(park_code)) %>%
+    park_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
+    available_types <- filter_outline_for_park(park_outline, park_row) %>%
       pull(feature_type) %>%
       unique()
     
@@ -1741,6 +1780,10 @@ server <- function(input, output, session) {
   # Navigation buttons
   observeEvent(input$go_allparks, {
     updateTabItems(session, "main_tabs", "allparks")
+  })
+  
+  observeEvent(input$go_viewpark, {
+    updateTabItems(session, "main_tabs", "viewpark")
   })
   
   observeEvent(input$go_planner, {

@@ -34,27 +34,76 @@ print("Fetching Things To Do data...")
 ttd_url <- paste0("https://developer.nps.gov/api/v1/thingstodo?limit=500&api_key=", api_key)
 ttd_response <- GET(ttd_url)
 
+
+extract_park_codes <- function(related_parks_obj) {
+  if (is.null(related_parks_obj) || length(related_parks_obj) == 0) return(character(0))
+  
+  if (is.data.frame(related_parks_obj) && "parkCode" %in% names(related_parks_obj)) {
+    return(as.character(related_parks_obj$parkCode))
+  }
+  
+  if (is.list(related_parks_obj)) {
+    extracted <- map_chr(related_parks_obj, function(x) {
+      if (is.null(x)) return(NA_character_)
+      if (is.list(x) && !is.null(x$parkCode)) return(as.character(x$parkCode[[1]]))
+      NA_character_
+    })
+    return(extracted[!is.na(extracted)])
+  }
+  
+  character(0)
+}
+
 if (status_code(ttd_response) == 200) {
   ttd_data <- fromJSON(content(ttd_response, "text", encoding = "UTF-8"))$data
   
   ttd_df <- ttd_data %>%
-    # 1. Extract the parkCode from the nested 'relatedParks' list
-    # 2. Extract the first image URL from the nested 'images' list
+  
     mutate(
-      Park_Code = sapply(relatedParks, function(x) if(!is.null(x) && nrow(x) > 0) x$parkCode[1] else NA),
+      Park_Codes = map(relatedParks, extract_park_codes),
       Image_URL = sapply(images, function(x) if(!is.null(x) && nrow(x) > 0) x$url[1] else NA)
     ) %>%
-    # Now 'Park_Code' exists because we created it above!
+   
+    unnest_longer(Park_Codes, values_to = "Park_Code") %>%
     select(
       Park_Code,
       Title = title,
       Duration = duration,
       Short_Description = shortDescription,
-      Image_URL
+      Image_URL,
+      Record_Type = "Thing To Do"
     ) %>%
-    # Optional: Remove rows where Park_Code is missing
-    filter(!is.na(Park_Code))
+    filter(!is.na(Park_Code) & nzchar(Park_Code)) %>%
+    distinct(Park_Code, Title, .keep_all = TRUE)
   
-  write.csv(ttd_df, "nps_things_to_do.csv", row.names = FALSE)
-  print(paste("Saved: nps_things_to_do.csv with", nrow(ttd_df), "entries."))
+  print("Fetching Tours data...")
+  tours_url <- paste0("https://developer.nps.gov/api/v1/tours?limit=500&api_key=", api_key)
+  tours_response <- GET(tours_url)
+  tours_df <- tibble()
+  
+  if (status_code(tours_response) == 200) {
+    tours_data <- fromJSON(content(tours_response, "text", encoding = "UTF-8"))$data
+    tours_df <- tours_data %>%
+      mutate(
+        Park_Codes = map(relatedParks, extract_park_codes),
+        Image_URL = sapply(images, function(x) if(!is.null(x) && nrow(x) > 0) x$url[1] else NA)
+      ) %>%
+      unnest_longer(Park_Codes, values_to = "Park_Code") %>%
+      select(
+        Park_Code,
+        Title = title,
+        Duration = duration,
+        Short_Description = shortDescription,
+        Image_URL,
+        Record_Type = "Tour"
+      ) %>%
+      filter(!is.na(Park_Code) & nzchar(Park_Code)) %>%
+      distinct(Park_Code, Title, .keep_all = TRUE)
+  }
+  
+  combined_ttd <- bind_rows(ttd_df, tours_df) %>%
+    mutate(Park_Code = tolower(Park_Code))
+  
+  write.csv(combined_ttd, "nps_things_to_do.csv", row.names = FALSE)
+  print(paste("Saved: nps_things_to_do.csv with", nrow(combined_ttd), "entries."))
 }
