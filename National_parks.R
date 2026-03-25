@@ -18,6 +18,9 @@ normalize_park_code <- function(x) {
 normalize_park_name_key <- function(x) {
   x %>%
     str_to_lower() %>%
+    str_replace_all("[\u2013\u2014]", "-") %>%
+    str_replace_all("\\bst\\.?\\b", "saint") %>%
+    str_replace_all("\\bu\\.?\\s*s\\.?\\b", " ") %>%
     str_replace_all("&", " and ") %>%
     str_replace_all("\\b(national\\s+park|national\\s+parks|national\\s+and\\s+state\\s+parks|state\\s+parks|preserve|np|n\\.p\\.)\\b", " ") %>%
     str_replace_all("\\bof\\b", " ") %>%
@@ -142,7 +145,48 @@ load_park_data <- function() {
     mutate(name_key = normalize_park_name_key(name)) %>%
     left_join(details_clean, by = "name_key") %>%
     left_join(image_counts, by = "park_code") %>%
-    mutate(image_count = replace_na(image_count, 0L)) %>%
+    mutate(image_count = replace_na(image_count, 0L))
+  
+  name_to_code_fallback <- tribble(
+    ~name, ~fallback_code,
+    "American Samoa", "NPSA",
+    "Katmai", "KATM",
+    "Glacier Bay", "GLBA",
+    "Wrangell–St. Elias *", "WRST",
+    "Denali", "DENA",
+    "Lake Clark", "LACL",
+    "Gates of the Arctic", "GAAR",
+    "Redwood", "REDW",
+    "Kings Canyon", "SEKI",
+    "Sequoia", "SEKI",
+    "Great Sand Dunes", "GRSA",
+    "New River Gorge", "NERI",
+    "U.S. Virgin Islands", "VIIS"
+  )
+  
+  fallback_details <- details_clean %>%
+    select(
+      fallback_code = park_code,
+      fallback_city = city,
+      fallback_phone = phone,
+      fallback_email = email,
+      fallback_hours = hours,
+      fallback_website = website,
+      fallback_description = description
+    )
+  
+  park_coords <- park_coords %>%
+    left_join(name_to_code_fallback, by = "name") %>%
+    left_join(fallback_details, by = "fallback_code") %>%
+    mutate(
+      city = coalesce(city, fallback_city),
+      phone = coalesce(phone, fallback_phone),
+      email = coalesce(email, fallback_email),
+      hours = coalesce(hours, fallback_hours),
+      website = coalesce(website, fallback_website),
+      description = coalesce(description, fallback_description)
+    ) %>%
+    select(-starts_with("fallback_")) %>%
     select(-name_key)
   
   return(park_coords)
@@ -194,6 +238,32 @@ load_park_point_data <- function() {
     left_join(park_details, by = "park_code")
 }
 
+load_park_boundaries <- function(path = "mapdata/parkboundaries.csv") {
+  if (!file.exists(path)) {
+    return(tibble(
+      park_code = character(),
+      min_lng = numeric(),
+      min_lat = numeric(),
+      max_lng = numeric(),
+      max_lat = numeric()
+    ))
+  }
+  
+  read.csv(path, stringsAsFactors = FALSE) %>%
+    mutate(
+      park_code = normalize_park_code(park_code),
+      min_lng = as.numeric(min_lng),
+      min_lat = as.numeric(min_lat),
+      max_lng = as.numeric(max_lng),
+      max_lat = as.numeric(max_lat)
+    ) %>%
+    filter(
+      !is.na(park_code), park_code != "",
+      !is.na(min_lng), !is.na(min_lat), !is.na(max_lng), !is.na(max_lat)
+    ) %>%
+    distinct(park_code, .keep_all = TRUE)
+}
+
 categorize_park_feature <- function(type, entity_name) {
   raw_type <- ifelse(is.na(type), "", type)
   raw_name <- ifelse(is.na(entity_name), "", entity_name)
@@ -230,8 +300,9 @@ build_image_gallery_html <- function(park_name, image_df) {
   ), collapse = "")
   
   paste0(
-    "<div class='park-gallery' id='", gallery_id, "' style='max-width:340px;'>",
+    "<div class='park-gallery' id='", gallery_id, "' style='width:min(780px, 92vw);'>",
     slides,
+    "<div class='gallery-counter' data-gallery='", gallery_id, "' style='font-size:12px;text-align:center;margin-top:6px;'>1 of ", nrow(images), "</div>",
     "<div style='display:flex;justify-content:space-between;margin-top:6px;'>",
     "<button onclick=\"window.parkGalleryNav('", gallery_id, "', -1)\" style='padding:2px 8px;'>&larr;</button>",
     "<button onclick=\"window.parkGalleryNav('", gallery_id, "', 1)\" style='padding:2px 8px;'>&rarr;</button>",
@@ -785,7 +856,7 @@ ui <- dashboardPage(
           margin: 8% auto;
           padding: 16px;
           border-radius: 8px;
-          width: min(700px, 90vw);
+          width: min(900px, 94vw);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
         .park-gallery-close {
@@ -806,11 +877,13 @@ ui <- dashboardPage(
           if (!gallery) return;
           var slides = gallery.querySelectorAll('.gallery-slide');
           if (!slides || slides.length === 0) return;
+          var counter = gallery.querySelector('.gallery-counter');
           var active = 0;
           slides.forEach(function(slide, idx) { if (slide.classList.contains('active')) active = idx; });
           slides[active].classList.remove('active');
           var nextIdx = (active + delta + slides.length) % slides.length;
           slides[nextIdx].classList.add('active');
+          if (counter) counter.textContent = (nextIdx + 1) + ' of ' + slides.length;
         };
         window.openParkGallery = function(modalId) {
           var modal = document.getElementById(modalId);
@@ -872,9 +945,10 @@ ui <- dashboardPage(
                   width = 12,
                   fluidRow(
                     column(6, selectInput("view_park_choice", "Select a Park:", choices = NULL)),
-                    column(3, selectInput("view_feature_type", "Feature Type:", choices = c("All Feature Types" = "all"), selected = "all")),
+                    column(3, selectizeInput("view_feature_type", "Feature Type(s):", choices = NULL, selected = "all", multiple = TRUE)),
                     column(3, p("Start in all parks U.S. view, then choose a park to zoom in and filter park features."))
                   ),
+                  uiOutput("view_feature_message"),
                   leafletOutput("view_park_map", height = 500)
                 )
               ),
@@ -1134,6 +1208,7 @@ server <- function(input, output, session) {
   park_activities <- read.csv("nps_activities_by_park.csv", stringsAsFactors = FALSE)
   park_things_to_do <- read.csv("nps_things_to_do.csv", stringsAsFactors = FALSE)
   park_outline <- load_park_point_data()
+  park_boundaries <- load_park_boundaries()
   visit_time_defaults <- load_visit_time_defaults()
   park_catalog <- park_data %>% distinct(name, .keep_all = TRUE)
   park_data$region <- sapply(park_data$state, classify_park_region)
@@ -1145,12 +1220,18 @@ server <- function(input, output, session) {
   segment_mode_overrides <- reactiveVal(character(0))
   park_visit_time_overrides <- reactiveVal(numeric(0))
   computed_route <- reactiveVal(NULL)
+  pending_route <- reactiveVal(NULL)
   
   get_named_value <- function(x, key) {
     if (length(x) == 0 || is.null(names(x))) return(NULL)
     value <- x[key]
     if (length(value) == 0) return(NULL)
     value[[1]]
+  }
+  
+  first_or <- function(x, default) {
+    if (is.null(x) || length(x) == 0) return(default)
+    x
   }
   
   park_outline <- park_outline %>%
@@ -1216,11 +1297,12 @@ server <- function(input, output, session) {
     )
     park_choices <- c("All Parks (U.S.)" = "", sort(unique(park_catalog$name)))
     updateSelectInput(session, "view_park_choice", choices = park_choices, selected = "")
-    updateSelectInput(
+    updateSelectizeInput(
       session,
       "view_feature_type",
       choices = c("All Feature Types" = "all", setNames(park_type_levels, park_type_levels)),
-      selected = "all"
+      selected = "all",
+      server = FALSE
     )
   })
   
@@ -1287,8 +1369,9 @@ server <- function(input, output, session) {
       if (!is.null(selected_code) && !is.na(selected_code) && nzchar(selected_code)) {
         selected_points <- park_outline %>%
           filter(tolower(.data$park_code) == tolower(selected_code))
-        if (!is.null(input$view_feature_type) && input$view_feature_type != "all") {
-          selected_points <- selected_points %>% filter(feature_type == input$view_feature_type)
+        selected_types <- first_or(input$view_feature_type, "all")
+        if (!("all" %in% selected_types)) {
+          selected_points <- selected_points %>% filter(feature_type %in% selected_types)
         }
       }
     }
@@ -1365,6 +1448,22 @@ server <- function(input, output, session) {
     }
     selected_row <- park_catalog %>% filter(name == park_name) %>% slice(1)
     req(nrow(selected_row) == 1)
+    selected_boundary <- park_boundaries %>%
+      filter(tolower(park_code) == tolower(selected_row$park_code)) %>%
+      slice(1)
+    
+    if (nrow(selected_boundary) == 1) {
+      lng_pad <- pmax((selected_boundary$max_lng - selected_boundary$min_lng) * 0.12, 0.02)
+      lat_pad <- pmax((selected_boundary$max_lat - selected_boundary$min_lat) * 0.12, 0.02)
+      leafletProxy("view_park_map") %>%
+        fitBounds(
+          lng1 = selected_boundary$min_lng - lng_pad,
+          lat1 = selected_boundary$min_lat - lat_pad,
+          lng2 = selected_boundary$max_lng + lng_pad,
+          lat2 = selected_boundary$max_lat + lat_pad
+        )
+      return()
+    }
     leafletProxy("view_park_map") %>%
       fitBounds(
         lng1 = selected_row$longitude - 0.1,
@@ -1430,8 +1529,9 @@ server <- function(input, output, session) {
     dat <- park_outline %>%
       filter(tolower(.data$park_code) == tolower(park_code)) %>%
       {
-        if (!is.null(input$view_feature_type) && input$view_feature_type != "all") {
-          filter(., feature_type == input$view_feature_type)
+        selected_types <- first_or(input$view_feature_type, "all")
+        if (!("all" %in% selected_types)) {
+          filter(., feature_type %in% selected_types)
         } else .
       } %>%
       select(entity_name, feature_type, latitude, longitude) %>%
@@ -1442,6 +1542,29 @@ server <- function(input, output, session) {
         Longitude = longitude
       )
     datatable(dat, options = list(pageLength = 5, dom = "tip"), rownames = FALSE)
+  })
+  
+  output$view_feature_message <- renderUI({
+    park_name <- selected_view_park()
+    req(!is.null(park_name))
+    if (!nzchar(park_name)) return(NULL)
+    
+    selected_types <- first_or(input$view_feature_type, "all")
+    if ("all" %in% selected_types) return(NULL)
+    
+    park_code <- park_catalog %>% filter(name == park_name) %>% pull(park_code) %>% .[1]
+    available_types <- park_outline %>%
+      filter(tolower(.data$park_code) == tolower(park_code)) %>%
+      pull(feature_type) %>%
+      unique()
+    
+    missing_types <- setdiff(selected_types, available_types)
+    if (length(missing_types) == 0) return(NULL)
+    
+    tags$div(
+      style = "padding: 8px 10px; margin: 4px 0 8px 0; background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 4px; color: #664d03;",
+      paste0("Not available on this park location: ", paste(missing_types, collapse = ", "), ".")
+    )
   })
   
   # Park selector map - show all parks initially
@@ -1629,8 +1752,8 @@ server <- function(input, output, session) {
         start_loc <- list(
           name = "START",
           state = geo_result$source_state,
-          latitude = geo_result$lat,
-          longitude = geo_result$lon,
+          latitude = geo_result$latitude,
+          longitude = geo_result$longitude,
           description = paste0(geo_result$source_city, ", ", geo_result$source_state),
           date_established = NA,
           area = NA,
@@ -1658,8 +1781,8 @@ server <- function(input, output, session) {
         end_loc <- list(
           name = "END",
           state = geo_result$source_state,
-          latitude = geo_result$lat,
-          longitude = geo_result$lon,
+          latitude = geo_result$latitude,
+          longitude = geo_result$longitude,
           description = paste0(geo_result$source_city, ", ", geo_result$source_state),
           date_established = NA,
           area = NA,
@@ -1792,6 +1915,35 @@ server <- function(input, output, session) {
     result$has_start <- !is.null(start_loc)
     result$has_end <- !is.null(end_loc)
     
+    parks_in_route <- result$route %>% filter(!name %in% c("START", "END"))
+    num_route_parks <- nrow(parks_in_route)
+    
+    if (num_route_parks <= 2) {
+      pending_route(result)
+      if (num_route_parks == 0) {
+        showModal(modalDialog(
+          title = "No parks fit your current limits",
+          "The current constraints remove all selected parks from the route. Please change your limits and recalculate.",
+          footer = tagList(
+            modalButton("Close"),
+            actionButton("change_limits_route", "Change Limits", class = "btn-warning")
+          ),
+          easyClose = TRUE
+        ))
+      } else {
+        showModal(modalDialog(
+          title = sprintf("Only %d park%s fit the current limits", num_route_parks, ifelse(num_route_parks == 1, "", "s")),
+          "You can continue with this shorter route or go back and adjust your limits.",
+          footer = tagList(
+            actionButton("continue_limited_route", "Continue", class = "btn-success"),
+            actionButton("change_limits_route", "Change Limits", class = "btn-warning")
+          ),
+          easyClose = TRUE
+        ))
+      }
+      return()
+    }
+    
     segment_mode_overrides(character(0))
     park_visit_time_overrides(numeric(0))
     
@@ -1801,6 +1953,24 @@ server <- function(input, output, session) {
     showNotification("Route calculated successfully!", type = "message", duration = 3)
     updateTabItems(session, "main_tabs", "optimalroute")
     })
+  })
+  
+  observeEvent(input$continue_limited_route, {
+    pending <- pending_route()
+    req(!is.null(pending))
+    removeModal()
+    pending_route(NULL)
+    segment_mode_overrides(character(0))
+    park_visit_time_overrides(numeric(0))
+    computed_route(pending)
+    showNotification("Route calculated successfully!", type = "message", duration = 3)
+    updateTabItems(session, "main_tabs", "optimalroute")
+  })
+  
+  observeEvent(input$change_limits_route, {
+    removeModal()
+    pending_route(NULL)
+    updateTabItems(session, "main_tabs", "planner")
   })
   
   # Info boxes
