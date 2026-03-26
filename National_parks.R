@@ -137,7 +137,26 @@ major_airports <- major_airports %>%
   filter(type == "large_airport" | type == "medium_airport") %>%
   select(ident, name, latitude_deg, longitude_deg, region_name, local_region, municipality, local_code) %>%
   rename(lat = latitude_deg) %>%
-  rename(lon = longitude_deg)
+  rename(lon = longitude_deg) %>%
+  mutate(iata_code = str_to_upper(trimws(local_code)))
+
+territory_flights <- read.csv("us_territory_flights.csv", stringsAsFactors = FALSE) %>%
+  mutate(
+    airport_depart = str_to_upper(trimws(airport_depart)),
+    airport_arrive = str_to_upper(trimws(airport_arrive)),
+    airline = trimws(airline),
+    num_layovers = suppressWarnings(as.numeric(num_layovers))
+  ) %>%
+  filter(!is.na(airport_depart), !is.na(airport_arrive), airport_depart != "", airport_arrive != "")
+
+park_cost_data <- read.csv("park_cost.csv", stringsAsFactors = FALSE) %>%
+  mutate(
+    park_code = normalize_park_code(parkCode),
+    entrance_fee_vehicle = suppressWarnings(as.numeric(Entrance_Fee_Per_Vehicle)),
+    entrance_fee_person = suppressWarnings(as.numeric(Entrance_Fee_Per_Person)),
+    entrance_fee_motorcycle = suppressWarnings(as.numeric(Entrance_Fee_Per_Motorcycle))
+  ) %>%
+  select(park_code, fullName, entrance_fee_vehicle, entrance_fee_person, entrance_fee_motorcycle, Cost_Description)
 
 zip_codes <- read.csv("uszips.csv", stringsAsFactors = FALSE) %>%
   mutate(zip = str_pad(as.character(zip), width = 5, side = "left", pad = "0"))
@@ -154,6 +173,17 @@ find_nearest_airport <- function(lat, lon, airports = major_airports) {
     airport = airports[nearest_idx, ],
     distance_km = distances[nearest_idx]
   ))
+}
+
+nearest_airport_cache <- new.env(parent = emptyenv())
+find_nearest_airport_cached <- function(lat, lon, airports = major_airports) {
+  key <- paste0(round(as.numeric(lat), 4), "_", round(as.numeric(lon), 4))
+  if (exists(key, envir = nearest_airport_cache, inherits = FALSE)) {
+    return(get(key, envir = nearest_airport_cache, inherits = FALSE))
+  }
+  result <- find_nearest_airport(lat, lon, airports = airports)
+  assign(key, result, envir = nearest_airport_cache)
+  result
 }
 
 estimate_final_cost <- function(dist_miles, airline_code, iata_dest, travel_date) {
@@ -189,6 +219,73 @@ estimate_final_cost <- function(dist_miles, airline_code, iata_dest, travel_date
   final_cost <- (base_fare + (dist_miles * rate_per_mile)) * season_mult * air_mult * territory_mult * inflation_mult
   
   return(round(final_cost, 2))
+}
+
+airline_name_to_code <- c(
+  "alaska airlines" = "AS",
+  "allegiant air" = "G4",
+  "american airlines" = "AA",
+  "delta air lines" = "DL",
+  "frontier airlines" = "F9",
+  "jetblue" = "B6",
+  "jetblue airways" = "B6",
+  "southwest airlines" = "WN",
+  "spirit airlines" = "NK",
+  "united airlines" = "UA",
+  "any" = "ANY"
+)
+
+estimate_flight_segment_cost <- function(origin_iata, dest_iata, dist_km, travel_date, preferred_airlines = NULL) {
+  origin_code <- str_to_upper(trimws(origin_iata))
+  dest_code <- str_to_upper(trimws(dest_iata))
+  dist_miles <- dist_km * 0.621371
+  flights <- territory_flights %>%
+    filter(
+      (airport_depart == origin_code & airport_arrive == dest_code) |
+        (airport_depart == dest_code & airport_arrive == origin_code)
+    )
+  
+  preferred_clean <- preferred_airlines %>%
+    unlist(use.names = FALSE) %>%
+    as.character() %>%
+    trimws()
+  preferred_clean <- preferred_clean[preferred_clean != "" & preferred_clean != "Any"]
+  
+  if (length(preferred_clean) > 0 && nrow(flights) > 0) {
+    preferred_matches <- flights %>% filter(airline %in% preferred_clean)
+    if (nrow(preferred_matches) > 0) flights <- preferred_matches
+  }
+  
+  if (nrow(flights) > 0) {
+    chosen <- flights %>%
+      mutate(num_layovers = if_else(is.na(num_layovers), 0, num_layovers)) %>%
+      arrange(num_layovers, airline) %>%
+      slice(1)
+    airline_name <- as_scalar_character(chosen$airline, "Any")
+    airline_code <- airline_name_to_code[[str_to_lower(airline_name)]]
+    if (is.null(airline_code) || !nzchar(airline_code)) airline_code <- "ANY"
+    layover_mult <- 1 + (0.12 * as_scalar_numeric(chosen$num_layovers, default = 0))
+    estimated_cost <- estimate_final_cost(
+      dist_miles = dist_miles,
+      airline_code = airline_code,
+      iata_dest = dest_code,
+      travel_date = travel_date
+    ) * layover_mult
+    return(list(
+      cost = round(estimated_cost, 2),
+      airline = airline_name,
+      layovers = as_scalar_numeric(chosen$num_layovers, default = 0),
+      matched = TRUE
+    ))
+  }
+  
+  estimated_cost <- estimate_final_cost(
+    dist_miles = dist_miles,
+    airline_code = "ANY",
+    iata_dest = dest_code,
+    travel_date = travel_date
+  )
+  list(cost = round(estimated_cost, 2), airline = "Estimated", layovers = 0, matched = FALSE)
 }
 
 ###################
@@ -1071,6 +1168,8 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
   time_to_next <- numeric(n)
   travel_mode <- character(n)
   segment_description <- character(n)
+  segment_drive_distance_km <- rep(NA_real_, n)
+  segment_flight_distance_km <- rep(NA_real_, n)
   segment_geometries <- vector("list", n)
   
   for (i in seq_len(n - 1)) {
@@ -1099,10 +1198,11 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
         time_to_next[i] <- estimate_travel_time(dist_km, mode)
         segment_geometries[[i]] <- list(geometry = list(c(lon1, lat1), c(lon2, lat2)))
       }
+      segment_drive_distance_km[i] <- distance_to_next[i]
       segment_description[i] <- paste0(route_df$name[i], " -> ", route_df$name[i + 1], " (Drive)")
     } else {
-      airport_from <- find_nearest_airport(lat1, lon1)
-      airport_to <- find_nearest_airport(lat2, lon2)
+      airport_from <- find_nearest_airport_cached(lat1, lon1)
+      airport_to <- find_nearest_airport_cached(lat2, lon2)
       
       drive_to_airport <- get_osrm_route(lon1, lat1, airport_from$airport$lon, airport_from$airport$lat)
       drive_from_airport <- get_osrm_route(airport_to$airport$lon, airport_to$airport$lat, lon2, lat2)
@@ -1118,6 +1218,8 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
       
       distance_to_next[i] <- total_dist
       time_to_next[i] <- total_time
+      segment_drive_distance_km[i] <- airport_from$distance_km + airport_to$distance_km
+      segment_flight_distance_km[i] <- flight_dist
       
       segment_geometries[[i]] <- list(
         drive_to_airport_geometry = if (drive_to_airport$success) drive_to_airport$geometry else list(c(lon1, lat1), c(airport_from$airport$lon, airport_from$airport$lat)),
@@ -1143,6 +1245,8 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
   route_df$time_to_next_hours <- time_to_next
   route_df$travel_mode <- travel_mode
   route_df$segment_description <- segment_description
+  route_df$segment_drive_distance_km <- segment_drive_distance_km
+  route_df$segment_flight_distance_km <- segment_flight_distance_km
   
   list(
     route = route_df,
@@ -1377,15 +1481,24 @@ ui <- dashboardPage(
                   p("All fields are optional. Defaults are pre-filled and can be adjusted."),
                   fluidRow(
                     column(
-                      4,
+                      3,
                       numericInput("num_travelers", "Number of Travelers:", value = 1, min = 1, step = 1)
                     ),
                     column(
-                      4,
+                      3,
                       numericInput("car_mpg", "Vehicle MPG:", value = 29, min = 1, step = 1)
                     ),
                     column(
-                      4,
+                      3,
+                      selectInput(
+                        "vehicle_type",
+                        "Vehicle Type:",
+                        choices = c("Car" = "car", "Motorcycle" = "motorcycle"),
+                        selected = "car"
+                      )
+                    ),
+                    column(
+                      3,
                       pickerInput(
                         "airline_preference",
                         "Airline Preference:",
@@ -2840,9 +2953,113 @@ server <- function(input, output, session) {
     }
   })
   
+  trip_cost_breakdown <- reactive({
+    result <- computed_route()
+    if (is.null(result)) return(NULL)
+    route <- result$route
+    if (is.null(route) || nrow(route) < 2) return(NULL)
+    
+    traveler_count <- if (is.null(input$num_travelers) || !is.finite(input$num_travelers)) 1 else max(1, as.numeric(input$num_travelers))
+    mpg <- if (is.null(input$car_mpg) || !is.finite(input$car_mpg)) 29 else max(1, as.numeric(input$car_mpg))
+    vehicle_type <- ifelse(is.null(input$vehicle_type) || !nzchar(input$vehicle_type), "car", input$vehicle_type)
+    travel_date <- {
+      td <- input$travel_dates
+      if (is.null(td) || length(td) == 0) Sys.Date() else as.Date(td[[1]])
+    }
+    preferred_airlines <- input$airline_preference
+    
+    drive_rows <- route %>% filter(travel_mode == "Drive", !is.na(distance_to_next_km))
+    drive_miles <- sum(drive_rows$distance_to_next_km, na.rm = TRUE) * 0.621371
+    
+    segment_states <- drive_rows$state
+    if (length(segment_states) == 0) {
+      gas_price_per_gallon <- mean(final_gas_data$Regular, na.rm = TRUE)
+    } else {
+      state_prices <- final_gas_data %>%
+        filter(State %in% segment_states) %>%
+        pull(Regular)
+      gas_price_per_gallon <- if (length(state_prices) == 0) {
+        mean(final_gas_data$Regular, na.rm = TRUE)
+      } else {
+        mean(state_prices, na.rm = TRUE)
+      }
+    }
+    gas_cost <- (drive_miles / mpg) * gas_price_per_gallon
+    
+    flight_rows <- route %>%
+      mutate(row_idx = row_number()) %>%
+      filter(travel_mode == "Flight", !is.na(segment_flight_distance_km))
+    flight_total <- 0
+    if (nrow(flight_rows) > 0) {
+      for (i in seq_len(nrow(flight_rows))) {
+        origin_idx <- as.integer(flight_rows$row_idx[i])
+        dest_idx <- origin_idx + 1
+        if (!is.finite(origin_idx) || dest_idx > nrow(route)) next
+        origin <- route[origin_idx, ]
+        dest <- route[dest_idx, ]
+        airport_from <- find_nearest_airport_cached(origin$latitude, origin$longitude)
+        airport_to <- find_nearest_airport_cached(dest$latitude, dest$longitude)
+        flight_cost_info <- estimate_flight_segment_cost(
+          origin_iata = airport_from$airport$iata_code,
+          dest_iata = airport_to$airport$iata_code,
+          dist_km = as.numeric(flight_rows$segment_flight_distance_km[i]),
+          travel_date = travel_date,
+          preferred_airlines = preferred_airlines
+        )
+        flight_total <- flight_total + flight_cost_info$cost
+      }
+    }
+    flight_total <- flight_total * traveler_count
+    
+    park_stops <- route %>%
+      filter(!name %in% c("START", "END")) %>%
+      mutate(park_code = normalize_park_code(park_code)) %>%
+      left_join(park_cost_data, by = "park_code")
+    
+    park_cost_total <- 0
+    if (nrow(park_stops) > 0) {
+      vehicle_col <- if (vehicle_type == "motorcycle") "entrance_fee_motorcycle" else "entrance_fee_vehicle"
+      park_cost_total <- park_stops %>%
+        mutate(
+          vehicle_fee = as.numeric(.data[[vehicle_col]]),
+          person_fee = as.numeric(entrance_fee_person),
+          stop_fee = case_when(
+            !is.na(vehicle_fee) & vehicle_fee > 0 ~ vehicle_fee,
+            !is.na(person_fee) & person_fee > 0 ~ person_fee * traveler_count,
+            TRUE ~ 0
+          )
+        ) %>%
+        summarise(total = sum(stop_fee, na.rm = TRUE)) %>%
+        pull(total)
+    }
+    
+    total_cost <- gas_cost + flight_total + park_cost_total
+    list(
+      total_cost = total_cost,
+      gas_cost = gas_cost,
+      flight_cost = flight_total,
+      park_cost = park_cost_total
+    )
+  })
+  
   output$estimated_cost_box <- renderInfoBox({
-    infoBox("Estimated Cost", "--", "Coming soon",
-            icon = icon("dollar-sign"), color = "purple")
+    cost <- trip_cost_breakdown()
+    if (is.null(cost)) {
+      infoBox("Estimated Cost", "--", "Click Calculate",
+              icon = icon("dollar-sign"), color = "purple")
+    } else {
+      infoBox(
+        "Estimated Cost",
+        paste0("$", format(round(cost$total_cost, 0), big.mark = ",")),
+        paste0(
+          "Gas: $", format(round(cost$gas_cost, 0), big.mark = ","),
+          " | Flights: $", format(round(cost$flight_cost, 0), big.mark = ","),
+          " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ",")
+        ),
+        icon = icon("dollar-sign"),
+        color = "purple"
+      )
+    }
   })
   
   # Route table
