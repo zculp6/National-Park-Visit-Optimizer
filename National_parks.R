@@ -9,6 +9,9 @@ library(httr)
 library(DT)
 library(shinyWidgets)
 library(jsonlite)
+library(rvest)
+library(dplyr)
+library(stringr)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -93,6 +96,37 @@ as_scalar_character <- function(x, default = "") {
 
 # Zip code data from: https://simplemaps.com/data/us-zips
 # Other data from NPS API
+
+###################
+### Gas Cost Data
+################### 
+
+# AAA URL for State Averages
+url <- "https://gasprices.aaa.com/state-gas-price-averages/"
+
+# Read the HTML and extract the table
+webpage <- read_html(url)
+gas_table <- webpage %>%
+  html_node("table") %>% # AAA usually has the averages in a standard table
+  html_table()
+
+# Clean the data (remove '$' and convert to numeric)
+clean_gas_data <- gas_table %>%
+  rename(State = 1, Regular = 2, MidGrade = 3, Premium = 4, Diesel = 5) %>%
+  mutate(across(Regular:Diesel, ~as.numeric(str_remove(., "\\$"))))
+
+territory_data <- data.frame(
+  State = c("U.S. Virgin Islands", "American Samoa"),
+  # USVI St. Thomas (~$4.78) vs St. Croix (~$3.74) average
+  Regular = c(4.26, 3.85), 
+  MidGrade = c(NA, NA),
+  # USVI Premium is approx $5.34
+  Premium = c(5.34, NA),
+  # USVI Diesel is approx $5.87
+  Diesel = c(5.87, 4.10) 
+)
+
+final_gas_data <- bind_rows(clean_gas_data, territory_data)
 
 ###################
 ### Airport Data
@@ -1226,9 +1260,21 @@ ui <- dashboardPage(
         }
       "))
     ),
+    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"),
     tags$script(HTML("
-        Shiny.addCustomMessageHandler('print_route_pdf', function(message) {
-          window.print();
+        Shiny.addCustomMessageHandler('download_route_pdf', function(message) {
+          var source = document.getElementById('route-pdf-content');
+          if (!source || typeof html2pdf === 'undefined') return;
+          var filename = (message && message.filename) ? message.filename : 'optimal_route.pdf';
+          var options = {
+            margin: [0.35, 0.35, 0.35, 0.35],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+          };
+          html2pdf().set(options).from(source).save();
         });
         window.parkGalleryNav = function(galleryId, delta) {
           var gallery = document.getElementById(galleryId);
@@ -1515,25 +1561,31 @@ ui <- dashboardPage(
       # Optimal Route Tab
       tabItem(tabName = "optimalroute",
               fluidRow(
-                infoBoxOutput("total_distance_box", width = 3),
-                infoBoxOutput("total_time_box", width = 3),
-                infoBoxOutput("num_stops_box", width = 3),
-                infoBoxOutput("avg_distance_box", width = 3)
+                infoBoxOutput("total_distance_box", width = 2),
+                infoBoxOutput("travel_time_box", width = 2),
+                infoBoxOutput("park_visit_time_box", width = 2),
+                infoBoxOutput("num_stops_box", width = 2),
+                infoBoxOutput("avg_distance_box", width = 2),
+                infoBoxOutput("estimated_cost_box", width = 2)
               ),
-              fluidRow(
-                box(
-                  title = "Interactive Route Map with GPS-Style Paths",
-                  status = "primary",
-                  solidHeader = TRUE,
-                  width = 12,
-                  actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default"),
-                  tags$span("  "),
-                  actionButton("print_route_pdf", "Print / Save as PDF", icon = icon("file-pdf"), class = "btn-primary"),
-                  br(), br(),
-                  p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers).
-               Click markers to see park details."),
-                  p(em("Map initializes on app startup. If no route has been calculated yet, a starter map is shown.")),
-                  leafletOutput("route_map", height = 700)
+              div(
+                id = "route-pdf-content",
+                fluidRow(
+                  box(
+                    title = "Interactive Route Map with GPS-Style Paths",
+                    status = "primary",
+                    solidHeader = TRUE,
+                    width = 12,
+                    actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default"),
+                    tags$span("  "),
+                    actionButton("download_route_pdf", "Download PDF", icon = icon("file-pdf"), class = "btn-primary"),
+                    br(), br(),
+                    p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers).
+                 Click markers to see park details."),
+                    p(em("Map initializes on app startup. If no route has been calculated yet, a starter map is shown.")),
+                    leafletOutput("route_map", height = 700)
+                  )
+                ),
                 )
               ),
               fluidRow(
@@ -2397,8 +2449,8 @@ server <- function(input, output, session) {
     updateTabItems(session, "main_tabs", "planner")
   })
   
-  observeEvent(input$print_route_pdf, {
-    session$sendCustomMessage("print_route_pdf", list())
+  observeEvent(input$download_route_pdf, {
+    session$sendCustomMessage("download_route_pdf", list(filename = "optimal_route.pdf"))
   })
   
   # Distance conversion
@@ -2675,11 +2727,29 @@ server <- function(input, output, session) {
     }
   })
   
-  output$total_time_box <- renderInfoBox({
+  output$travel_time_box <- renderInfoBox({
     result <- computed_route()
     if (is.null(result)) {
-      infoBox("Total Time", "--", "Travel + park visit time",
+      infoBox("Travel Time", "--", "Route travel only",
               icon = icon("clock"), color = "green")
+    } else {
+      days <- floor(result$total_time / 24)
+      hours <- round(result$total_time %% 24, 1)
+      time_str <- if (days > 0) {
+        sprintf("%d day%s, %.1fh", days, if(days > 1) "s" else "", hours)
+      } else {
+        sprintf("%.1f hours", hours)
+      }
+      infoBox("Travel Time", time_str, "Travel segments only",
+              icon = icon("clock"), color = "green")
+    }
+  })
+  
+  output$park_visit_time_box <- renderInfoBox({
+    result <- computed_route()
+    if (is.null(result)) {
+      infoBox("Park Visit Time", "--", "Estimated park time",
+              icon = icon("hiking"), color = "teal")
     } else {
       parks_only <- result$route %>% filter(!name %in% c("START", "END"))
       visit_overrides <- park_visit_time_overrides()
@@ -2691,16 +2761,15 @@ server <- function(input, output, session) {
       } else {
         0
       }
-      overall_time <- result$total_time + visit_total
-      days <- floor(overall_time / 24)
-      hours <- round(overall_time %% 24, 1)
-      time_str <- if (days > 0) {
+      days <- floor(visit_total / 24)
+      hours <- round(visit_total %% 24, 1)
+      visit_str <- if (days > 0) {
         sprintf("%d day%s, %.1fh", days, if(days > 1) "s" else "", hours)
       } else {
         sprintf("%.1f hours", hours)
       }
-      infoBox("Total Time", time_str, "Travel time",
-              icon = icon("clock"), color = "green")
+      infoBox("Park Visit Time", visit_str, "Estimated time at parks",
+              icon = icon("hiking"), color = "teal")
     }
   })
   
@@ -2728,6 +2797,11 @@ server <- function(input, output, session) {
               sprintf("%.0f %s\n%.1fh", avg_dist, selected_distance_label(), avg_time),
               "Per segment", icon = icon("arrows-alt-h"), color = "red")
     }
+  })
+  
+  output$estimated_cost_box <- renderInfoBox({
+    infoBox("Estimated Cost", "--", "Coming soon",
+            icon = icon("dollar-sign"), color = "purple")
   })
   
   # Route table
@@ -2790,7 +2864,14 @@ server <- function(input, output, session) {
     names(display_df)[names(display_df) == "Distance"] <- paste0("Distance (", selected_distance_label(), ")")
     
     datatable(display_df,
-              options = list(pageLength = 25, dom = 'tip'),
+              options = list(
+                paging = FALSE,
+                searching = FALSE,
+                info = FALSE,
+                ordering = FALSE,
+                autoWidth = TRUE,
+                dom = 't'
+              ),
               rownames = FALSE)
   })
   
