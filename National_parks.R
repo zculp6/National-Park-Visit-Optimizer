@@ -1363,12 +1363,19 @@ ui <- dashboardPage(
                   ),
                   fluidRow(
                     column(
-                      6,
-                      dateInput("travel_start_date", "Date to Leave:", value = seq(Sys.Date(), by = "1 month", length.out = 2)[2], format = "yyyy-mm-dd")
-                    ),
-                    column(
-                      6,
-                      dateInput("travel_end_date", "Date to Return / End:", value = seq(Sys.Date(), by = "1 month", length.out = 2)[2] + 7, format = "yyyy-mm-dd")
+                      12,
+                      airDatepickerInput(
+                        "travel_dates",
+                        "Travel Dates:",
+                        value = c(
+                          seq(Sys.Date(), by = "1 month", length.out = 2)[2],
+                          seq(Sys.Date(), by = "1 month", length.out = 2)[2] + 7
+                        ),
+                        range = TRUE,
+                        autoClose = TRUE,
+                        dateFormat = "yyyy-MM-dd",
+                        minDate = Sys.Date()
+                      )
                     )
                   ),
                   p(em("Default dates are one month from today for a 7-day trip window."))
@@ -1560,16 +1567,16 @@ ui <- dashboardPage(
       
       # Optimal Route Tab
       tabItem(tabName = "optimalroute",
-              fluidRow(
-                infoBoxOutput("total_distance_box", width = 2),
-                infoBoxOutput("travel_time_box", width = 2),
-                infoBoxOutput("park_visit_time_box", width = 2),
-                infoBoxOutput("num_stops_box", width = 2),
-                infoBoxOutput("avg_distance_box", width = 2),
-                infoBoxOutput("estimated_cost_box", width = 2)
-              ),
               div(
                 id = "route-pdf-content",
+                fluidRow(
+                  infoBoxOutput("total_distance_box", width = 2),
+                  infoBoxOutput("travel_time_box", width = 2),
+                  infoBoxOutput("park_visit_time_box", width = 2),
+                  infoBoxOutput("num_stops_box", width = 2),
+                  infoBoxOutput("avg_distance_box", width = 2),
+                  infoBoxOutput("estimated_cost_box", width = 2)
+                ),
                 fluidRow(
                   box(
                     title = "Interactive Route Map with GPS-Style Paths",
@@ -1584,6 +1591,15 @@ ui <- dashboardPage(
                  Click markers to see park details."),
                     p(em("Map initializes on app startup. If no route has been calculated yet, a starter map is shown.")),
                     leafletOutput("route_map", height = 700)
+                  )
+                ),
+                fluidRow(
+                  box(
+                    title = "Optimal Route Details",
+                    status = "primary",
+                    solidHeader = TRUE,
+                    width = 12,
+                    DTOutput("route_table")
                   )
                 )
               ),
@@ -1610,15 +1626,6 @@ ui <- dashboardPage(
                   uiOutput("park_visit_time_controls")
                 )
               ),
-              fluidRow(
-                box(
-                  title = "Optimal Route Details",
-                  status = "primary",
-                  solidHeader = TRUE,
-                  width = 12,
-                  DTOutput("route_table")
-                )
-              )
       ),
       
       # About Tab
