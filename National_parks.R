@@ -12,7 +12,6 @@ library(jsonlite)
 library(rvest)
 library(dplyr)
 library(stringr)
-library(lubridate)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -133,70 +132,12 @@ final_gas_data <- bind_rows(clean_gas_data, territory_data)
 ### Airport Data
 ###################
 
-major_airports <- readr::read_csv("us-airports.csv", show_col_types = FALSE)
+major_airports <- read.csv("us-airports.csv")
 major_airports <- major_airports %>%
   filter(type == "large_airport" | type == "medium_airport") %>%
-  select(ident, name, latitude_deg, longitude_deg, region_name, local_region, municipality, iata_code, local_code) %>%
+  select(ident, name, latitude_deg, longitude_deg, region_name, local_region, municipality, local_code) %>%
   rename(lat = latitude_deg) %>%
   rename(lon = longitude_deg)
-
-valid_iatas <- major_airports %>%
-  filter(!is.na(iata_code), nzchar(iata_code)) %>%
-  pull(iata_code) %>%
-  unique()
-
-routes_url <- "https://raw.githubusercontent.com/jpatokal/openflights/master/data/routes.dat"
-routes <- tryCatch(
-  readr::read_csv(
-    routes_url,
-    col_names = c("airline", "airline_id", "source", "source_id", "dest", "dest_id", "codeshare", "stops", "equipment"),
-    show_col_types = FALSE
-  ),
-  error = function(e) {
-    tibble(
-      airline = character(), airline_id = character(),
-      source = character(), source_id = character(),
-      dest = character(), dest_id = character(),
-      codeshare = character(), stops = character(), equipment = character()
-    )
-  }
-)
-
-valid_edges <- routes %>%
-  filter(source %in% valid_iatas & dest %in% valid_iatas)
-
-airlines <- readr::read_csv(
-  "airlines.dat.csv",
-  col_names = c("id", "name", "alias", "iata", "icao", "callsign", "country", "active"),
-  show_col_types = FALSE
-)
-
-valid_edges_with_names <- valid_edges %>%
-  left_join(airlines %>% select(iata, name), by = c("airline" = "iata")) %>%
-  rename(airline_name = name)
-
-estimate_final_cost <- function(dist_miles, airline_code, iata_dest, travel_date) {
-  base_fare <- 85
-  rate_per_mile <- 0.12
-  travel_month <- month(travel_date)
-  season_mult <- case_when(
-    travel_month %in% c(12, 1) ~ 1.40,
-    travel_month %in% c(6, 7, 8) ~ 1.30,
-    travel_month %in% c(3, 4) ~ 1.20,
-    travel_month %in% c(2, 11) ~ 0.85,
-    TRUE ~ 1.00
-  )
-  air_mult <- case_when(
-    airline_code %in% c("NK", "F9", "G4") ~ 0.75,
-    airline_code %in% c("DL", "UA", "AA") ~ 1.15,
-    TRUE ~ 1.00
-  )
-  territory_mult <- if_else(iata_dest %in% c("STT", "STX", "PPG"), 1.35, 1.0)
-  travel_year <- year(travel_date)
-  inflation_mult <- 1 + ((travel_year - 2025) * 0.04)
-  final_cost <- (base_fare + (dist_miles * rate_per_mile)) * season_mult * air_mult * territory_mult * inflation_mult
-  round(final_cost, 2)
-}
 
 zip_codes <- read.csv("uszips.csv", stringsAsFactors = FALSE) %>%
   mutate(zip = str_pad(as.character(zip), width = 5, side = "left", pad = "0"))
@@ -213,6 +154,41 @@ find_nearest_airport <- function(lat, lon, airports = major_airports) {
     airport = airports[nearest_idx, ],
     distance_km = distances[nearest_idx]
   ))
+}
+
+estimate_final_cost <- function(dist_miles, airline_code, iata_dest, travel_date) {
+  # 1. Base Variables
+  base_fare <- 85
+  rate_per_mile <- 0.12
+  
+  # 2. Extract Month for Seasonality
+  travel_month <- month(travel_date)
+  season_mult <- case_when(
+    travel_month %in% c(12, 1) ~ 1.40,      # Winter Peaks
+    travel_month %in% c(6, 7, 8) ~ 1.30,   # Summer Peaks
+    travel_month %in% c(3, 4) ~ 1.20,      # Spring Break
+    travel_month %in% c(2, 11) ~ 0.85,     # Low Season
+    TRUE ~ 1.00                            # Shoulder Season
+  )
+  
+  # 3. Airline Tier Multiplier
+  air_mult <- case_when(
+    airline_code %in% c("NK", "F9", "G4") ~ 0.75, # Budget
+    airline_code %in% c("DL", "UA", "AA") ~ 1.15, # Legacy
+    TRUE ~ 1.00
+  )
+  
+  # 4. Territory/Island Premium
+  territory_mult <- if_else(iata_dest %in% c("STT", "STX", "PPG"), 1.35, 1.0)
+  
+  # 5. Annual Inflation (Relative to 2025)
+  travel_year <- year(travel_date)
+  inflation_mult <- 1 + ((travel_year - 2025) * 0.04) # Assume 4% yearly rise
+  
+  # FINAL CALCULATION
+  final_cost <- (base_fare + (dist_miles * rate_per_mile)) * season_mult * air_mult * territory_mult * inflation_mult
+  
+  return(round(final_cost, 2))
 }
 
 ###################
@@ -768,30 +744,6 @@ scalar_has_text <- function(x) {
   is.character(x) && length(x) == 1 && !is.na(x) && nzchar(x)
 }
 
-airline_name_to_iata <- c(
-  "Alaska Airlines" = "AS",
-  "Allegiant Air" = "G4",
-  "American Airlines" = "AA",
-  "Delta Air Lines" = "DL",
-  "Frontier Airlines" = "F9",
-  "JetBlue" = "B6",
-  "Southwest Airlines" = "WN",
-  "Spirit Airlines" = "NK",
-  "United Airlines" = "UA"
-)
-
-choose_flight_airline <- function(origin_iata, dest_iata, preferred_codes = character()) {
-  if (is.null(origin_iata) || is.null(dest_iata) || !nzchar(origin_iata) || !nzchar(dest_iata)) return(NA_character_)
-  direct <- valid_edges_with_names %>%
-    filter(source == origin_iata, dest == dest_iata, !is.na(airline), airline != "\\N")
-  if (nrow(direct) == 0) return(NA_character_)
-  if (length(preferred_codes) > 0) {
-    preferred_match <- direct %>% filter(airline %in% preferred_codes)
-    if (nrow(preferred_match) > 0) return(preferred_match$airline[[1]])
-  }
-  direct$airline[[1]]
-}
-
 default_speed_kmh <- 100
 default_flight_speed_kmh <- 800
 drive_threshold_km <- 1500
@@ -1110,7 +1062,7 @@ get_osrm_route <- function(lon1, lat1, lon2, lat2) {
   })
 }
 
-route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL, preferred_airlines = character(), travel_date = Sys.Date()) {
+route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) {
   n <- length(ordered_indices)
   route_df <- locations[ordered_indices, ]
   route_df$step <- seq_len(n)
@@ -1120,7 +1072,6 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL, 
   travel_mode <- character(n)
   segment_description <- character(n)
   segment_geometries <- vector("list", n)
-  segment_flight_meta <- vector("list", n)
   
   for (i in seq_len(n - 1)) {
     idx_from <- ordered_indices[i]
@@ -1164,18 +1115,6 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL, 
         (flight_dist / flight_speed_kmh) +
         (airport_to$distance_km / drive_speed_kmh) +
         flight_fixed_time_hours
-      flight_dist_miles <- flight_dist * 0.621371
-      airline_code <- choose_flight_airline(
-        airport_from$airport$iata_code,
-        airport_to$airport$iata_code,
-        preferred_airlines
-      )
-      flight_cost <- estimate_final_cost(
-        dist_miles = flight_dist_miles,
-        airline_code = airline_code,
-        iata_dest = airport_to$airport$iata_code,
-        travel_date = travel_date
-      )
       
       distance_to_next[i] <- total_dist
       time_to_next[i] <- total_time
@@ -1189,13 +1128,6 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL, 
         route_df$name[i], " -> ", airport_from$airport$name, " (drive ", round(airport_from$distance_km / drive_speed_kmh, 2), "h)",
         " | ", airport_from$airport$name, " -> ", airport_to$airport$name, " (flight)",
         " | ", airport_to$airport$name, " -> ", route_df$name[i + 1], " (drive ", round(airport_to$distance_km / drive_speed_kmh, 2), "h)"
-      )
-      segment_flight_meta[[i]] <- list(
-        origin_iata = airport_from$airport$iata_code,
-        dest_iata = airport_to$airport$iata_code,
-        airline_code = airline_code,
-        flight_dist_miles = flight_dist_miles,
-        estimated_cost = flight_cost
       )
     }
     
@@ -1216,8 +1148,7 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL, 
     route = route_df,
     total_distance = sum(distance_to_next, na.rm = TRUE),
     total_time = sum(time_to_next, na.rm = TRUE),
-    segment_geometries = segment_geometries,
-    segment_flight_meta = segment_flight_meta
+    segment_geometries = segment_geometries
   )
 }
 
@@ -2716,18 +2647,7 @@ server <- function(input, output, session) {
     
     incProgress(0.2, detail = "Resolving segment geometry")
     # Generate route with geometry
-    preferred_airlines <- intersect(
-      unname(airline_name_to_iata[input$airline_preference]),
-      unique(valid_edges_with_names$airline)
-    )
-    travel_start_date <- if (!is.null(input$travel_dates) && length(input$travel_dates) >= 1 && !is.na(input$travel_dates[[1]])) as.Date(input$travel_dates[[1]]) else Sys.Date()
-    result <- route_with_geometry(
-      ordered_indices,
-      locations,
-      mode_matrix = base_mode_matrix,
-      preferred_airlines = preferred_airlines,
-      travel_date = travel_start_date
-    )
+    result <- route_with_geometry(ordered_indices, locations, mode_matrix = base_mode_matrix)
     
     # Enforce overall limits using computed segment times/distances (includes start/end travel when provided)
     has_time_limit <- is.finite(overall_time_limit)
@@ -2766,13 +2686,7 @@ server <- function(input, output, session) {
       
       drop_pos <- removable_positions[which.max(marginal_cost)]
       ordered_indices <- ordered_indices[-drop_pos]
-      result <- route_with_geometry(
-        ordered_indices,
-        locations,
-        mode_matrix = base_mode_matrix,
-        preferred_airlines = preferred_airlines,
-        travel_date = travel_start_date
-      )
+      result <- route_with_geometry(ordered_indices, locations, mode_matrix = base_mode_matrix)
     }
     
     result$ordered_indices <- ordered_indices
@@ -2927,26 +2841,8 @@ server <- function(input, output, session) {
   })
   
   output$estimated_cost_box <- renderInfoBox({
-    result <- computed_route()
-    if (is.null(result) || is.null(result$segment_flight_meta)) {
-      return(infoBox("Estimated Flight Cost", "--", "Click Calculate",
-                     icon = icon("dollar-sign"), color = "purple"))
-    }
-    flight_segments <- Filter(function(x) !is.null(x) && is.list(x) && !is.null(x$estimated_cost), result$segment_flight_meta)
-    if (length(flight_segments) == 0) {
-      return(infoBox("Estimated Flight Cost", "$0", "No flight segments in this route",
-                     icon = icon("dollar-sign"), color = "purple"))
-    }
-    travelers <- if (!is.null(input$num_travelers) && is.finite(input$num_travelers) && input$num_travelers > 0) input$num_travelers else 1
-    total_per_person <- sum(vapply(flight_segments, function(x) as.numeric(x$estimated_cost), numeric(1)), na.rm = TRUE)
-    total_group <- total_per_person * travelers
-    infoBox(
-      "Estimated Flight Cost",
-      paste0("$", format(round(total_group, 2), big.mark = ",", nsmall = 2)),
-      paste0("~$", format(round(total_per_person, 2), big.mark = ",", nsmall = 2), " per traveler"),
-      icon = icon("dollar-sign"),
-      color = "purple"
-    )
+    infoBox("Estimated Cost", "--", "Coming soon",
+            icon = icon("dollar-sign"), color = "purple")
   })
   
   # Route table
@@ -3248,18 +3144,7 @@ server <- function(input, output, session) {
       mode_matrix[from_idx, to_idx] <- ifelse(override_val == "drive", "Drive", "Flight")
     }
     
-    preferred_airlines <- intersect(
-      unname(airline_name_to_iata[input$airline_preference]),
-      unique(valid_edges_with_names$airline)
-    )
-    travel_start_date <- if (!is.null(input$travel_dates) && length(input$travel_dates) >= 1 && !is.na(input$travel_dates[[1]])) as.Date(input$travel_dates[[1]]) else Sys.Date()
-    refreshed <- route_with_geometry(
-      route_indices,
-      result$locations,
-      mode_matrix = mode_matrix,
-      preferred_airlines = preferred_airlines,
-      travel_date = travel_start_date
-    )
+    refreshed <- route_with_geometry(route_indices, result$locations, mode_matrix = mode_matrix)
     refreshed$ordered_indices <- route_indices
     refreshed$locations <- result$locations
     refreshed$default_distance_type <- result$default_distance_type

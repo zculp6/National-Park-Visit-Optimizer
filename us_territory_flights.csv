@@ -1,0 +1,5476 @@
+airport_depart,airport_arrive,airline,num_layovers
+ADQ,KLN,Air Salone,0
+KLN,KYK,Air Salone,0
+BRL,ORD,Air Choice One,0
+BRL,STL,Air Choice One,0
+DEC,ORD,Air Choice One,0
+DEC,STL,Air Choice One,0
+JBR,STL,Air Choice One,0
+ORD,BRL,Air Choice One,0
+ORD,DEC,Air Choice One,0
+STL,BRL,Air Choice One,0
+STL,DEC,Air Choice One,0
+STL,JBR,Air Choice One,0
+KTN,MTM,Fly Colombia ( Interliging Flights ),0
+MTM,KTN,Fly Colombia ( Interliging Flights ),0
+ATL,LWB,Silver Airways (3M),0
+ATL,MCN,Silver Airways (3M),0
+ATL,MEI,Silver Airways (3M),0
+ATL,MSL,Silver Airways (3M),0
+ATL,PIB,Silver Airways (3M),0
+ATL,TUP,Silver Airways (3M),0
+EYW,FLL,Silver Airways (3M),0
+EYW,RSW,Silver Airways (3M),0
+EYW,TPA,Silver Airways (3M),0
+FLL,EYW,Silver Airways (3M),0
+FLL,MCO,Silver Airways (3M),0
+FLL,TPA,Silver Airways (3M),0
+GLH,TUP,Silver Airways (3M),0
+GNV,MCO,Silver Airways (3M),0
+GNV,TPA,Silver Airways (3M),0
+JAX,TPA,Silver Airways (3M),0
+LWB,ATL,Silver Airways (3M),0
+MCN,ATL,Silver Airways (3M),0
+MCN,MCO,Silver Airways (3M),0
+MCO,FLL,Silver Airways (3M),0
+MCO,GNV,Silver Airways (3M),0
+MCO,MCN,Silver Airways (3M),0
+MCO,PNS,Silver Airways (3M),0
+MCO,RSW,Silver Airways (3M),0
+MCO,TLH,Silver Airways (3M),0
+MEI,ATL,Silver Airways (3M),0
+MSL,ATL,Silver Airways (3M),0
+PBI,TPA,Silver Airways (3M),0
+PIB,ATL,Silver Airways (3M),0
+PNS,MCO,Silver Airways (3M),0
+PNS,TPA,Silver Airways (3M),0
+RSW,EYW,Silver Airways (3M),0
+RSW,MCO,Silver Airways (3M),0
+TLH,MCO,Silver Airways (3M),0
+TLH,TPA,Silver Airways (3M),0
+TPA,EYW,Silver Airways (3M),0
+TPA,FLL,Silver Airways (3M),0
+TPA,GNV,Silver Airways (3M),0
+TPA,JAX,Silver Airways (3M),0
+TPA,PBI,Silver Airways (3M),0
+TPA,PNS,Silver Airways (3M),0
+TPA,TLH,Silver Airways (3M),0
+TUP,ATL,Silver Airways (3M),0
+TUP,GLH,Silver Airways (3M),0
+LAS,LAX,Boutique Air (Priv),0
+LAX,LAS,Boutique Air (Priv),0
+MCG,NIB,NA,0
+NIB,MCG,NA,0
+TLJ,MCG,NA,0
+AKP,FAI,NA,0
+BTT,AKP,NA,0
+CEM,IRC,NA,0
+CIK,FAI,NA,0
+CIK,FYU,NA,0
+FAI,BTT,NA,0
+FAI,CEM,NA,0
+FAI,CIK,NA,0
+FAI,FYU,NA,0
+FAI,MLY,NA,0
+FAI,WBQ,NA,0
+FYU,CIK,NA,0
+FYU,FAI,NA,0
+IRC,FAI,NA,0
+WBQ,FAI,NA,0
+BET,EEK,Airbus France,0
+BET,KPN,Airbus France,0
+BET,KWN,Airbus France,0
+BET,KWT,Airbus France,0
+BET,MLL,Airbus France,0
+BET,NME,Airbus France,0
+BET,WNA,Airbus France,0
+CYF,BET,Airbus France,0
+EEK,BET,Airbus France,0
+EEK,KWN,Airbus France,0
+KKH,KWK,Airbus France,0
+KPN,CYF,Airbus France,0
+KWK,BET,Airbus France,0
+KWN,BET,Airbus France,0
+KWN,EEK,Airbus France,0
+NME,OOK,Airbus France,0
+PKA,BET,Airbus France,0
+PTU,BET,Airbus France,0
+WNA,PKA,Airbus France,0
+ABL,OTZ,Era Alaska,0
+ABL,SHG,Era Alaska,0
+ADQ,ANC,Era Alaska,0
+AIN,ATK,Era Alaska,0
+AIN,BRW,Era Alaska,0
+ANC,ADQ,Era Alaska,0
+ANC,ANI,Era Alaska,0
+ANC,BET,Era Alaska,0
+ANC,CDV,Era Alaska,0
+ANC,ENA,Era Alaska,0
+ANC,FAI,Era Alaska,0
+ANC,HOM,Era Alaska,0
+ANC,KSM,Era Alaska,0
+ANC,UNK,Era Alaska,0
+ANC,VDZ,Era Alaska,0
+ANI,ANC,Era Alaska,0
+ANI,CHU,Era Alaska,0
+ANI,HCR,Era Alaska,0
+ANI,KLG,Era Alaska,0
+ANI,RSH,Era Alaska,0
+ANI,SHX,Era Alaska,0
+ANV,HCR,Era Alaska,0
+ATK,AIN,Era Alaska,0
+ATK,BRW,Era Alaska,0
+AUK,EMK,Era Alaska,0
+BET,ANC,Era Alaska,0
+BET,CYF,Era Alaska,0
+BET,HPB,Era Alaska,0
+BET,KKH,Era Alaska,0
+BET,KLG,Era Alaska,0
+BET,KUK,Era Alaska,0
+BET,KWK,Era Alaska,0
+BET,OOK,Era Alaska,0
+BET,VAK,Era Alaska,0
+BKC,DRG,Era Alaska,0
+BKC,OTZ,Era Alaska,0
+BRW,AIN,Era Alaska,0
+BRW,ATK,Era Alaska,0
+BRW,NUI,Era Alaska,0
+BRW,PIZ,Era Alaska,0
+BTI,FYU,Era Alaska,0
+BTI,SCC,Era Alaska,0
+CDV,ANC,Era Alaska,0
+CYF,KPN,Era Alaska,0
+DRG,BKC,Era Alaska,0
+DRG,OTZ,Era Alaska,0
+ELI,KKA,Era Alaska,0
+ELI,OME,Era Alaska,0
+EMK,AUK,Era Alaska,0
+EMK,KOT,Era Alaska,0
+ENA,ANC,Era Alaska,0
+FAI,ANC,Era Alaska,0
+FAI,GAL,Era Alaska,0
+FAI,RBY,Era Alaska,0
+FAI,SCC,Era Alaska,0
+FYU,BTI,Era Alaska,0
+GAL,FAI,Era Alaska,0
+GAL,HSL,Era Alaska,0
+GAL,KAL,Era Alaska,0
+GAL,NUL,Era Alaska,0
+GAL,RBY,Era Alaska,0
+GAM,OME,Era Alaska,0
+GAM,SVA,Era Alaska,0
+GLV,OME,Era Alaska,0
+GLV,WMO,Era Alaska,0
+HCR,ANI,Era Alaska,0
+HCR,ANV,Era Alaska,0
+HOM,ANC,Era Alaska,0
+HPB,SCM,Era Alaska,0
+HPB,VAK,Era Alaska,0
+HSL,GAL,Era Alaska,0
+HSL,KYU,Era Alaska,0
+IAN,ORV,Era Alaska,0
+IAN,OTZ,Era Alaska,0
+KAL,GAL,Era Alaska,0
+KAL,NUL,Era Alaska,0
+KKA,ELI,Era Alaska,0
+KKA,SKK,Era Alaska,0
+KKA,UNK,Era Alaska,0
+KKH,BET,Era Alaska,0
+KLG,ANI,Era Alaska,0
+KLG,BET,Era Alaska,0
+KLG,RSH,Era Alaska,0
+KOT,EMK,Era Alaska,0
+KOT,KSM,Era Alaska,0
+KPN,BET,Era Alaska,0
+KSM,ANC,Era Alaska,0
+KSM,KOT,Era Alaska,0
+KSM,MOU,Era Alaska,0
+KTS,TLA,Era Alaska,0
+KTS,WAA,Era Alaska,0
+KVL,OTZ,Era Alaska,0
+KWK,KKH,Era Alaska,0
+KWK,KPN,Era Alaska,0
+KWN,TOG,Era Alaska,0
+KWT,BET,Era Alaska,0
+KYU,GAL,Era Alaska,0
+MLL,RSH,Era Alaska,0
+MOU,KSM,Era Alaska,0
+MYU,BET,Era Alaska,0
+NUI,BRW,Era Alaska,0
+NUI,SCC,Era Alaska,0
+NUL,GAL,Era Alaska,0
+NUL,KAL,Era Alaska,0
+OBU,ABL,Era Alaska,0
+OBU,OTZ,Era Alaska,0
+OME,ELI,Era Alaska,0
+OME,GAM,Era Alaska,0
+OME,GLV,Era Alaska,0
+OME,KTS,Era Alaska,0
+OME,SHH,Era Alaska,0
+OME,SKK,Era Alaska,0
+OME,SVA,Era Alaska,0
+OME,TLA,Era Alaska,0
+OME,UNK,Era Alaska,0
+OME,WAA,Era Alaska,0
+OME,WMO,Era Alaska,0
+OOK,MYU,Era Alaska,0
+ORV,IAN,Era Alaska,0
+ORV,OTZ,Era Alaska,0
+OTZ,ABL,Era Alaska,0
+OTZ,BKC,Era Alaska,0
+OTZ,DRG,Era Alaska,0
+OTZ,IAN,Era Alaska,0
+OTZ,ORV,Era Alaska,0
+OTZ,SHG,Era Alaska,0
+OTZ,WLK,Era Alaska,0
+OTZ,WTK,Era Alaska,0
+PIZ,BRW,Era Alaska,0
+RBY,FAI,Era Alaska,0
+RBY,GAL,Era Alaska,0
+RSH,ANI,Era Alaska,0
+RSH,BET,Era Alaska,0
+RSH,KLG,Era Alaska,0
+SCC,BTI,Era Alaska,0
+SCC,FAI,Era Alaska,0
+SCC,NUI,Era Alaska,0
+SCM,BET,Era Alaska,0
+SHG,OBU,Era Alaska,0
+SHH,OME,Era Alaska,0
+SHH,WAA,Era Alaska,0
+SHX,ANI,Era Alaska,0
+SKK,KKA,Era Alaska,0
+SKK,OME,Era Alaska,0
+SKK,UNK,Era Alaska,0
+SLQ,ANI,Era Alaska,0
+SMK,UNK,Era Alaska,0
+SVA,GAM,Era Alaska,0
+SVA,OME,Era Alaska,0
+TLA,KTS,Era Alaska,0
+TLA,OME,Era Alaska,0
+TOG,KWN,Era Alaska,0
+UNK,ANC,Era Alaska,0
+UNK,SKK,Era Alaska,0
+UNK,SMK,Era Alaska,0
+VAK,HPB,Era Alaska,0
+VAK,SCM,Era Alaska,0
+VDZ,ANC,Era Alaska,0
+WAA,KTS,Era Alaska,0
+WAA,OME,Era Alaska,0
+WLK,OTZ,Era Alaska,0
+WMO,GLV,Era Alaska,0
+WMO,OME,Era Alaska,0
+WTK,KVL,Era Alaska,0
+ADQ,AKK,Astair,0
+AKK,ADQ,Astair,0
+ELI,GLV,Bering Air,0
+GLV,ELI,Bering Air,0
+KKA,OME,Bering Air,0
+KTS,OME,Bering Air,0
+LUR,OTZ,Bering Air,0
+OME,KKA,Bering Air,0
+OME,OTZ,Bering Air,0
+OME,TNC,Bering Air,0
+OTZ,KVL,Bering Air,0
+OTZ,OME,Bering Air,0
+TNC,WAA,Bering Air,0
+UNK,OME,Bering Air,0
+WAA,SHH,Bering Air,0
+WTK,OTZ,Bering Air,0
+AET,BTT,Astral Aviation,0
+AET,FAI,Astral Aviation,0
+AET,HUS,Astral Aviation,0
+AKP,BTT,Astral Aviation,0
+ARC,VEE,Astral Aviation,0
+BTT,AET,Astral Aviation,0
+BTT,FAI,Astral Aviation,0
+FAI,AET,Astral Aviation,0
+FAI,AKP,Astral Aviation,0
+FYU,VEE,Astral Aviation,0
+HSL,HUS,Astral Aviation,0
+HSL,RBY,Astral Aviation,0
+HUS,FAI,Astral Aviation,0
+KAL,HSL,Astral Aviation,0
+KYU,FAI,Astral Aviation,0
+NUL,KYU,Astral Aviation,0
+VEE,ARC,Astral Aviation,0
+VEE,FYU,Astral Aviation,0
+ATL,AZO,Pinnacle Airlines,0
+ATL,CHA,Pinnacle Airlines,0
+ATL,CID,Pinnacle Airlines,0
+ATL,CRW,Pinnacle Airlines,0
+ATL,CVG,Pinnacle Airlines,0
+ATL,EVV,Pinnacle Airlines,0
+ATL,FWA,Pinnacle Airlines,0
+ATL,GSO,Pinnacle Airlines,0
+ATL,GSP,Pinnacle Airlines,0
+ATL,LAN,Pinnacle Airlines,0
+ATL,LEX,Pinnacle Airlines,0
+ATL,MBS,Pinnacle Airlines,0
+ATL,MSP,Pinnacle Airlines,0
+ATL,ROA,Pinnacle Airlines,0
+ATL,SYR,Pinnacle Airlines,0
+ATL,TYS,Pinnacle Airlines,0
+ATL,XNA,Pinnacle Airlines,0
+AZO,ATL,Pinnacle Airlines,0
+CHA,ATL,Pinnacle Airlines,0
+CRW,ATL,Pinnacle Airlines,0
+CVG,ATL,Pinnacle Airlines,0
+DTW,MSY,Pinnacle Airlines,0
+EVV,ATL,Pinnacle Airlines,0
+FWA,ATL,Pinnacle Airlines,0
+GFK,TVF,Pinnacle Airlines,0
+GSO,ATL,Pinnacle Airlines,0
+GSP,ATL,Pinnacle Airlines,0
+JFK,MSY,Pinnacle Airlines,0
+LAN,ATL,Pinnacle Airlines,0
+LEX,ATL,Pinnacle Airlines,0
+LGA,MSY,Pinnacle Airlines,0
+MBS,ATL,Pinnacle Airlines,0
+MDT,ATL,Pinnacle Airlines,0
+MEM,MSY,Pinnacle Airlines,0
+MSP,ATL,Pinnacle Airlines,0
+MSP,MSY,Pinnacle Airlines,0
+MSY,DTW,Pinnacle Airlines,0
+MSY,JFK,Pinnacle Airlines,0
+MSY,LGA,Pinnacle Airlines,0
+MSY,MEM,Pinnacle Airlines,0
+MSY,MSP,Pinnacle Airlines,0
+ROA,ATL,Pinnacle Airlines,0
+SYR,ATL,Pinnacle Airlines,0
+TVF,GFK,Pinnacle Airlines,0
+TYS,ATL,Pinnacle Airlines,0
+XNA,ATL,Pinnacle Airlines,0
+ACK,BOS,Cape Air,0
+ACK,EWB,Cape Air,0
+ACK,HYA,Cape Air,0
+ACK,MVY,Cape Air,0
+ALB,BOS,Cape Air,0
+ALB,MSS,Cape Air,0
+ALB,OGS,Cape Air,0
+AUG,BOS,Cape Air,0
+BHB,BOS,Cape Air,0
+BIL,GDV,Cape Air,0
+BIL,GGW,Cape Air,0
+BIL,HVR,Cape Air,0
+BIL,OLF,Cape Air,0
+BIL,SDY,Cape Air,0
+BOS,ACK,Cape Air,0
+BOS,ALB,Cape Air,0
+BOS,AUG,Cape Air,0
+BOS,BHB,Cape Air,0
+BOS,HYA,Cape Air,0
+BOS,LEB,Cape Air,0
+BOS,MVY,Cape Air,0
+BOS,PVC,Cape Air,0
+BOS,RKD,Cape Air,0
+BOS,RUT,Cape Air,0
+BOS,SLK,Cape Air,0
+CGI,STL,Cape Air,0
+EWB,ACK,Cape Air,0
+EWB,HPN,Cape Air,0
+EWB,MVY,Cape Air,0
+GDV,BIL,Cape Air,0
+GGW,BIL,Cape Air,0
+HPN,HYA,Cape Air,0
+HPN,LEB,Cape Air,0
+HPN,MVY,Cape Air,0
+HVR,BIL,Cape Air,0
+HYA,ACK,Cape Air,0
+HYA,BOS,Cape Air,0
+IRK,STL,Cape Air,0
+LEB,BOS,Cape Air,0
+LEB,HPN,Cape Air,0
+MSS,ALB,Cape Air,0
+MVY,ACK,Cape Air,0
+MVY,BOS,Cape Air,0
+MVY,EWB,Cape Air,0
+MVY,HPN,Cape Air,0
+MWA,STL,Cape Air,0
+OGS,ALB,Cape Air,0
+OLF,BIL,Cape Air,0
+OWB,STL,Cape Air,0
+PVC,BOS,Cape Air,0
+RKD,BOS,Cape Air,0
+RUT,BOS,Cape Air,0
+SDY,BIL,Cape Air,0
+SLK,BOS,Cape Air,0
+STL,CGI,Cape Air,0
+STL,IRK,Cape Air,0
+STL,MWA,Cape Air,0
+STL,OWB,Cape Air,0
+STL,TBN,Cape Air,0
+STL,UIN,Cape Air,0
+STT,STX,Cape Air,0
+STX,STT,Cape Air,0
+TBN,STL,Cape Air,0
+UIN,STL,Cape Air,0
+ABE,CLT,American Airlines,0
+ABE,PHL,American Airlines,0
+ABI,DFW,American Airlines,0
+ABQ,DFW,American Airlines,0
+ABQ,LAX,American Airlines,0
+ABQ,ORD,American Airlines,0
+ABQ,PHX,American Airlines,0
+ACT,DFW,American Airlines,0
+AEX,DFW,American Airlines,0
+AGS,CLT,American Airlines,0
+AGS,DCA,American Airlines,0
+ALB,CLT,American Airlines,0
+ALB,DCA,American Airlines,0
+ALB,PHL,American Airlines,0
+ALO,ORD,American Airlines,0
+AMA,DFW,American Airlines,0
+ANC,LAX,American Airlines,0
+ANC,PHX,American Airlines,0
+ART,ORD,American Airlines,0
+ART,PHL,American Airlines,0
+ATL,CLT,American Airlines,0
+ATL,DFW,American Airlines,0
+ATL,MIA,American Airlines,0
+ATL,ORD,American Airlines,0
+ATL,PHL,American Airlines,0
+ATL,PHX,American Airlines,0
+AUS,CLT,American Airlines,0
+AUS,DFW,American Airlines,0
+AUS,JFK,American Airlines,0
+AUS,LAX,American Airlines,0
+AUS,MSY,American Airlines,0
+AUS,ORD,American Airlines,0
+AUS,PHL,American Airlines,0
+AUS,PHX,American Airlines,0
+AVL,CLT,American Airlines,0
+AVP,CLT,American Airlines,0
+AVP,PHL,American Airlines,0
+AZO,ORD,American Airlines,0
+BDL,CLT,American Airlines,0
+BDL,DCA,American Airlines,0
+BDL,DFW,American Airlines,0
+BDL,LAX,American Airlines,0
+BDL,MIA,American Airlines,0
+BDL,ORD,American Airlines,0
+BDL,PHL,American Airlines,0
+BDL,PIT,American Airlines,0
+BFL,PHX,American Airlines,0
+BGM,PHL,American Airlines,0
+BGR,DCA,American Airlines,0
+BGR,PHL,American Airlines,0
+BHM,CLT,American Airlines,0
+BHM,DCA,American Airlines,0
+BHM,DFW,American Airlines,0
+BHM,MIA,American Airlines,0
+BHM,PHL,American Airlines,0
+BMI,DFW,American Airlines,0
+BMI,ORD,American Airlines,0
+BNA,CLT,American Airlines,0
+BNA,DCA,American Airlines,0
+BNA,DFW,American Airlines,0
+BNA,JFK,American Airlines,0
+BNA,LAX,American Airlines,0
+BNA,LGA,American Airlines,0
+BNA,MIA,American Airlines,0
+BNA,ORD,American Airlines,0
+BNA,PHL,American Airlines,0
+BOI,PHX,American Airlines,0
+BOS,BUF,American Airlines,0
+BOS,CLT,American Airlines,0
+BOS,DCA,American Airlines,0
+BOS,DFW,American Airlines,0
+BOS,JFK,American Airlines,0
+BOS,LAX,American Airlines,0
+BOS,LGA,American Airlines,0
+BOS,MDT,American Airlines,0
+BOS,MIA,American Airlines,0
+BOS,ORD,American Airlines,0
+BOS,PDX,American Airlines,0
+BOS,PHL,American Airlines,0
+BOS,PHX,American Airlines,0
+BOS,PIT,American Airlines,0
+BOS,RIC,American Airlines,0
+BOS,ROC,American Airlines,0
+BOS,SAN,American Airlines,0
+BOS,SEA,American Airlines,0
+BOS,SYR,American Airlines,0
+BPT,DFW,American Airlines,0
+BRO,DFW,American Airlines,0
+BTR,CLT,American Airlines,0
+BTR,DFW,American Airlines,0
+BTV,DCA,American Airlines,0
+BTV,PHL,American Airlines,0
+BUF,BOS,American Airlines,0
+BUF,CLT,American Airlines,0
+BUF,DCA,American Airlines,0
+BUF,ORD,American Airlines,0
+BUF,PHL,American Airlines,0
+BUR,PDX,American Airlines,0
+BUR,PHX,American Airlines,0
+BUR,SEA,American Airlines,0
+BWI,CLT,American Airlines,0
+BWI,DFW,American Airlines,0
+BWI,JFK,American Airlines,0
+BWI,MIA,American Airlines,0
+BWI,ORD,American Airlines,0
+BWI,PHL,American Airlines,0
+BWI,PHX,American Airlines,0
+CAE,CLT,American Airlines,0
+CAE,DCA,American Airlines,0
+CAE,DFW,American Airlines,0
+CAE,PHL,American Airlines,0
+CAK,CLT,American Airlines,0
+CAK,DCA,American Airlines,0
+CAK,PHL,American Airlines,0
+CHA,CLT,American Airlines,0
+CHA,DCA,American Airlines,0
+CHA,DFW,American Airlines,0
+CHA,ORD,American Airlines,0
+CHO,CLT,American Airlines,0
+CHO,LGA,American Airlines,0
+CHO,ORD,American Airlines,0
+CHO,PHL,American Airlines,0
+CHS,CLT,American Airlines,0
+CHS,DCA,American Airlines,0
+CHS,DFW,American Airlines,0
+CHS,MIA,American Airlines,0
+CHS,PHL,American Airlines,0
+CID,DFW,American Airlines,0
+CID,ORD,American Airlines,0
+CLE,CLT,American Airlines,0
+CLE,DFW,American Airlines,0
+CLE,JFK,American Airlines,0
+CLE,MIA,American Airlines,0
+CLE,ORD,American Airlines,0
+CLE,PHL,American Airlines,0
+CLL,DFW,American Airlines,0
+CLT,ABE,American Airlines,0
+CLT,AGS,American Airlines,0
+CLT,ALB,American Airlines,0
+CLT,ATL,American Airlines,0
+CLT,AUS,American Airlines,0
+CLT,AVL,American Airlines,0
+CLT,AVP,American Airlines,0
+CLT,BDL,American Airlines,0
+CLT,BHM,American Airlines,0
+CLT,BNA,American Airlines,0
+CLT,BOS,American Airlines,0
+CLT,BTR,American Airlines,0
+CLT,BUF,American Airlines,0
+CLT,BWI,American Airlines,0
+CLT,CAE,American Airlines,0
+CLT,CAK,American Airlines,0
+CLT,CHA,American Airlines,0
+CLT,CHO,American Airlines,0
+CLT,CHS,American Airlines,0
+CLT,CLE,American Airlines,0
+CLT,CMH,American Airlines,0
+CLT,CRW,American Airlines,0
+CLT,CVG,American Airlines,0
+CLT,DAB,American Airlines,0
+CLT,DAY,American Airlines,0
+CLT,DCA,American Airlines,0
+CLT,DEN,American Airlines,0
+CLT,DFW,American Airlines,0
+CLT,DSM,American Airlines,0
+CLT,DTW,American Airlines,0
+CLT,EWN,American Airlines,0
+CLT,EWR,American Airlines,0
+CLT,FAY,American Airlines,0
+CLT,FLL,American Airlines,0
+CLT,FLO,American Airlines,0
+CLT,GNV,American Airlines,0
+CLT,GPT,American Airlines,0
+CLT,GSO,American Airlines,0
+CLT,GSP,American Airlines,0
+CLT,HHH,American Airlines,0
+CLT,HPN,American Airlines,0
+CLT,HSV,American Airlines,0
+CLT,HTS,American Airlines,0
+CLT,IAD,American Airlines,0
+CLT,IAH,American Airlines,0
+CLT,ILM,American Airlines,0
+CLT,IND,American Airlines,0
+CLT,JAN,American Airlines,0
+CLT,JAX,American Airlines,0
+CLT,JFK,American Airlines,0
+CLT,LAS,American Airlines,0
+CLT,LAX,American Airlines,0
+CLT,LEX,American Airlines,0
+CLT,LGA,American Airlines,0
+CLT,LIT,American Airlines,0
+CLT,LYH,American Airlines,0
+CLT,MCI,American Airlines,0
+CLT,MCO,American Airlines,0
+CLT,MDT,American Airlines,0
+CLT,MEM,American Airlines,0
+CLT,MGM,American Airlines,0
+CLT,MHT,American Airlines,0
+CLT,MIA,American Airlines,0
+CLT,MKE,American Airlines,0
+CLT,MLB,American Airlines,0
+CLT,MOB,American Airlines,0
+CLT,MSP,American Airlines,0
+CLT,MSY,American Airlines,0
+CLT,MYR,American Airlines,0
+CLT,OAJ,American Airlines,0
+CLT,OMA,American Airlines,0
+CLT,ORD,American Airlines,0
+CLT,ORF,American Airlines,0
+CLT,PBI,American Airlines,0
+CLT,PDX,American Airlines,0
+CLT,PGV,American Airlines,0
+CLT,PHF,American Airlines,0
+CLT,PHL,American Airlines,0
+CLT,PHX,American Airlines,0
+CLT,PIT,American Airlines,0
+CLT,PNS,American Airlines,0
+CLT,PVD,American Airlines,0
+CLT,PWM,American Airlines,0
+CLT,RDU,American Airlines,0
+CLT,RIC,American Airlines,0
+CLT,ROA,American Airlines,0
+CLT,ROC,American Airlines,0
+CLT,RSW,American Airlines,0
+CLT,SAN,American Airlines,0
+CLT,SAT,American Airlines,0
+CLT,SAV,American Airlines,0
+CLT,SBY,American Airlines,0
+CLT,SDF,American Airlines,0
+CLT,SEA,American Airlines,0
+CLT,SFO,American Airlines,0
+CLT,SLC,American Airlines,0
+CLT,SMF,American Airlines,0
+CLT,SRQ,American Airlines,0
+CLT,STL,American Airlines,0
+CLT,STT,American Airlines,0
+CLT,SYR,American Airlines,0
+CLT,TLH,American Airlines,0
+CLT,TPA,American Airlines,0
+CLT,TRI,American Airlines,0
+CLT,TYS,American Airlines,0
+CLT,VPS,American Airlines,0
+CLT,XNA,American Airlines,0
+CMH,CLT,American Airlines,0
+CMH,DCA,American Airlines,0
+CMH,DFW,American Airlines,0
+CMH,JFK,American Airlines,0
+CMH,LAX,American Airlines,0
+CMH,LGA,American Airlines,0
+CMH,MIA,American Airlines,0
+CMH,ORD,American Airlines,0
+CMH,PHL,American Airlines,0
+CMH,PHX,American Airlines,0
+CMI,DFW,American Airlines,0
+CMI,ORD,American Airlines,0
+COS,DFW,American Airlines,0
+COU,DFW,American Airlines,0
+COU,ORD,American Airlines,0
+CRP,DFW,American Airlines,0
+CVG,CLT,American Airlines,0
+CVG,DCA,American Airlines,0
+CVG,DFW,American Airlines,0
+CVG,JFK,American Airlines,0
+CVG,MIA,American Airlines,0
+CVG,ORD,American Airlines,0
+CVG,PHL,American Airlines,0
+CWA,ORD,American Airlines,0
+DAB,CLT,American Airlines,0
+DAY,CLT,American Airlines,0
+DAY,DCA,American Airlines,0
+DAY,DFW,American Airlines,0
+DAY,LGA,American Airlines,0
+DAY,ORD,American Airlines,0
+DAY,PHL,American Airlines,0
+DBQ,ORD,American Airlines,0
+DCA,AGS,American Airlines,0
+DCA,ALB,American Airlines,0
+DCA,BDL,American Airlines,0
+DCA,BGR,American Airlines,0
+DCA,BHM,American Airlines,0
+DCA,BNA,American Airlines,0
+DCA,BOS,American Airlines,0
+DCA,BTV,American Airlines,0
+DCA,BUF,American Airlines,0
+DCA,CAE,American Airlines,0
+DCA,CAK,American Airlines,0
+DCA,CHA,American Airlines,0
+DCA,CHS,American Airlines,0
+DCA,CLT,American Airlines,0
+DCA,CMH,American Airlines,0
+DCA,CRW,American Airlines,0
+DCA,CVG,American Airlines,0
+DCA,DAY,American Airlines,0
+DCA,DFW,American Airlines,0
+DCA,DSM,American Airlines,0
+DCA,DTW,American Airlines,0
+DCA,FAY,American Airlines,0
+DCA,FLL,American Airlines,0
+DCA,GSO,American Airlines,0
+DCA,GSP,American Airlines,0
+DCA,HHH,American Airlines,0
+DCA,HPN,American Airlines,0
+DCA,HSV,American Airlines,0
+DCA,ILM,American Airlines,0
+DCA,IND,American Airlines,0
+DCA,ISP,American Airlines,0
+DCA,JAN,American Airlines,0
+DCA,JAX,American Airlines,0
+DCA,JFK,American Airlines,0
+DCA,LAS,American Airlines,0
+DCA,LAX,American Airlines,0
+DCA,LGA,American Airlines,0
+DCA,LIT,American Airlines,0
+DCA,MCI,American Airlines,0
+DCA,MCO,American Airlines,0
+DCA,MEM,American Airlines,0
+DCA,MHT,American Airlines,0
+DCA,MIA,American Airlines,0
+DCA,MSP,American Airlines,0
+DCA,MSY,American Airlines,0
+DCA,MYR,American Airlines,0
+DCA,OAJ,American Airlines,0
+DCA,OMA,American Airlines,0
+DCA,ORD,American Airlines,0
+DCA,ORF,American Airlines,0
+DCA,PBI,American Airlines,0
+DCA,PDX,American Airlines,0
+DCA,PHL,American Airlines,0
+DCA,PHX,American Airlines,0
+DCA,PIT,American Airlines,0
+DCA,PNS,American Airlines,0
+DCA,PVD,American Airlines,0
+DCA,PWM,American Airlines,0
+DCA,RDU,American Airlines,0
+DCA,ROC,American Airlines,0
+DCA,RSW,American Airlines,0
+DCA,SAN,American Airlines,0
+DCA,SAV,American Airlines,0
+DCA,SDF,American Airlines,0
+DCA,SRQ,American Airlines,0
+DCA,STL,American Airlines,0
+DCA,SYR,American Airlines,0
+DCA,TLH,American Airlines,0
+DCA,TPA,American Airlines,0
+DCA,TYS,American Airlines,0
+DCA,VPS,American Airlines,0
+DEN,CLT,American Airlines,0
+DEN,DFW,American Airlines,0
+DEN,LAX,American Airlines,0
+DEN,MIA,American Airlines,0
+DEN,ORD,American Airlines,0
+DEN,PHL,American Airlines,0
+DEN,PHX,American Airlines,0
+DEN,SEA,American Airlines,0
+DFW,ABI,American Airlines,0
+DFW,ABQ,American Airlines,0
+DFW,ACT,American Airlines,0
+DFW,AEX,American Airlines,0
+DFW,AMA,American Airlines,0
+DFW,ATL,American Airlines,0
+DFW,AUS,American Airlines,0
+DFW,BDL,American Airlines,0
+DFW,BHM,American Airlines,0
+DFW,BMI,American Airlines,0
+DFW,BNA,American Airlines,0
+DFW,BOS,American Airlines,0
+DFW,BPT,American Airlines,0
+DFW,BRO,American Airlines,0
+DFW,BTR,American Airlines,0
+DFW,BWI,American Airlines,0
+DFW,CAE,American Airlines,0
+DFW,CHA,American Airlines,0
+DFW,CHS,American Airlines,0
+DFW,CID,American Airlines,0
+DFW,CLE,American Airlines,0
+DFW,CLL,American Airlines,0
+DFW,CLT,American Airlines,0
+DFW,CMH,American Airlines,0
+DFW,CMI,American Airlines,0
+DFW,COS,American Airlines,0
+DFW,COU,American Airlines,0
+DFW,CRP,American Airlines,0
+DFW,CRW,American Airlines,0
+DFW,CVG,American Airlines,0
+DFW,DAY,American Airlines,0
+DFW,DCA,American Airlines,0
+DFW,DEN,American Airlines,0
+DFW,DRO,American Airlines,0
+DFW,DSM,American Airlines,0
+DFW,DTW,American Airlines,0
+DFW,ELP,American Airlines,0
+DFW,EVV,American Airlines,0
+DFW,EWR,American Airlines,0
+DFW,FAR,American Airlines,0
+DFW,FAT,American Airlines,0
+DFW,FLL,American Airlines,0
+DFW,FSD,American Airlines,0
+DFW,FSM,American Airlines,0
+DFW,FWA,American Airlines,0
+DFW,GCK,American Airlines,0
+DFW,GGG,American Airlines,0
+DFW,GJT,American Airlines,0
+DFW,GPT,American Airlines,0
+DFW,GRI,American Airlines,0
+DFW,GRK,American Airlines,0
+DFW,GRR,American Airlines,0
+DFW,GSO,American Airlines,0
+DFW,GSP,American Airlines,0
+DFW,HNL,American Airlines,0
+DFW,HOU,American Airlines,0
+DFW,HSV,American Airlines,0
+DFW,IAD,American Airlines,0
+DFW,IAH,American Airlines,0
+DFW,ICT,American Airlines,0
+DFW,IND,American Airlines,0
+DFW,JAN,American Airlines,0
+DFW,JAX,American Airlines,0
+DFW,JFK,American Airlines,0
+DFW,JLN,American Airlines,0
+DFW,LAS,American Airlines,0
+DFW,LAW,American Airlines,0
+DFW,LAX,American Airlines,0
+DFW,LBB,American Airlines,0
+DFW,LCH,American Airlines,0
+DFW,LEX,American Airlines,0
+DFW,LFT,American Airlines,0
+DFW,LGA,American Airlines,0
+DFW,LIT,American Airlines,0
+DFW,LRD,American Airlines,0
+DFW,MAF,American Airlines,0
+DFW,MCI,American Airlines,0
+DFW,MCO,American Airlines,0
+DFW,MEM,American Airlines,0
+DFW,MFE,American Airlines,0
+DFW,MGM,American Airlines,0
+DFW,MHK,American Airlines,0
+DFW,MIA,American Airlines,0
+DFW,MKE,American Airlines,0
+DFW,MLI,American Airlines,0
+DFW,MLU,American Airlines,0
+DFW,MOB,American Airlines,0
+DFW,MSN,American Airlines,0
+DFW,MSP,American Airlines,0
+DFW,MSY,American Airlines,0
+DFW,OGG,American Airlines,0
+DFW,OKC,American Airlines,0
+DFW,OMA,American Airlines,0
+DFW,ONT,American Airlines,0
+DFW,ORD,American Airlines,0
+DFW,ORF,American Airlines,0
+DFW,PBI,American Airlines,0
+DFW,PDX,American Airlines,0
+DFW,PHL,American Airlines,0
+DFW,PHX,American Airlines,0
+DFW,PIA,American Airlines,0
+DFW,PIT,American Airlines,0
+DFW,PNS,American Airlines,0
+DFW,PSP,American Airlines,0
+DFW,RAP,American Airlines,0
+DFW,RDU,American Airlines,0
+DFW,RIC,American Airlines,0
+DFW,RNO,American Airlines,0
+DFW,ROW,American Airlines,0
+DFW,RSW,American Airlines,0
+DFW,SAF,American Airlines,0
+DFW,SAN,American Airlines,0
+DFW,SAT,American Airlines,0
+DFW,SAV,American Airlines,0
+DFW,SDF,American Airlines,0
+DFW,SEA,American Airlines,0
+DFW,SFO,American Airlines,0
+DFW,SGF,American Airlines,0
+DFW,SHV,American Airlines,0
+DFW,SJC,American Airlines,0
+DFW,SJT,American Airlines,0
+DFW,SLC,American Airlines,0
+DFW,SMF,American Airlines,0
+DFW,SNA,American Airlines,0
+DFW,SPI,American Airlines,0
+DFW,SPS,American Airlines,0
+DFW,STL,American Airlines,0
+DFW,TLH,American Airlines,0
+DFW,TPA,American Airlines,0
+DFW,TUL,American Airlines,0
+DFW,TUS,American Airlines,0
+DFW,TXK,American Airlines,0
+DFW,TYR,American Airlines,0
+DFW,TYS,American Airlines,0
+DFW,VPS,American Airlines,0
+DFW,XNA,American Airlines,0
+DRO,DFW,American Airlines,0
+DRO,PHX,American Airlines,0
+DSM,CLT,American Airlines,0
+DSM,DCA,American Airlines,0
+DSM,DFW,American Airlines,0
+DSM,ORD,American Airlines,0
+DSM,PHX,American Airlines,0
+DTW,CLT,American Airlines,0
+DTW,DCA,American Airlines,0
+DTW,DFW,American Airlines,0
+DTW,LGA,American Airlines,0
+DTW,MIA,American Airlines,0
+DTW,ORD,American Airlines,0
+DTW,PHL,American Airlines,0
+DTW,PHX,American Airlines,0
+ELM,PHL,American Airlines,0
+ELP,DFW,American Airlines,0
+ELP,LAX,American Airlines,0
+ELP,ORD,American Airlines,0
+ELP,PHX,American Airlines,0
+ERI,PHL,American Airlines,0
+EUG,LAX,American Airlines,0
+EUG,PDX,American Airlines,0
+EVV,DFW,American Airlines,0
+EVV,ORD,American Airlines,0
+EWN,CLT,American Airlines,0
+EWR,CLT,American Airlines,0
+EWR,DFW,American Airlines,0
+EWR,MIA,American Airlines,0
+EWR,ORD,American Airlines,0
+EWR,PHL,American Airlines,0
+EWR,PHX,American Airlines,0
+EWR,SEA,American Airlines,0
+EYW,MIA,American Airlines,0
+FAR,DFW,American Airlines,0
+FAR,ORD,American Airlines,0
+FAT,DFW,American Airlines,0
+FAT,LAX,American Airlines,0
+FAT,PHX,American Airlines,0
+FAY,CLT,American Airlines,0
+FAY,DCA,American Airlines,0
+FLG,PHX,American Airlines,0
+FLL,CLT,American Airlines,0
+FLL,DCA,American Airlines,0
+FLL,DFW,American Airlines,0
+FLL,ORD,American Airlines,0
+FLL,PHL,American Airlines,0
+FLL,PHX,American Airlines,0
+FLO,CLT,American Airlines,0
+FNT,ORD,American Airlines,0
+FSD,DFW,American Airlines,0
+FSD,ORD,American Airlines,0
+FSM,DFW,American Airlines,0
+FWA,DFW,American Airlines,0
+FWA,ORD,American Airlines,0
+GCK,DFW,American Airlines,0
+GEG,PHX,American Airlines,0
+GGG,DFW,American Airlines,0
+GJT,DFW,American Airlines,0
+GJT,PHX,American Airlines,0
+GNV,CLT,American Airlines,0
+GNV,MIA,American Airlines,0
+GPT,CLT,American Airlines,0
+GPT,DFW,American Airlines,0
+GRB,ORD,American Airlines,0
+GRI,DFW,American Airlines,0
+GRK,DFW,American Airlines,0
+GRR,DFW,American Airlines,0
+GRR,ORD,American Airlines,0
+GSO,CLT,American Airlines,0
+GSO,DCA,American Airlines,0
+GSO,DFW,American Airlines,0
+GSO,LGA,American Airlines,0
+GSO,MIA,American Airlines,0
+GSO,PHL,American Airlines,0
+GSP,CLT,American Airlines,0
+GSP,DCA,American Airlines,0
+GSP,DFW,American Airlines,0
+GSP,PHL,American Airlines,0
+HHH,CLT,American Airlines,0
+HHH,DCA,American Airlines,0
+HNL,DFW,American Airlines,0
+HNL,LAX,American Airlines,0
+HNL,OAK,American Airlines,0
+HNL,PHX,American Airlines,0
+HNL,SJC,American Airlines,0
+HOU,DFW,American Airlines,0
+HPN,CLT,American Airlines,0
+HPN,DCA,American Airlines,0
+HPN,ORD,American Airlines,0
+HPN,PHL,American Airlines,0
+HSV,CLT,American Airlines,0
+HSV,DCA,American Airlines,0
+HSV,DFW,American Airlines,0
+HSV,ORD,American Airlines,0
+HTS,CLT,American Airlines,0
+HVN,PHL,American Airlines,0
+IAD,CLT,American Airlines,0
+IAD,DFW,American Airlines,0
+IAD,LAX,American Airlines,0
+IAD,MIA,American Airlines,0
+IAH,CLT,American Airlines,0
+IAH,DFW,American Airlines,0
+IAH,LAX,American Airlines,0
+IAH,MIA,American Airlines,0
+IAH,ORD,American Airlines,0
+IAH,PHL,American Airlines,0
+IAH,PHX,American Airlines,0
+ICT,DFW,American Airlines,0
+ICT,ORD,American Airlines,0
+ILM,CLT,American Airlines,0
+ILM,DCA,American Airlines,0
+ILM,LGA,American Airlines,0
+ILM,PHL,American Airlines,0
+IND,CLT,American Airlines,0
+IND,DCA,American Airlines,0
+IND,DFW,American Airlines,0
+IND,JFK,American Airlines,0
+IND,LAX,American Airlines,0
+IND,MIA,American Airlines,0
+IND,ORD,American Airlines,0
+IND,PHL,American Airlines,0
+IND,PHX,American Airlines,0
+IPT,PHL,American Airlines,0
+ISP,DCA,American Airlines,0
+ISP,PHL,American Airlines,0
+ITH,PHL,American Airlines,0
+JAN,CLT,American Airlines,0
+JAN,DCA,American Airlines,0
+JAN,DFW,American Airlines,0
+JAX,CLT,American Airlines,0
+JAX,DCA,American Airlines,0
+JAX,DFW,American Airlines,0
+JAX,MIA,American Airlines,0
+JAX,ORD,American Airlines,0
+JAX,PHL,American Airlines,0
+JFK,AUS,American Airlines,0
+JFK,BNA,American Airlines,0
+JFK,BOS,American Airlines,0
+JFK,BWI,American Airlines,0
+JFK,CLE,American Airlines,0
+JFK,CLT,American Airlines,0
+JFK,CMH,American Airlines,0
+JFK,CVG,American Airlines,0
+JFK,DCA,American Airlines,0
+JFK,DFW,American Airlines,0
+JFK,IND,American Airlines,0
+JFK,LAS,American Airlines,0
+JFK,LAX,American Airlines,0
+JFK,MCO,American Airlines,0
+JFK,MIA,American Airlines,0
+JFK,ORD,American Airlines,0
+JFK,ORF,American Airlines,0
+JFK,PHX,American Airlines,0
+JFK,PIT,American Airlines,0
+JFK,RDU,American Airlines,0
+JFK,SAN,American Airlines,0
+JFK,SEA,American Airlines,0
+JFK,SFO,American Airlines,0
+JFK,STT,American Airlines,0
+JFK,TPA,American Airlines,0
+JLN,DFW,American Airlines,0
+JNU,KTN,American Airlines,0
+KOA,LAX,American Airlines,0
+KOA,OAK,American Airlines,0
+KOA,PHX,American Airlines,0
+KOA,SJC,American Airlines,0
+KTN,JNU,American Airlines,0
+KTN,SEA,American Airlines,0
+LAS,CLT,American Airlines,0
+LAS,DCA,American Airlines,0
+LAS,DFW,American Airlines,0
+LAS,JFK,American Airlines,0
+LAS,MIA,American Airlines,0
+LAS,ORD,American Airlines,0
+LAS,PHL,American Airlines,0
+LAS,PHX,American Airlines,0
+LAW,DFW,American Airlines,0
+LAX,ABQ,American Airlines,0
+LAX,ANC,American Airlines,0
+LAX,AUS,American Airlines,0
+LAX,BDL,American Airlines,0
+LAX,BNA,American Airlines,0
+LAX,BOS,American Airlines,0
+LAX,CLT,American Airlines,0
+LAX,CMH,American Airlines,0
+LAX,DCA,American Airlines,0
+LAX,DEN,American Airlines,0
+LAX,DFW,American Airlines,0
+LAX,ELP,American Airlines,0
+LAX,EUG,American Airlines,0
+LAX,FAT,American Airlines,0
+LAX,HNL,American Airlines,0
+LAX,IAD,American Airlines,0
+LAX,IAH,American Airlines,0
+LAX,IND,American Airlines,0
+LAX,JFK,American Airlines,0
+LAX,KOA,American Airlines,0
+LAX,LIH,American Airlines,0
+LAX,MCO,American Airlines,0
+LAX,MFR,American Airlines,0
+LAX,MIA,American Airlines,0
+LAX,MMH,American Airlines,0
+LAX,MRY,American Airlines,0
+LAX,OGG,American Airlines,0
+LAX,OKC,American Airlines,0
+LAX,ORD,American Airlines,0
+LAX,PBI,American Airlines,0
+LAX,PDX,American Airlines,0
+LAX,PHL,American Airlines,0
+LAX,PHX,American Airlines,0
+LAX,PIT,American Airlines,0
+LAX,RDM,American Airlines,0
+LAX,RDU,American Airlines,0
+LAX,RNO,American Airlines,0
+LAX,SAF,American Airlines,0
+LAX,SAN,American Airlines,0
+LAX,SEA,American Airlines,0
+LAX,SFO,American Airlines,0
+LAX,SJC,American Airlines,0
+LAX,SLC,American Airlines,0
+LAX,SMF,American Airlines,0
+LAX,STL,American Airlines,0
+LAX,STS,American Airlines,0
+LAX,TUS,American Airlines,0
+LAX,XNA,American Airlines,0
+LBB,DFW,American Airlines,0
+LCH,DFW,American Airlines,0
+LEX,CLT,American Airlines,0
+LEX,DFW,American Airlines,0
+LEX,ORD,American Airlines,0
+LFT,DFW,American Airlines,0
+LGA,BNA,American Airlines,0
+LGA,BOS,American Airlines,0
+LGA,CHO,American Airlines,0
+LGA,CLT,American Airlines,0
+LGA,CMH,American Airlines,0
+LGA,DAY,American Airlines,0
+LGA,DCA,American Airlines,0
+LGA,DFW,American Airlines,0
+LGA,DTW,American Airlines,0
+LGA,GSO,American Airlines,0
+LGA,ILM,American Airlines,0
+LGA,LIT,American Airlines,0
+LGA,MIA,American Airlines,0
+LGA,ORD,American Airlines,0
+LGA,ORF,American Airlines,0
+LGA,PBI,American Airlines,0
+LGA,PHL,American Airlines,0
+LGA,PIT,American Airlines,0
+LGA,RDU,American Airlines,0
+LGA,RIC,American Airlines,0
+LGA,ROA,American Airlines,0
+LGA,SDF,American Airlines,0
+LGA,STL,American Airlines,0
+LGA,TYS,American Airlines,0
+LGA,XNA,American Airlines,0
+LGB,PDX,American Airlines,0
+LGB,PHX,American Airlines,0
+LGB,SEA,American Airlines,0
+LIH,LAX,American Airlines,0
+LIH,OAK,American Airlines,0
+LIH,PHX,American Airlines,0
+LIH,SJC,American Airlines,0
+LIT,CLT,American Airlines,0
+LIT,DCA,American Airlines,0
+LIT,DFW,American Airlines,0
+LIT,LGA,American Airlines,0
+LIT,ORD,American Airlines,0
+LRD,DFW,American Airlines,0
+LSE,ORD,American Airlines,0
+LYH,CLT,American Airlines,0
+MAF,DFW,American Airlines,0
+MCI,CLT,American Airlines,0
+MCI,DCA,American Airlines,0
+MCI,DFW,American Airlines,0
+MCI,ORD,American Airlines,0
+MCI,PHL,American Airlines,0
+MCI,PHX,American Airlines,0
+MCI,SEA,American Airlines,0
+MCO,CLT,American Airlines,0
+MCO,DCA,American Airlines,0
+MCO,DFW,American Airlines,0
+MCO,JFK,American Airlines,0
+MCO,LAX,American Airlines,0
+MCO,MIA,American Airlines,0
+MCO,ORD,American Airlines,0
+MCO,PHL,American Airlines,0
+MCO,PHX,American Airlines,0
+MCO,SAN,American Airlines,0
+MCO,SEA,American Airlines,0
+MDT,BOS,American Airlines,0
+MDT,CLT,American Airlines,0
+MDT,ORD,American Airlines,0
+MDT,PHL,American Airlines,0
+MEM,CLT,American Airlines,0
+MEM,DCA,American Airlines,0
+MEM,DFW,American Airlines,0
+MEM,MIA,American Airlines,0
+MEM,ORD,American Airlines,0
+MFE,DFW,American Airlines,0
+MFR,LAX,American Airlines,0
+MGM,CLT,American Airlines,0
+MGM,DFW,American Airlines,0
+MHK,DFW,American Airlines,0
+MHK,ORD,American Airlines,0
+MHT,CLT,American Airlines,0
+MHT,DCA,American Airlines,0
+MHT,PHL,American Airlines,0
+MIA,ATL,American Airlines,0
+MIA,BDL,American Airlines,0
+MIA,BHM,American Airlines,0
+MIA,BNA,American Airlines,0
+MIA,BOS,American Airlines,0
+MIA,BWI,American Airlines,0
+MIA,CHS,American Airlines,0
+MIA,CLE,American Airlines,0
+MIA,CLT,American Airlines,0
+MIA,CMH,American Airlines,0
+MIA,CVG,American Airlines,0
+MIA,DCA,American Airlines,0
+MIA,DEN,American Airlines,0
+MIA,DFW,American Airlines,0
+MIA,DTW,American Airlines,0
+MIA,EWR,American Airlines,0
+MIA,EYW,American Airlines,0
+MIA,GNV,American Airlines,0
+MIA,GSO,American Airlines,0
+MIA,IAD,American Airlines,0
+MIA,IAH,American Airlines,0
+MIA,IND,American Airlines,0
+MIA,JAX,American Airlines,0
+MIA,JFK,American Airlines,0
+MIA,LAS,American Airlines,0
+MIA,LAX,American Airlines,0
+MIA,LGA,American Airlines,0
+MIA,MCO,American Airlines,0
+MIA,MEM,American Airlines,0
+MIA,MSP,American Airlines,0
+MIA,MSY,American Airlines,0
+MIA,ORD,American Airlines,0
+MIA,ORF,American Airlines,0
+MIA,PHL,American Airlines,0
+MIA,PHX,American Airlines,0
+MIA,PIT,American Airlines,0
+MIA,PNS,American Airlines,0
+MIA,RDU,American Airlines,0
+MIA,RIC,American Airlines,0
+MIA,SAN,American Airlines,0
+MIA,SDF,American Airlines,0
+MIA,SEA,American Airlines,0
+MIA,SFO,American Airlines,0
+MIA,STL,American Airlines,0
+MIA,STT,American Airlines,0
+MIA,STX,American Airlines,0
+MIA,TLH,American Airlines,0
+MIA,TPA,American Airlines,0
+MIA,TUL,American Airlines,0
+MKE,CLT,American Airlines,0
+MKE,DFW,American Airlines,0
+MKE,ORD,American Airlines,0
+MKE,PHL,American Airlines,0
+MKE,PHX,American Airlines,0
+MLB,CLT,American Airlines,0
+MLI,DFW,American Airlines,0
+MLI,ORD,American Airlines,0
+MLU,DFW,American Airlines,0
+MMH,LAX,American Airlines,0
+MOB,CLT,American Airlines,0
+MOB,DFW,American Airlines,0
+MQT,ORD,American Airlines,0
+MRY,LAX,American Airlines,0
+MRY,PHX,American Airlines,0
+MSN,DFW,American Airlines,0
+MSN,ORD,American Airlines,0
+MSP,CLT,American Airlines,0
+MSP,DCA,American Airlines,0
+MSP,DFW,American Airlines,0
+MSP,MIA,American Airlines,0
+MSP,ORD,American Airlines,0
+MSP,PHL,American Airlines,0
+MSP,PHX,American Airlines,0
+MSY,AUS,American Airlines,0
+MSY,CLT,American Airlines,0
+MSY,DCA,American Airlines,0
+MSY,DFW,American Airlines,0
+MSY,MIA,American Airlines,0
+MSY,ORD,American Airlines,0
+MSY,PHL,American Airlines,0
+MYR,CLT,American Airlines,0
+MYR,DCA,American Airlines,0
+MYR,PHL,American Airlines,0
+OAJ,CLT,American Airlines,0
+OAJ,DCA,American Airlines,0
+OAK,HNL,American Airlines,0
+OAK,KOA,American Airlines,0
+OAK,LIH,American Airlines,0
+OAK,OGG,American Airlines,0
+OAK,PDX,American Airlines,0
+OAK,PHX,American Airlines,0
+OAK,SEA,American Airlines,0
+OGG,DFW,American Airlines,0
+OGG,LAX,American Airlines,0
+OGG,OAK,American Airlines,0
+OGG,PHX,American Airlines,0
+OGG,SJC,American Airlines,0
+OGG,SMF,American Airlines,0
+OKC,DFW,American Airlines,0
+OKC,LAX,American Airlines,0
+OKC,ORD,American Airlines,0
+OMA,CLT,American Airlines,0
+OMA,DCA,American Airlines,0
+OMA,DFW,American Airlines,0
+OMA,ORD,American Airlines,0
+OMA,PHX,American Airlines,0
+ONT,DFW,American Airlines,0
+ONT,PDX,American Airlines,0
+ONT,PHX,American Airlines,0
+ONT,SEA,American Airlines,0
+ORD,ABQ,American Airlines,0
+ORD,ALO,American Airlines,0
+ORD,ART,American Airlines,0
+ORD,ATL,American Airlines,0
+ORD,AUS,American Airlines,0
+ORD,AZO,American Airlines,0
+ORD,BDL,American Airlines,0
+ORD,BMI,American Airlines,0
+ORD,BNA,American Airlines,0
+ORD,BOS,American Airlines,0
+ORD,BUF,American Airlines,0
+ORD,BWI,American Airlines,0
+ORD,CHA,American Airlines,0
+ORD,CHO,American Airlines,0
+ORD,CID,American Airlines,0
+ORD,CLE,American Airlines,0
+ORD,CLT,American Airlines,0
+ORD,CMH,American Airlines,0
+ORD,CMI,American Airlines,0
+ORD,COU,American Airlines,0
+ORD,CVG,American Airlines,0
+ORD,CWA,American Airlines,0
+ORD,DAY,American Airlines,0
+ORD,DBQ,American Airlines,0
+ORD,DCA,American Airlines,0
+ORD,DEN,American Airlines,0
+ORD,DFW,American Airlines,0
+ORD,DSM,American Airlines,0
+ORD,DTW,American Airlines,0
+ORD,ELP,American Airlines,0
+ORD,EVV,American Airlines,0
+ORD,EWR,American Airlines,0
+ORD,FAR,American Airlines,0
+ORD,FLL,American Airlines,0
+ORD,FNT,American Airlines,0
+ORD,FSD,American Airlines,0
+ORD,FWA,American Airlines,0
+ORD,GRB,American Airlines,0
+ORD,GRR,American Airlines,0
+ORD,HPN,American Airlines,0
+ORD,HSV,American Airlines,0
+ORD,IAH,American Airlines,0
+ORD,ICT,American Airlines,0
+ORD,IND,American Airlines,0
+ORD,JAX,American Airlines,0
+ORD,JFK,American Airlines,0
+ORD,LAS,American Airlines,0
+ORD,LAX,American Airlines,0
+ORD,LEX,American Airlines,0
+ORD,LGA,American Airlines,0
+ORD,LIT,American Airlines,0
+ORD,LSE,American Airlines,0
+ORD,MCI,American Airlines,0
+ORD,MCO,American Airlines,0
+ORD,MDT,American Airlines,0
+ORD,MEM,American Airlines,0
+ORD,MHK,American Airlines,0
+ORD,MIA,American Airlines,0
+ORD,MKE,American Airlines,0
+ORD,MLI,American Airlines,0
+ORD,MQT,American Airlines,0
+ORD,MSN,American Airlines,0
+ORD,MSP,American Airlines,0
+ORD,MSY,American Airlines,0
+ORD,OKC,American Airlines,0
+ORD,OMA,American Airlines,0
+ORD,PBI,American Airlines,0
+ORD,PDX,American Airlines,0
+ORD,PHL,American Airlines,0
+ORD,PHX,American Airlines,0
+ORD,PIA,American Airlines,0
+ORD,PIT,American Airlines,0
+ORD,PSP,American Airlines,0
+ORD,RDU,American Airlines,0
+ORD,RIC,American Airlines,0
+ORD,RNO,American Airlines,0
+ORD,ROC,American Airlines,0
+ORD,RST,American Airlines,0
+ORD,RSW,American Airlines,0
+ORD,SAN,American Airlines,0
+ORD,SAT,American Airlines,0
+ORD,SDF,American Airlines,0
+ORD,SEA,American Airlines,0
+ORD,SFO,American Airlines,0
+ORD,SGF,American Airlines,0
+ORD,SJC,American Airlines,0
+ORD,SLC,American Airlines,0
+ORD,SNA,American Airlines,0
+ORD,STL,American Airlines,0
+ORD,SUX,American Airlines,0
+ORD,SYR,American Airlines,0
+ORD,TOL,American Airlines,0
+ORD,TPA,American Airlines,0
+ORD,TUL,American Airlines,0
+ORD,TUS,American Airlines,0
+ORD,TVC,American Airlines,0
+ORD,TYS,American Airlines,0
+ORD,XNA,American Airlines,0
+ORF,CLT,American Airlines,0
+ORF,DCA,American Airlines,0
+ORF,DFW,American Airlines,0
+ORF,JFK,American Airlines,0
+ORF,LGA,American Airlines,0
+ORF,MIA,American Airlines,0
+ORF,PHL,American Airlines,0
+PBI,CLT,American Airlines,0
+PBI,DCA,American Airlines,0
+PBI,DFW,American Airlines,0
+PBI,LAX,American Airlines,0
+PBI,LGA,American Airlines,0
+PBI,ORD,American Airlines,0
+PBI,PHL,American Airlines,0
+PDX,BOS,American Airlines,0
+PDX,BUR,American Airlines,0
+PDX,CLT,American Airlines,0
+PDX,DCA,American Airlines,0
+PDX,DFW,American Airlines,0
+PDX,LAX,American Airlines,0
+PDX,LGB,American Airlines,0
+PDX,OAK,American Airlines,0
+PDX,ONT,American Airlines,0
+PDX,ORD,American Airlines,0
+PDX,PHL,American Airlines,0
+PDX,PHX,American Airlines,0
+PDX,SAN,American Airlines,0
+PDX,SFO,American Airlines,0
+PDX,SJC,American Airlines,0
+PDX,SNA,American Airlines,0
+PGV,CLT,American Airlines,0
+PHF,CLT,American Airlines,0
+PHF,PHL,American Airlines,0
+PHL,ABE,American Airlines,0
+PHL,ALB,American Airlines,0
+PHL,ART,American Airlines,0
+PHL,ATL,American Airlines,0
+PHL,AUS,American Airlines,0
+PHL,AVP,American Airlines,0
+PHL,BDL,American Airlines,0
+PHL,BGM,American Airlines,0
+PHL,BGR,American Airlines,0
+PHL,BHM,American Airlines,0
+PHL,BNA,American Airlines,0
+PHL,BOS,American Airlines,0
+PHL,BTV,American Airlines,0
+PHL,BUF,American Airlines,0
+PHL,BWI,American Airlines,0
+PHL,CAE,American Airlines,0
+PHL,CAK,American Airlines,0
+PHL,CHO,American Airlines,0
+PHL,CHS,American Airlines,0
+PHL,CLE,American Airlines,0
+PHL,CLT,American Airlines,0
+PHL,CMH,American Airlines,0
+PHL,CVG,American Airlines,0
+PHL,DAY,American Airlines,0
+PHL,DCA,American Airlines,0
+PHL,DEN,American Airlines,0
+PHL,DFW,American Airlines,0
+PHL,DTW,American Airlines,0
+PHL,ELM,American Airlines,0
+PHL,ERI,American Airlines,0
+PHL,EWR,American Airlines,0
+PHL,FLL,American Airlines,0
+PHL,GSO,American Airlines,0
+PHL,GSP,American Airlines,0
+PHL,HPN,American Airlines,0
+PHL,HVN,American Airlines,0
+PHL,IAH,American Airlines,0
+PHL,ILM,American Airlines,0
+PHL,IND,American Airlines,0
+PHL,IPT,American Airlines,0
+PHL,ISP,American Airlines,0
+PHL,ITH,American Airlines,0
+PHL,JAX,American Airlines,0
+PHL,LAS,American Airlines,0
+PHL,LAX,American Airlines,0
+PHL,LGA,American Airlines,0
+PHL,MCI,American Airlines,0
+PHL,MCO,American Airlines,0
+PHL,MDT,American Airlines,0
+PHL,MHT,American Airlines,0
+PHL,MIA,American Airlines,0
+PHL,MKE,American Airlines,0
+PHL,MSP,American Airlines,0
+PHL,MSY,American Airlines,0
+PHL,MYR,American Airlines,0
+PHL,ORD,American Airlines,0
+PHL,ORF,American Airlines,0
+PHL,PBI,American Airlines,0
+PHL,PDX,American Airlines,0
+PHL,PHF,American Airlines,0
+PHL,PHX,American Airlines,0
+PHL,PIT,American Airlines,0
+PHL,PVD,American Airlines,0
+PHL,PWM,American Airlines,0
+PHL,RDU,American Airlines,0
+PHL,RIC,American Airlines,0
+PHL,ROA,American Airlines,0
+PHL,ROC,American Airlines,0
+PHL,RSW,American Airlines,0
+PHL,SAN,American Airlines,0
+PHL,SAT,American Airlines,0
+PHL,SAV,American Airlines,0
+PHL,SBY,American Airlines,0
+PHL,SCE,American Airlines,0
+PHL,SDF,American Airlines,0
+PHL,SEA,American Airlines,0
+PHL,SFO,American Airlines,0
+PHL,SLC,American Airlines,0
+PHL,STL,American Airlines,0
+PHL,STT,American Airlines,0
+PHL,SWF,American Airlines,0
+PHL,SYR,American Airlines,0
+PHL,TPA,American Airlines,0
+PHL,TYS,American Airlines,0
+PHX,ABQ,American Airlines,0
+PHX,ANC,American Airlines,0
+PHX,ATL,American Airlines,0
+PHX,AUS,American Airlines,0
+PHX,BFL,American Airlines,0
+PHX,BOI,American Airlines,0
+PHX,BOS,American Airlines,0
+PHX,BUR,American Airlines,0
+PHX,BWI,American Airlines,0
+PHX,CLT,American Airlines,0
+PHX,CMH,American Airlines,0
+PHX,DCA,American Airlines,0
+PHX,DEN,American Airlines,0
+PHX,DFW,American Airlines,0
+PHX,DRO,American Airlines,0
+PHX,DSM,American Airlines,0
+PHX,DTW,American Airlines,0
+PHX,ELP,American Airlines,0
+PHX,EWR,American Airlines,0
+PHX,FAT,American Airlines,0
+PHX,FLG,American Airlines,0
+PHX,FLL,American Airlines,0
+PHX,GEG,American Airlines,0
+PHX,GJT,American Airlines,0
+PHX,HNL,American Airlines,0
+PHX,IAH,American Airlines,0
+PHX,IND,American Airlines,0
+PHX,JFK,American Airlines,0
+PHX,KOA,American Airlines,0
+PHX,LAS,American Airlines,0
+PHX,LAX,American Airlines,0
+PHX,LGB,American Airlines,0
+PHX,LIH,American Airlines,0
+PHX,MCI,American Airlines,0
+PHX,MCO,American Airlines,0
+PHX,MIA,American Airlines,0
+PHX,MKE,American Airlines,0
+PHX,MRY,American Airlines,0
+PHX,MSP,American Airlines,0
+PHX,OAK,American Airlines,0
+PHX,OGG,American Airlines,0
+PHX,OMA,American Airlines,0
+PHX,ONT,American Airlines,0
+PHX,ORD,American Airlines,0
+PHX,PDX,American Airlines,0
+PHX,PHL,American Airlines,0
+PHX,PIT,American Airlines,0
+PHX,PSP,American Airlines,0
+PHX,RNO,American Airlines,0
+PHX,SAN,American Airlines,0
+PHX,SAT,American Airlines,0
+PHX,SBA,American Airlines,0
+PHX,SBP,American Airlines,0
+PHX,SEA,American Airlines,0
+PHX,SFO,American Airlines,0
+PHX,SJC,American Airlines,0
+PHX,SLC,American Airlines,0
+PHX,SMF,American Airlines,0
+PHX,SNA,American Airlines,0
+PHX,STL,American Airlines,0
+PHX,TPA,American Airlines,0
+PHX,TUS,American Airlines,0
+PHX,YUM,American Airlines,0
+PIA,DFW,American Airlines,0
+PIA,ORD,American Airlines,0
+PIT,BDL,American Airlines,0
+PIT,BOS,American Airlines,0
+PIT,CLT,American Airlines,0
+PIT,DCA,American Airlines,0
+PIT,DFW,American Airlines,0
+PIT,JFK,American Airlines,0
+PIT,LAX,American Airlines,0
+PIT,LGA,American Airlines,0
+PIT,MIA,American Airlines,0
+PIT,ORD,American Airlines,0
+PIT,PHL,American Airlines,0
+PIT,PHX,American Airlines,0
+PIT,RDU,American Airlines,0
+PIT,STL,American Airlines,0
+PNS,CLT,American Airlines,0
+PNS,DCA,American Airlines,0
+PNS,DFW,American Airlines,0
+PNS,MIA,American Airlines,0
+PSP,DFW,American Airlines,0
+PSP,ORD,American Airlines,0
+PSP,PHX,American Airlines,0
+PSP,SFO,American Airlines,0
+PVD,CLT,American Airlines,0
+PVD,DCA,American Airlines,0
+PVD,PHL,American Airlines,0
+RAP,DFW,American Airlines,0
+RDM,LAX,American Airlines,0
+RDU,CLT,American Airlines,0
+RDU,DCA,American Airlines,0
+RDU,DFW,American Airlines,0
+RDU,JFK,American Airlines,0
+RDU,LAX,American Airlines,0
+RDU,LGA,American Airlines,0
+RDU,MIA,American Airlines,0
+RDU,ORD,American Airlines,0
+RDU,PHL,American Airlines,0
+RDU,PIT,American Airlines,0
+RIC,BOS,American Airlines,0
+RIC,CLT,American Airlines,0
+RIC,DFW,American Airlines,0
+RIC,LGA,American Airlines,0
+RIC,MIA,American Airlines,0
+RIC,ORD,American Airlines,0
+RIC,PHL,American Airlines,0
+RNO,DFW,American Airlines,0
+RNO,LAX,American Airlines,0
+RNO,ORD,American Airlines,0
+RNO,PHX,American Airlines,0
+ROA,CLT,American Airlines,0
+ROA,LGA,American Airlines,0
+ROA,PHL,American Airlines,0
+ROC,BOS,American Airlines,0
+ROC,CLT,American Airlines,0
+ROC,DCA,American Airlines,0
+ROC,ORD,American Airlines,0
+ROC,PHL,American Airlines,0
+ROW,DFW,American Airlines,0
+RST,ORD,American Airlines,0
+RSW,CLT,American Airlines,0
+RSW,DCA,American Airlines,0
+RSW,DFW,American Airlines,0
+RSW,ORD,American Airlines,0
+RSW,PHL,American Airlines,0
+SAF,DFW,American Airlines,0
+SAF,LAX,American Airlines,0
+SAN,BOS,American Airlines,0
+SAN,CLT,American Airlines,0
+SAN,DCA,American Airlines,0
+SAN,DFW,American Airlines,0
+SAN,JFK,American Airlines,0
+SAN,LAX,American Airlines,0
+SAN,MCO,American Airlines,0
+SAN,MIA,American Airlines,0
+SAN,ORD,American Airlines,0
+SAN,PDX,American Airlines,0
+SAN,PHL,American Airlines,0
+SAN,PHX,American Airlines,0
+SAN,SEA,American Airlines,0
+SAN,STS,American Airlines,0
+SAT,CLT,American Airlines,0
+SAT,DFW,American Airlines,0
+SAT,ORD,American Airlines,0
+SAT,PHL,American Airlines,0
+SAT,PHX,American Airlines,0
+SAV,CLT,American Airlines,0
+SAV,DCA,American Airlines,0
+SAV,DFW,American Airlines,0
+SAV,PHL,American Airlines,0
+SBA,PHX,American Airlines,0
+SBP,PHX,American Airlines,0
+SBY,CLT,American Airlines,0
+SBY,PHL,American Airlines,0
+SCE,PHL,American Airlines,0
+SDF,CLT,American Airlines,0
+SDF,DCA,American Airlines,0
+SDF,DFW,American Airlines,0
+SDF,LGA,American Airlines,0
+SDF,MIA,American Airlines,0
+SDF,ORD,American Airlines,0
+SDF,PHL,American Airlines,0
+SEA,BOS,American Airlines,0
+SEA,BUR,American Airlines,0
+SEA,CLT,American Airlines,0
+SEA,DEN,American Airlines,0
+SEA,DFW,American Airlines,0
+SEA,EWR,American Airlines,0
+SEA,JFK,American Airlines,0
+SEA,KTN,American Airlines,0
+SEA,LAX,American Airlines,0
+SEA,LGB,American Airlines,0
+SEA,MCI,American Airlines,0
+SEA,MCO,American Airlines,0
+SEA,MIA,American Airlines,0
+SEA,OAK,American Airlines,0
+SEA,ONT,American Airlines,0
+SEA,ORD,American Airlines,0
+SEA,PHL,American Airlines,0
+SEA,PHX,American Airlines,0
+SEA,SAN,American Airlines,0
+SEA,SFO,American Airlines,0
+SEA,SJC,American Airlines,0
+SEA,SMF,American Airlines,0
+SEA,SNA,American Airlines,0
+SEA,STL,American Airlines,0
+SFO,CLT,American Airlines,0
+SFO,DFW,American Airlines,0
+SFO,JFK,American Airlines,0
+SFO,LAX,American Airlines,0
+SFO,MIA,American Airlines,0
+SFO,ORD,American Airlines,0
+SFO,PDX,American Airlines,0
+SFO,PHL,American Airlines,0
+SFO,PHX,American Airlines,0
+SFO,PSP,American Airlines,0
+SFO,SEA,American Airlines,0
+SGF,DFW,American Airlines,0
+SGF,ORD,American Airlines,0
+SHV,DFW,American Airlines,0
+SJC,DFW,American Airlines,0
+SJC,HNL,American Airlines,0
+SJC,KOA,American Airlines,0
+SJC,LAX,American Airlines,0
+SJC,LIH,American Airlines,0
+SJC,OGG,American Airlines,0
+SJC,ORD,American Airlines,0
+SJC,PDX,American Airlines,0
+SJC,PHX,American Airlines,0
+SJC,SEA,American Airlines,0
+SJT,DFW,American Airlines,0
+SLC,CLT,American Airlines,0
+SLC,DFW,American Airlines,0
+SLC,LAX,American Airlines,0
+SLC,ORD,American Airlines,0
+SLC,PHL,American Airlines,0
+SLC,PHX,American Airlines,0
+SMF,CLT,American Airlines,0
+SMF,DFW,American Airlines,0
+SMF,LAX,American Airlines,0
+SMF,OGG,American Airlines,0
+SMF,PHX,American Airlines,0
+SMF,SEA,American Airlines,0
+SNA,DFW,American Airlines,0
+SNA,ORD,American Airlines,0
+SNA,PDX,American Airlines,0
+SNA,PHX,American Airlines,0
+SNA,SEA,American Airlines,0
+SPS,DFW,American Airlines,0
+SRQ,CLT,American Airlines,0
+SRQ,DCA,American Airlines,0
+STL,CLT,American Airlines,0
+STL,DCA,American Airlines,0
+STL,DFW,American Airlines,0
+STL,LAX,American Airlines,0
+STL,LGA,American Airlines,0
+STL,MIA,American Airlines,0
+STL,ORD,American Airlines,0
+STL,PHL,American Airlines,0
+STL,PHX,American Airlines,0
+STL,PIT,American Airlines,0
+STL,SEA,American Airlines,0
+STS,LAX,American Airlines,0
+STS,SAN,American Airlines,0
+STT,CLT,American Airlines,0
+STT,JFK,American Airlines,0
+STT,MIA,American Airlines,0
+STT,PHL,American Airlines,0
+STX,MIA,American Airlines,0
+SUX,ORD,American Airlines,0
+SWF,PHL,American Airlines,0
+SYR,BOS,American Airlines,0
+SYR,CLT,American Airlines,0
+SYR,DCA,American Airlines,0
+SYR,ORD,American Airlines,0
+SYR,PHL,American Airlines,0
+TLH,CLT,American Airlines,0
+TLH,DCA,American Airlines,0
+TLH,DFW,American Airlines,0
+TLH,MIA,American Airlines,0
+TOL,ORD,American Airlines,0
+TPA,CLT,American Airlines,0
+TPA,DCA,American Airlines,0
+TPA,DFW,American Airlines,0
+TPA,JFK,American Airlines,0
+TPA,MIA,American Airlines,0
+TPA,ORD,American Airlines,0
+TPA,PHL,American Airlines,0
+TPA,PHX,American Airlines,0
+TRI,CLT,American Airlines,0
+TUL,DFW,American Airlines,0
+TUL,MIA,American Airlines,0
+TUL,ORD,American Airlines,0
+TUS,DFW,American Airlines,0
+TUS,LAX,American Airlines,0
+TUS,ORD,American Airlines,0
+TUS,PHX,American Airlines,0
+TVC,ORD,American Airlines,0
+TXK,DFW,American Airlines,0
+TYR,DFW,American Airlines,0
+TYS,CLT,American Airlines,0
+TYS,DCA,American Airlines,0
+TYS,DFW,American Airlines,0
+TYS,LGA,American Airlines,0
+TYS,ORD,American Airlines,0
+TYS,PHL,American Airlines,0
+VPS,CLT,American Airlines,0
+VPS,DCA,American Airlines,0
+VPS,DFW,American Airlines,0
+XNA,CLT,American Airlines,0
+XNA,DFW,American Airlines,0
+XNA,LAX,American Airlines,0
+XNA,LGA,American Airlines,0
+XNA,ORD,American Airlines,0
+YUM,PHX,American Airlines,0
+ATL,DEN,Air Canada,0
+DEN,ATL,Air Canada,0
+DEN,MSY,Air Canada,0
+EWR,MSY,Air Canada,0
+IAD,MSY,Air Canada,0
+IAH,MSY,Air Canada,0
+MSY,DEN,Air Canada,0
+MSY,EWR,Air Canada,0
+MSY,IAD,Air Canada,0
+MSY,IAH,Air Canada,0
+ABE,ATL,Air France,0
+ABQ,ATL,Air France,0
+ABY,ATL,Air France,0
+AEX,ATL,Air France,0
+AGS,ATL,Air France,0
+ALB,ATL,Air France,0
+ATL,ABE,Air France,0
+ATL,ABQ,Air France,0
+ATL,ABY,Air France,0
+ATL,AEX,Air France,0
+ATL,AGS,Air France,0
+ATL,ALB,Air France,0
+ATL,ATW,Air France,0
+ATL,AUS,Air France,0
+ATL,AVL,Air France,0
+ATL,AVP,Air France,0
+ATL,BDL,Air France,0
+ATL,BHM,Air France,0
+ATL,BMI,Air France,0
+ATL,BNA,Air France,0
+ATL,BOS,Air France,0
+ATL,BQK,Air France,0
+ATL,BTR,Air France,0
+ATL,BTV,Air France,0
+ATL,BUF,Air France,0
+ATL,BWI,Air France,0
+ATL,CAE,Air France,0
+ATL,CAK,Air France,0
+ATL,CHO,Air France,0
+ATL,CHS,Air France,0
+ATL,CLE,Air France,0
+ATL,CMH,Air France,0
+ATL,COS,Air France,0
+ATL,CSG,Air France,0
+ATL,DAB,Air France,0
+ATL,DAL,Air France,0
+ATL,DAY,Air France,0
+ATL,DCA,Air France,0
+ATL,DHN,Air France,0
+ATL,DSM,Air France,0
+ATL,DTW,Air France,0
+ATL,ECP,Air France,0
+ATL,ELP,Air France,0
+ATL,EWN,Air France,0
+ATL,EWR,Air France,0
+ATL,EYW,Air France,0
+ATL,FAY,Air France,0
+ATL,FLL,Air France,0
+ATL,FNT,Air France,0
+ATL,FSM,Air France,0
+ATL,GNV,Air France,0
+ATL,GPT,Air France,0
+ATL,GRB,Air France,0
+ATL,GRK,Air France,0
+ATL,GRR,Air France,0
+ATL,GTR,Air France,0
+ATL,HPN,Air France,0
+ATL,HSV,Air France,0
+ATL,IAD,Air France,0
+ATL,IAH,Air France,0
+ATL,ICT,Air France,0
+ATL,ILM,Air France,0
+ATL,IND,Air France,0
+ATL,JAN,Air France,0
+ATL,JAX,Air France,0
+ATL,JFK,Air France,0
+ATL,LAS,Air France,0
+ATL,LAX,Air France,0
+ATL,LFT,Air France,0
+ATL,LGA,Air France,0
+ATL,LIT,Air France,0
+ATL,MCI,Air France,0
+ATL,MCO,Air France,0
+ATL,MDT,Air France,0
+ATL,MDW,Air France,0
+ATL,MEM,Air France,0
+ATL,MGM,Air France,0
+ATL,MHT,Air France,0
+ATL,MKE,Air France,0
+ATL,MLB,Air France,0
+ATL,MLI,Air France,0
+ATL,MLU,Air France,0
+ATL,MOB,Air France,0
+ATL,MSN,Air France,0
+ATL,MSY,Air France,0
+ATL,MYR,Air France,0
+ATL,OAJ,Air France,0
+ATL,OKC,Air France,0
+ATL,OMA,Air France,0
+ATL,ORF,Air France,0
+ATL,PBI,Air France,0
+ATL,PDX,Air France,0
+ATL,PHF,Air France,0
+ATL,PIA,Air France,0
+ATL,PIT,Air France,0
+ATL,PNS,Air France,0
+ATL,PVD,Air France,0
+ATL,PWM,Air France,0
+ATL,RDU,Air France,0
+ATL,RIC,Air France,0
+ATL,ROC,Air France,0
+ATL,RSW,Air France,0
+ATL,SAN,Air France,0
+ATL,SAT,Air France,0
+ATL,SAV,Air France,0
+ATL,SBN,Air France,0
+ATL,SDF,Air France,0
+ATL,SEA,Air France,0
+ATL,SFO,Air France,0
+ATL,SGF,Air France,0
+ATL,SHV,Air France,0
+ATL,SLC,Air France,0
+ATL,SMF,Air France,0
+ATL,SNA,Air France,0
+ATL,SRQ,Air France,0
+ATL,STL,Air France,0
+ATL,TLH,Air France,0
+ATL,TPA,Air France,0
+ATL,TRI,Air France,0
+ATL,TUL,Air France,0
+ATL,TUS,Air France,0
+ATL,VLD,Air France,0
+ATL,VPS,Air France,0
+ATW,ATL,Air France,0
+AUS,ATL,Air France,0
+AVL,ATL,Air France,0
+BDL,ATL,Air France,0
+BHM,ATL,Air France,0
+BMI,ATL,Air France,0
+BNA,ATL,Air France,0
+BOS,ATL,Air France,0
+BQK,ATL,Air France,0
+BTR,ATL,Air France,0
+BUF,ATL,Air France,0
+BWI,ATL,Air France,0
+CAE,ATL,Air France,0
+CAK,ATL,Air France,0
+CHO,ATL,Air France,0
+CHS,ATL,Air France,0
+CID,ATL,Air France,0
+CLE,ATL,Air France,0
+CMH,ATL,Air France,0
+CSG,ATL,Air France,0
+DAB,ATL,Air France,0
+DAL,ATL,Air France,0
+DAY,ATL,Air France,0
+DCA,ATL,Air France,0
+DHN,ATL,Air France,0
+DSM,ATL,Air France,0
+DTW,ATL,Air France,0
+ECP,ATL,Air France,0
+ELP,ATL,Air France,0
+EWN,ATL,Air France,0
+EWR,ATL,Air France,0
+EYW,ATL,Air France,0
+FAY,ATL,Air France,0
+FLL,ATL,Air France,0
+FNT,ATL,Air France,0
+FSM,ATL,Air France,0
+GNV,ATL,Air France,0
+GPT,ATL,Air France,0
+GRB,ATL,Air France,0
+GRK,ATL,Air France,0
+GRR,ATL,Air France,0
+GTR,ATL,Air France,0
+HPN,ATL,Air France,0
+HSV,ATL,Air France,0
+IAD,ATL,Air France,0
+IAH,ATL,Air France,0
+ICT,ATL,Air France,0
+ILM,ATL,Air France,0
+IND,ATL,Air France,0
+JAN,ATL,Air France,0
+JAX,ATL,Air France,0
+JFK,ATL,Air France,0
+LAS,ATL,Air France,0
+LAX,ATL,Air France,0
+LAX,MSP,Air France,0
+LFT,ATL,Air France,0
+LGA,ATL,Air France,0
+LIT,ATL,Air France,0
+MCI,ATL,Air France,0
+MCO,ATL,Air France,0
+MDW,ATL,Air France,0
+MEM,ATL,Air France,0
+MGM,ATL,Air France,0
+MKE,ATL,Air France,0
+MLB,ATL,Air France,0
+MLI,ATL,Air France,0
+MLU,ATL,Air France,0
+MOB,ATL,Air France,0
+MSN,ATL,Air France,0
+MSP,LAX,Air France,0
+MSP,SEA,Air France,0
+MSP,SFO,Air France,0
+MSY,ATL,Air France,0
+MYR,ATL,Air France,0
+OAJ,ATL,Air France,0
+OKC,ATL,Air France,0
+OMA,ATL,Air France,0
+ORF,ATL,Air France,0
+PBI,ATL,Air France,0
+PDX,ATL,Air France,0
+PHF,ATL,Air France,0
+PIA,ATL,Air France,0
+PIT,ATL,Air France,0
+PNS,ATL,Air France,0
+PVD,ATL,Air France,0
+RDU,ATL,Air France,0
+RIC,ATL,Air France,0
+ROC,ATL,Air France,0
+RSW,ATL,Air France,0
+SAN,ATL,Air France,0
+SAT,ATL,Air France,0
+SAV,ATL,Air France,0
+SBN,ATL,Air France,0
+SDF,ATL,Air France,0
+SEA,ATL,Air France,0
+SEA,HNL,Air France,0
+SFO,ATL,Air France,0
+SFO,HNL,Air France,0
+SGF,ATL,Air France,0
+SHV,ATL,Air France,0
+SLC,ATL,Air France,0
+SMF,ATL,Air France,0
+SNA,ATL,Air France,0
+SRQ,ATL,Air France,0
+STL,ATL,Air France,0
+STT,ATL,Air France,0
+TLH,ATL,Air France,0
+TPA,ATL,Air France,0
+TRI,ATL,Air France,0
+TUL,ATL,Air France,0
+TUS,ATL,Air France,0
+VLD,ATL,Air France,0
+VPS,ATL,Air France,0
+ADK,ANC,Alaska Airlines,0
+AKN,ANC,Alaska Airlines,0
+ALW,SEA,Alaska Airlines,0
+ANC,ADK,Alaska Airlines,0
+ANC,AKN,Alaska Airlines,0
+ANC,BRW,Alaska Airlines,0
+ANC,CDB,Alaska Airlines,0
+ANC,DLG,Alaska Airlines,0
+ANC,HNL,Alaska Airlines,0
+ANC,JNU,Alaska Airlines,0
+ANC,LAS,Alaska Airlines,0
+ANC,MCG,Alaska Airlines,0
+ANC,OME,Alaska Airlines,0
+ANC,ORD,Alaska Airlines,0
+ANC,OTZ,Alaska Airlines,0
+ANC,PDX,Alaska Airlines,0
+ANC,SCC,Alaska Airlines,0
+ANC,SDP,Alaska Airlines,0
+ANC,SEA,Alaska Airlines,0
+ANC,SNP,Alaska Airlines,0
+ANC,STG,Alaska Airlines,0
+ANI,MCG,Alaska Airlines,0
+AUS,SEA,Alaska Airlines,0
+BIL,PDX,Alaska Airlines,0
+BIL,SEA,Alaska Airlines,0
+BLI,HNL,Alaska Airlines,0
+BLI,LAS,Alaska Airlines,0
+BLI,PDX,Alaska Airlines,0
+BLI,SEA,Alaska Airlines,0
+BOI,LWS,Alaska Airlines,0
+BOI,PDX,Alaska Airlines,0
+BOI,SAN,Alaska Airlines,0
+BOI,SEA,Alaska Airlines,0
+BOI,SJC,Alaska Airlines,0
+BOI,SMF,Alaska Airlines,0
+BOS,ISP,Alaska Airlines,0
+BOS,PBG,Alaska Airlines,0
+BOS,PQI,Alaska Airlines,0
+BRW,ANC,Alaska Airlines,0
+BRW,FAI,Alaska Airlines,0
+BRW,SCC,Alaska Airlines,0
+BZN,SEA,Alaska Airlines,0
+CDB,ANC,Alaska Airlines,0
+CDV,YAK,Alaska Airlines,0
+COS,SEA,Alaska Airlines,0
+DCA,SEA,Alaska Airlines,0
+DLG,ANC,Alaska Airlines,0
+DTW,PDX,Alaska Airlines,0
+DTW,SAN,Alaska Airlines,0
+EAT,SEA,Alaska Airlines,0
+EUG,SEA,Alaska Airlines,0
+FAI,SEA,Alaska Airlines,0
+FAT,PDX,Alaska Airlines,0
+FAT,SAN,Alaska Airlines,0
+FAT,SEA,Alaska Airlines,0
+FCA,SEA,Alaska Airlines,0
+FLL,SEA,Alaska Airlines,0
+GEG,PDX,Alaska Airlines,0
+GEG,SEA,Alaska Airlines,0
+GTF,HLN,Alaska Airlines,0
+GTF,SEA,Alaska Airlines,0
+HLN,GTF,Alaska Airlines,0
+HLN,SEA,Alaska Airlines,0
+HNL,ANC,Alaska Airlines,0
+HNL,BLI,Alaska Airlines,0
+HNL,PDX,Alaska Airlines,0
+HNL,SAN,Alaska Airlines,0
+HNL,SEA,Alaska Airlines,0
+IAH,SEA,Alaska Airlines,0
+ISP,BOS,Alaska Airlines,0
+JNU,ANC,Alaska Airlines,0
+JNU,PSG,Alaska Airlines,0
+JNU,SEA,Alaska Airlines,0
+JNU,SIT,Alaska Airlines,0
+JNU,YAK,Alaska Airlines,0
+KOA,SEA,Alaska Airlines,0
+KTN,SIT,Alaska Airlines,0
+KTN,WRG,Alaska Airlines,0
+LAS,ANC,Alaska Airlines,0
+LAS,BLI,Alaska Airlines,0
+LAS,PDX,Alaska Airlines,0
+LAS,SEA,Alaska Airlines,0
+LAX,MSY,Alaska Airlines,0
+LIH,SAN,Alaska Airlines,0
+LIH,SEA,Alaska Airlines,0
+LWS,BOI,Alaska Airlines,0
+LWS,PUW,Alaska Airlines,0
+LWS,SEA,Alaska Airlines,0
+MCG,ANC,Alaska Airlines,0
+MCG,ANI,Alaska Airlines,0
+MFR,PDX,Alaska Airlines,0
+MFR,SEA,Alaska Airlines,0
+MRY,SAN,Alaska Airlines,0
+MSO,PDX,Alaska Airlines,0
+MSO,SEA,Alaska Airlines,0
+MSP,SAN,Alaska Airlines,0
+MSY,LAX,Alaska Airlines,0
+MSY,SLC,Alaska Airlines,0
+OGG,PDX,Alaska Airlines,0
+OGG,SAN,Alaska Airlines,0
+OGG,SEA,Alaska Airlines,0
+OMA,SEA,Alaska Airlines,0
+OME,ANC,Alaska Airlines,0
+ORD,ANC,Alaska Airlines,0
+OTZ,ANC,Alaska Airlines,0
+PBG,BOS,Alaska Airlines,0
+PDX,ANC,Alaska Airlines,0
+PDX,BIL,Alaska Airlines,0
+PDX,BLI,Alaska Airlines,0
+PDX,BOI,Alaska Airlines,0
+PDX,DTW,Alaska Airlines,0
+PDX,EUG,Alaska Airlines,0
+PDX,FAT,Alaska Airlines,0
+PDX,GEG,Alaska Airlines,0
+PDX,HNL,Alaska Airlines,0
+PDX,LAS,Alaska Airlines,0
+PDX,MFR,Alaska Airlines,0
+PDX,MSO,Alaska Airlines,0
+PDX,OGG,Alaska Airlines,0
+PDX,PSC,Alaska Airlines,0
+PDX,PSP,Alaska Airlines,0
+PDX,RDM,Alaska Airlines,0
+PDX,RNO,Alaska Airlines,0
+PDX,SBA,Alaska Airlines,0
+PDX,SEA,Alaska Airlines,0
+PDX,SLC,Alaska Airlines,0
+PDX,SMF,Alaska Airlines,0
+PDX,STS,Alaska Airlines,0
+PDX,TUS,Alaska Airlines,0
+PQI,BOS,Alaska Airlines,0
+PSC,PDX,Alaska Airlines,0
+PSC,SEA,Alaska Airlines,0
+PSG,JNU,Alaska Airlines,0
+PSG,WRG,Alaska Airlines,0
+PSP,PDX,Alaska Airlines,0
+PSP,SEA,Alaska Airlines,0
+PSP,SMF,Alaska Airlines,0
+PUW,LWS,Alaska Airlines,0
+PUW,SEA,Alaska Airlines,0
+RDM,PDX,Alaska Airlines,0
+RDM,SEA,Alaska Airlines,0
+RNO,PDX,Alaska Airlines,0
+RNO,SEA,Alaska Airlines,0
+RNO,SJC,Alaska Airlines,0
+SAN,BOI,Alaska Airlines,0
+SAN,DTW,Alaska Airlines,0
+SAN,FAT,Alaska Airlines,0
+SAN,HNL,Alaska Airlines,0
+SAN,LIH,Alaska Airlines,0
+SAN,MRY,Alaska Airlines,0
+SAN,MSP,Alaska Airlines,0
+SAN,OGG,Alaska Airlines,0
+SAN,SLC,Alaska Airlines,0
+SAT,SEA,Alaska Airlines,0
+SBA,PDX,Alaska Airlines,0
+SBA,SEA,Alaska Airlines,0
+SCC,ANC,Alaska Airlines,0
+SCC,BRW,Alaska Airlines,0
+SDP,ANC,Alaska Airlines,0
+SEA,ALW,Alaska Airlines,0
+SEA,ANC,Alaska Airlines,0
+SEA,AUS,Alaska Airlines,0
+SEA,BIL,Alaska Airlines,0
+SEA,BLI,Alaska Airlines,0
+SEA,BOI,Alaska Airlines,0
+SEA,BZN,Alaska Airlines,0
+SEA,COS,Alaska Airlines,0
+SEA,DCA,Alaska Airlines,0
+SEA,EAT,Alaska Airlines,0
+SEA,EUG,Alaska Airlines,0
+SEA,FAI,Alaska Airlines,0
+SEA,FAT,Alaska Airlines,0
+SEA,FCA,Alaska Airlines,0
+SEA,FLL,Alaska Airlines,0
+SEA,GEG,Alaska Airlines,0
+SEA,GTF,Alaska Airlines,0
+SEA,IAH,Alaska Airlines,0
+SEA,JNU,Alaska Airlines,0
+SEA,KOA,Alaska Airlines,0
+SEA,LAS,Alaska Airlines,0
+SEA,LIH,Alaska Airlines,0
+SEA,LWS,Alaska Airlines,0
+SEA,MFR,Alaska Airlines,0
+SEA,MSO,Alaska Airlines,0
+SEA,MSP,Alaska Airlines,0
+SEA,OGG,Alaska Airlines,0
+SEA,OMA,Alaska Airlines,0
+SEA,PDX,Alaska Airlines,0
+SEA,PSC,Alaska Airlines,0
+SEA,PSP,Alaska Airlines,0
+SEA,PUW,Alaska Airlines,0
+SEA,RDM,Alaska Airlines,0
+SEA,RNO,Alaska Airlines,0
+SEA,SAT,Alaska Airlines,0
+SEA,SBA,Alaska Airlines,0
+SEA,SLC,Alaska Airlines,0
+SEA,STS,Alaska Airlines,0
+SEA,TUS,Alaska Airlines,0
+SEA,YKM,Alaska Airlines,0
+SIT,JNU,Alaska Airlines,0
+SIT,KTN,Alaska Airlines,0
+SJC,BOI,Alaska Airlines,0
+SJC,RNO,Alaska Airlines,0
+SLC,CVG,Alaska Airlines,0
+SLC,MSY,Alaska Airlines,0
+SLC,PDX,Alaska Airlines,0
+SLC,SAN,Alaska Airlines,0
+SLC,SEA,Alaska Airlines,0
+SMF,BOI,Alaska Airlines,0
+SMF,PDX,Alaska Airlines,0
+SMF,PSP,Alaska Airlines,0
+SNP,ANC,Alaska Airlines,0
+STG,ANC,Alaska Airlines,0
+STS,PDX,Alaska Airlines,0
+STS,SEA,Alaska Airlines,0
+TUS,PDX,Alaska Airlines,0
+TUS,SEA,Alaska Airlines,0
+WRG,KTN,Alaska Airlines,0
+WRG,PSG,Alaska Airlines,0
+YAK,CDV,Alaska Airlines,0
+YAK,JNU,Alaska Airlines,0
+YKM,SEA,Alaska Airlines,0
+ATL,HOU,Alitalia,0
+HOU,ATL,Alitalia,0
+ABQ,JFK,JetBlue Airways,0
+AUS,BOS,JetBlue Airways,0
+AUS,FLL,JetBlue Airways,0
+AUS,LGB,JetBlue Airways,0
+AUS,MCO,JetBlue Airways,0
+AUS,SFO,JetBlue Airways,0
+BDL,FLL,JetBlue Airways,0
+BDL,MCO,JetBlue Airways,0
+BDL,PBI,JetBlue Airways,0
+BDL,TPA,JetBlue Airways,0
+BOS,AUS,JetBlue Airways,0
+BOS,BWI,JetBlue Airways,0
+BOS,CHS,JetBlue Airways,0
+BOS,DEN,JetBlue Airways,0
+BOS,DTW,JetBlue Airways,0
+BOS,EWR,JetBlue Airways,0
+BOS,FLL,JetBlue Airways,0
+BOS,HOU,JetBlue Airways,0
+BOS,IAD,JetBlue Airways,0
+BOS,JAX,JetBlue Airways,0
+BOS,LAS,JetBlue Airways,0
+BOS,LGB,JetBlue Airways,0
+BOS,MCO,JetBlue Airways,0
+BOS,MSY,JetBlue Airways,0
+BOS,PBI,JetBlue Airways,0
+BOS,RDU,JetBlue Airways,0
+BOS,RSW,JetBlue Airways,0
+BOS,SAV,JetBlue Airways,0
+BOS,SFO,JetBlue Airways,0
+BOS,SJC,JetBlue Airways,0
+BOS,STT,JetBlue Airways,0
+BOS,TPA,JetBlue Airways,0
+BTV,JFK,JetBlue Airways,0
+BUF,JFK,JetBlue Airways,0
+BUF,MCO,JetBlue Airways,0
+BUR,JFK,JetBlue Airways,0
+BWI,BOS,JetBlue Airways,0
+CHS,BOS,JetBlue Airways,0
+CHS,JFK,JetBlue Airways,0
+DEN,BOS,JetBlue Airways,0
+DEN,JFK,JetBlue Airways,0
+DTW,BOS,JetBlue Airways,0
+EWR,BOS,JetBlue Airways,0
+EWR,FLL,JetBlue Airways,0
+EWR,MCO,JetBlue Airways,0
+EWR,PBI,JetBlue Airways,0
+EWR,RSW,JetBlue Airways,0
+EWR,TPA,JetBlue Airways,0
+FLL,AUS,JetBlue Airways,0
+FLL,BDL,JetBlue Airways,0
+FLL,BOS,JetBlue Airways,0
+FLL,EWR,JetBlue Airways,0
+FLL,HPN,JetBlue Airways,0
+FLL,JFK,JetBlue Airways,0
+FLL,LAX,JetBlue Airways,0
+FLL,LGA,JetBlue Airways,0
+FLL,ORH,JetBlue Airways,0
+FLL,PVD,JetBlue Airways,0
+FLL,RDU,JetBlue Airways,0
+FLL,RIC,JetBlue Airways,0
+FLL,SFO,JetBlue Airways,0
+FLL,SWF,JetBlue Airways,0
+HOU,BOS,JetBlue Airways,0
+HOU,JFK,JetBlue Airways,0
+HPN,FLL,JetBlue Airways,0
+HPN,MCO,JetBlue Airways,0
+HPN,PBI,JetBlue Airways,0
+HPN,RSW,JetBlue Airways,0
+HPN,TPA,JetBlue Airways,0
+IAD,BOS,JetBlue Airways,0
+IAD,JFK,JetBlue Airways,0
+IAD,LGB,JetBlue Airways,0
+JAX,BOS,JetBlue Airways,0
+JAX,JFK,JetBlue Airways,0
+JFK,ABQ,JetBlue Airways,0
+JFK,BTV,JetBlue Airways,0
+JFK,BUF,JetBlue Airways,0
+JFK,BUR,JetBlue Airways,0
+JFK,CHS,JetBlue Airways,0
+JFK,DEN,JetBlue Airways,0
+JFK,FLL,JetBlue Airways,0
+JFK,HOU,JetBlue Airways,0
+JFK,IAD,JetBlue Airways,0
+JFK,JAX,JetBlue Airways,0
+JFK,LGB,JetBlue Airways,0
+JFK,OAK,JetBlue Airways,0
+JFK,PBI,JetBlue Airways,0
+JFK,PDX,JetBlue Airways,0
+JFK,PWM,JetBlue Airways,0
+JFK,ROC,JetBlue Airways,0
+JFK,RSW,JetBlue Airways,0
+JFK,SAV,JetBlue Airways,0
+JFK,SJC,JetBlue Airways,0
+JFK,SLC,JetBlue Airways,0
+JFK,SMF,JetBlue Airways,0
+JFK,SRQ,JetBlue Airways,0
+JFK,SYR,JetBlue Airways,0
+LAS,BOS,JetBlue Airways,0
+LAS,LGB,JetBlue Airways,0
+LAX,FLL,JetBlue Airways,0
+LGA,FLL,JetBlue Airways,0
+LGA,MCO,JetBlue Airways,0
+LGA,RSW,JetBlue Airways,0
+LGA,SRQ,JetBlue Airways,0
+LGA,TPA,JetBlue Airways,0
+LGB,AUS,JetBlue Airways,0
+LGB,BOS,JetBlue Airways,0
+LGB,IAD,JetBlue Airways,0
+LGB,JFK,JetBlue Airways,0
+LGB,LAS,JetBlue Airways,0
+LGB,OAK,JetBlue Airways,0
+LGB,SFO,JetBlue Airways,0
+LGB,SLC,JetBlue Airways,0
+LGB,SMF,JetBlue Airways,0
+MCO,AUS,JetBlue Airways,0
+MCO,BDL,JetBlue Airways,0
+MCO,BOS,JetBlue Airways,0
+MCO,BUF,JetBlue Airways,0
+MCO,EWR,JetBlue Airways,0
+MCO,HPN,JetBlue Airways,0
+MCO,LGA,JetBlue Airways,0
+MCO,ORH,JetBlue Airways,0
+MCO,PVD,JetBlue Airways,0
+MCO,RIC,JetBlue Airways,0
+MCO,SWF,JetBlue Airways,0
+MCO,SYR,JetBlue Airways,0
+MSY,BOS,JetBlue Airways,0
+OAK,JFK,JetBlue Airways,0
+OAK,LGB,JetBlue Airways,0
+ORH,FLL,JetBlue Airways,0
+ORH,MCO,JetBlue Airways,0
+PBI,BDL,JetBlue Airways,0
+PBI,BOS,JetBlue Airways,0
+PBI,EWR,JetBlue Airways,0
+PBI,HPN,JetBlue Airways,0
+PBI,JFK,JetBlue Airways,0
+PDX,JFK,JetBlue Airways,0
+PVD,FLL,JetBlue Airways,0
+PVD,MCO,JetBlue Airways,0
+PWM,JFK,JetBlue Airways,0
+RDU,BOS,JetBlue Airways,0
+RDU,FLL,JetBlue Airways,0
+RIC,FLL,JetBlue Airways,0
+RIC,MCO,JetBlue Airways,0
+ROC,JFK,JetBlue Airways,0
+RSW,BOS,JetBlue Airways,0
+RSW,EWR,JetBlue Airways,0
+RSW,HPN,JetBlue Airways,0
+RSW,JFK,JetBlue Airways,0
+RSW,LGA,JetBlue Airways,0
+SAV,BOS,JetBlue Airways,0
+SAV,JFK,JetBlue Airways,0
+SFO,AUS,JetBlue Airways,0
+SFO,BOS,JetBlue Airways,0
+SFO,FLL,JetBlue Airways,0
+SFO,LGB,JetBlue Airways,0
+SJC,BOS,JetBlue Airways,0
+SJC,JFK,JetBlue Airways,0
+SLC,JFK,JetBlue Airways,0
+SLC,LGB,JetBlue Airways,0
+SMF,JFK,JetBlue Airways,0
+SMF,LGB,JetBlue Airways,0
+SRQ,JFK,JetBlue Airways,0
+SRQ,LGA,JetBlue Airways,0
+SWF,FLL,JetBlue Airways,0
+SWF,MCO,JetBlue Airways,0
+SYR,JFK,JetBlue Airways,0
+SYR,MCO,JetBlue Airways,0
+TPA,BDL,JetBlue Airways,0
+TPA,BOS,JetBlue Airways,0
+TPA,EWR,JetBlue Airways,0
+TPA,HPN,JetBlue Airways,0
+TPA,LGA,JetBlue Airways,0
+IAH,SFO,Copa Airlines,0
+ABE,DTW,Delta Air Lines,0
+ABQ,MSP,Delta Air Lines,0
+ABQ,SLC,Delta Air Lines,0
+ABR,MSP,Delta Air Lines,0
+ALB,DTW,Delta Air Lines,0
+ALB,MSP,Delta Air Lines,0
+ANC,MSP,Delta Air Lines,0
+ANC,SLC,Delta Air Lines,0
+APN,DTW,Delta Air Lines,0
+APN,MSP,Delta Air Lines,0
+ATL,FAR,Delta Air Lines,0
+ATL,FSD,Delta Air Lines,0
+ATL,HNL,Delta Air Lines,0
+ATL,SJC,Delta Air Lines,0
+ATL,STT,Delta Air Lines,0
+ATW,DTW,Delta Air Lines,0
+ATW,MSP,Delta Air Lines,0
+AUS,DTW,Delta Air Lines,0
+AUS,MEM,Delta Air Lines,0
+AUS,MSP,Delta Air Lines,0
+AUS,SLC,Delta Air Lines,0
+AVL,DTW,Delta Air Lines,0
+AVP,ATL,Delta Air Lines,0
+AVP,DTW,Delta Air Lines,0
+AZO,DTW,Delta Air Lines,0
+AZO,MSP,Delta Air Lines,0
+BDL,CVG,Delta Air Lines,0
+BDL,DTW,Delta Air Lines,0
+BDL,MSP,Delta Air Lines,0
+BDL,RDU,Delta Air Lines,0
+BGM,DTW,Delta Air Lines,0
+BGR,DTW,Delta Air Lines,0
+BGR,LGA,Delta Air Lines,0
+BHM,DTW,Delta Air Lines,0
+BHM,LGA,Delta Air Lines,0
+BHM,MCO,Delta Air Lines,0
+BHM,MSP,Delta Air Lines,0
+BIL,MSP,Delta Air Lines,0
+BIL,SLC,Delta Air Lines,0
+BIS,MSP,Delta Air Lines,0
+BJI,MSP,Delta Air Lines,0
+BMI,DTW,Delta Air Lines,0
+BMI,MSP,Delta Air Lines,0
+BNA,CVG,Delta Air Lines,0
+BNA,DTW,Delta Air Lines,0
+BNA,MCO,Delta Air Lines,0
+BNA,MSP,Delta Air Lines,0
+BNA,SLC,Delta Air Lines,0
+BOI,MSP,Delta Air Lines,0
+BOI,SLC,Delta Air Lines,0
+BOS,CMH,Delta Air Lines,0
+BOS,CVG,Delta Air Lines,0
+BOS,IND,Delta Air Lines,0
+BOS,MSP,Delta Air Lines,0
+BOS,MYR,Delta Air Lines,0
+BOS,SLC,Delta Air Lines,0
+BRD,INL,Delta Air Lines,0
+BRD,MSP,Delta Air Lines,0
+BTM,SLC,Delta Air Lines,0
+BTV,ATL,Delta Air Lines,0
+BTV,DTW,Delta Air Lines,0
+BTV,LGA,Delta Air Lines,0
+BUF,DTW,Delta Air Lines,0
+BUF,LGA,Delta Air Lines,0
+BUF,MSP,Delta Air Lines,0
+BUR,SLC,Delta Air Lines,0
+BWI,CVG,Delta Air Lines,0
+BWI,DTW,Delta Air Lines,0
+BWI,MSP,Delta Air Lines,0
+BWI,RDU,Delta Air Lines,0
+BWI,SLC,Delta Air Lines,0
+BZN,MSP,Delta Air Lines,0
+BZN,SLC,Delta Air Lines,0
+CAE,DTW,Delta Air Lines,0
+CAE,LGA,Delta Air Lines,0
+CAK,DTW,Delta Air Lines,0
+CDC,SLC,Delta Air Lines,0
+CHA,DTW,Delta Air Lines,0
+CHS,DTW,Delta Air Lines,0
+CHS,LGA,Delta Air Lines,0
+CID,DTW,Delta Air Lines,0
+CID,MSP,Delta Air Lines,0
+CIU,DTW,Delta Air Lines,0
+CLE,DTW,Delta Air Lines,0
+CLE,LGA,Delta Air Lines,0
+CLE,MSP,Delta Air Lines,0
+CMH,BOS,Delta Air Lines,0
+CMH,DTW,Delta Air Lines,0
+CMH,MCO,Delta Air Lines,0
+CMH,MSP,Delta Air Lines,0
+CMH,RDU,Delta Air Lines,0
+CMH,RSW,Delta Air Lines,0
+CMH,TPA,Delta Air Lines,0
+CNY,SLC,Delta Air Lines,0
+COD,SLC,Delta Air Lines,0
+COS,ATL,Delta Air Lines,0
+COS,SLC,Delta Air Lines,0
+CPR,SLC,Delta Air Lines,0
+CRW,DTW,Delta Air Lines,0
+CVG,BDL,Delta Air Lines,0
+CVG,BNA,Delta Air Lines,0
+CVG,BOS,Delta Air Lines,0
+CVG,BWI,Delta Air Lines,0
+CVG,DEN,Delta Air Lines,0
+CVG,DTW,Delta Air Lines,0
+CVG,EWR,Delta Air Lines,0
+CVG,FLL,Delta Air Lines,0
+CVG,GRR,Delta Air Lines,0
+CVG,IAH,Delta Air Lines,0
+CVG,JAX,Delta Air Lines,0
+CVG,LAS,Delta Air Lines,0
+CVG,LAX,Delta Air Lines,0
+CVG,LGA,Delta Air Lines,0
+CVG,MCI,Delta Air Lines,0
+CVG,MCO,Delta Air Lines,0
+CVG,MEM,Delta Air Lines,0
+CVG,MKE,Delta Air Lines,0
+CVG,MSN,Delta Air Lines,0
+CVG,MSP,Delta Air Lines,0
+CVG,MSY,Delta Air Lines,0
+CVG,PIT,Delta Air Lines,0
+CVG,RDU,Delta Air Lines,0
+CVG,RIC,Delta Air Lines,0
+CVG,RSW,Delta Air Lines,0
+CVG,SFO,Delta Air Lines,0
+CVG,SLC,Delta Air Lines,0
+CVG,STL,Delta Air Lines,0
+CVG,TPA,Delta Air Lines,0
+CVG,XNA,Delta Air Lines,0
+CWA,DTW,Delta Air Lines,0
+CWA,MSP,Delta Air Lines,0
+DAY,DTW,Delta Air Lines,0
+DAY,MSP,Delta Air Lines,0
+DCA,LEX,Delta Air Lines,0
+DCA,MSN,Delta Air Lines,0
+DCA,SLC,Delta Air Lines,0
+DEN,CVG,Delta Air Lines,0
+DEN,DTW,Delta Air Lines,0
+DEN,LGA,Delta Air Lines,0
+DEN,MEM,Delta Air Lines,0
+DEN,MSP,Delta Air Lines,0
+DEN,SLC,Delta Air Lines,0
+DIK,MSP,Delta Air Lines,0
+DLH,MSP,Delta Air Lines,0
+DSM,DTW,Delta Air Lines,0
+DSM,LGA,Delta Air Lines,0
+DSM,MSP,Delta Air Lines,0
+DTW,ABE,Delta Air Lines,0
+DTW,ALB,Delta Air Lines,0
+DTW,APN,Delta Air Lines,0
+DTW,ATW,Delta Air Lines,0
+DTW,AUS,Delta Air Lines,0
+DTW,AVL,Delta Air Lines,0
+DTW,AVP,Delta Air Lines,0
+DTW,AZO,Delta Air Lines,0
+DTW,BDL,Delta Air Lines,0
+DTW,BGM,Delta Air Lines,0
+DTW,BGR,Delta Air Lines,0
+DTW,BHM,Delta Air Lines,0
+DTW,BMI,Delta Air Lines,0
+DTW,BNA,Delta Air Lines,0
+DTW,BTV,Delta Air Lines,0
+DTW,BUF,Delta Air Lines,0
+DTW,BWI,Delta Air Lines,0
+DTW,CAE,Delta Air Lines,0
+DTW,CAK,Delta Air Lines,0
+DTW,CHA,Delta Air Lines,0
+DTW,CHS,Delta Air Lines,0
+DTW,CID,Delta Air Lines,0
+DTW,CIU,Delta Air Lines,0
+DTW,CLE,Delta Air Lines,0
+DTW,CMH,Delta Air Lines,0
+DTW,CRW,Delta Air Lines,0
+DTW,CVG,Delta Air Lines,0
+DTW,CWA,Delta Air Lines,0
+DTW,DAY,Delta Air Lines,0
+DTW,DEN,Delta Air Lines,0
+DTW,DSM,Delta Air Lines,0
+DTW,ELM,Delta Air Lines,0
+DTW,ERI,Delta Air Lines,0
+DTW,ESC,Delta Air Lines,0
+DTW,EVV,Delta Air Lines,0
+DTW,EWR,Delta Air Lines,0
+DTW,FLL,Delta Air Lines,0
+DTW,FWA,Delta Air Lines,0
+DTW,GRB,Delta Air Lines,0
+DTW,GRR,Delta Air Lines,0
+DTW,GSO,Delta Air Lines,0
+DTW,GSP,Delta Air Lines,0
+DTW,HPN,Delta Air Lines,0
+DTW,HSV,Delta Air Lines,0
+DTW,IAD,Delta Air Lines,0
+DTW,IAH,Delta Air Lines,0
+DTW,IND,Delta Air Lines,0
+DTW,ITH,Delta Air Lines,0
+DTW,JAX,Delta Air Lines,0
+DTW,JFK,Delta Air Lines,0
+DTW,LAN,Delta Air Lines,0
+DTW,LAS,Delta Air Lines,0
+DTW,LAX,Delta Air Lines,0
+DTW,LEX,Delta Air Lines,0
+DTW,LIT,Delta Air Lines,0
+DTW,MBS,Delta Air Lines,0
+DTW,MCI,Delta Air Lines,0
+DTW,MCO,Delta Air Lines,0
+DTW,MDT,Delta Air Lines,0
+DTW,MDW,Delta Air Lines,0
+DTW,MEM,Delta Air Lines,0
+DTW,MHT,Delta Air Lines,0
+DTW,MKE,Delta Air Lines,0
+DTW,MLI,Delta Air Lines,0
+DTW,MQT,Delta Air Lines,0
+DTW,MSN,Delta Air Lines,0
+DTW,MSP,Delta Air Lines,0
+DTW,MYR,Delta Air Lines,0
+DTW,OKC,Delta Air Lines,0
+DTW,OMA,Delta Air Lines,0
+DTW,ORF,Delta Air Lines,0
+DTW,PBI,Delta Air Lines,0
+DTW,PIA,Delta Air Lines,0
+DTW,PIT,Delta Air Lines,0
+DTW,PLN,Delta Air Lines,0
+DTW,PVD,Delta Air Lines,0
+DTW,PWM,Delta Air Lines,0
+DTW,RDU,Delta Air Lines,0
+DTW,RIC,Delta Air Lines,0
+DTW,ROA,Delta Air Lines,0
+DTW,ROC,Delta Air Lines,0
+DTW,RSW,Delta Air Lines,0
+DTW,SAT,Delta Air Lines,0
+DTW,SAV,Delta Air Lines,0
+DTW,SBN,Delta Air Lines,0
+DTW,SCE,Delta Air Lines,0
+DTW,SDF,Delta Air Lines,0
+DTW,SEA,Delta Air Lines,0
+DTW,SFO,Delta Air Lines,0
+DTW,SLC,Delta Air Lines,0
+DTW,STL,Delta Air Lines,0
+DTW,SWF,Delta Air Lines,0
+DTW,SYR,Delta Air Lines,0
+DTW,TPA,Delta Air Lines,0
+DTW,TUL,Delta Air Lines,0
+DTW,TVC,Delta Air Lines,0
+DTW,TYS,Delta Air Lines,0
+DTW,XNA,Delta Air Lines,0
+EKO,SLC,Delta Air Lines,0
+ELM,DTW,Delta Air Lines,0
+ERI,DTW,Delta Air Lines,0
+ESC,DTW,Delta Air Lines,0
+EUG,SLC,Delta Air Lines,0
+EVV,DTW,Delta Air Lines,0
+EWR,CVG,Delta Air Lines,0
+EWR,DTW,Delta Air Lines,0
+EWR,MSP,Delta Air Lines,0
+EWR,SLC,Delta Air Lines,0
+EYW,LGA,Delta Air Lines,0
+FAR,ATL,Delta Air Lines,0
+FAR,MSP,Delta Air Lines,0
+FAR,SLC,Delta Air Lines,0
+FAT,SLC,Delta Air Lines,0
+FCA,MSP,Delta Air Lines,0
+FCA,SLC,Delta Air Lines,0
+FLL,CVG,Delta Air Lines,0
+FLL,DTW,Delta Air Lines,0
+FLL,MSP,Delta Air Lines,0
+FNT,MSP,Delta Air Lines,0
+FSD,ATL,Delta Air Lines,0
+FSD,MSP,Delta Air Lines,0
+FWA,DTW,Delta Air Lines,0
+FWA,MSP,Delta Air Lines,0
+GCC,RKS,Delta Air Lines,0
+GCC,SLC,Delta Air Lines,0
+GEG,LAX,Delta Air Lines,0
+GEG,MSP,Delta Air Lines,0
+GEG,SLC,Delta Air Lines,0
+GFK,MSP,Delta Air Lines,0
+GJT,SLC,Delta Air Lines,0
+GRB,DTW,Delta Air Lines,0
+GRB,MSP,Delta Air Lines,0
+GRR,CVG,Delta Air Lines,0
+GRR,DTW,Delta Air Lines,0
+GRR,LGA,Delta Air Lines,0
+GRR,MCO,Delta Air Lines,0
+GRR,MSP,Delta Air Lines,0
+GSO,DTW,Delta Air Lines,0
+GSP,DTW,Delta Air Lines,0
+GSP,LGA,Delta Air Lines,0
+GTF,MSP,Delta Air Lines,0
+GTF,SLC,Delta Air Lines,0
+HIB,MSP,Delta Air Lines,0
+HLN,MSP,Delta Air Lines,0
+HLN,SLC,Delta Air Lines,0
+HNL,ATL,Delta Air Lines,0
+HNL,SFO,Delta Air Lines,0
+HNL,SLC,Delta Air Lines,0
+HPN,DTW,Delta Air Lines,0
+HSV,DTW,Delta Air Lines,0
+IAD,DTW,Delta Air Lines,0
+IAD,MSP,Delta Air Lines,0
+IAH,CVG,Delta Air Lines,0
+IAH,DTW,Delta Air Lines,0
+IAH,LGA,Delta Air Lines,0
+IAH,MEM,Delta Air Lines,0
+IAH,MSP,Delta Air Lines,0
+IAH,SLC,Delta Air Lines,0
+ICT,MSP,Delta Air Lines,0
+IDA,SLC,Delta Air Lines,0
+IMT,MSP,Delta Air Lines,0
+IMT,RHI,Delta Air Lines,0
+IND,BOS,Delta Air Lines,0
+IND,DTW,Delta Air Lines,0
+IND,LGA,Delta Air Lines,0
+IND,MCO,Delta Air Lines,0
+IND,MEM,Delta Air Lines,0
+IND,MSP,Delta Air Lines,0
+IND,RDU,Delta Air Lines,0
+IND,RSW,Delta Air Lines,0
+IND,SLC,Delta Air Lines,0
+IND,TPA,Delta Air Lines,0
+INL,BRD,Delta Air Lines,0
+INL,MSP,Delta Air Lines,0
+ISN,MSP,Delta Air Lines,0
+ITH,DTW,Delta Air Lines,0
+JAC,SLC,Delta Air Lines,0
+JAX,CVG,Delta Air Lines,0
+JAX,DTW,Delta Air Lines,0
+JAX,LGA,Delta Air Lines,0
+JAX,MSP,Delta Air Lines,0
+JFK,DTW,Delta Air Lines,0
+JFK,MSP,Delta Air Lines,0
+JFK,PHL,Delta Air Lines,0
+JFK,RIC,Delta Air Lines,0
+JFK,SAT,Delta Air Lines,0
+JFK,SDF,Delta Air Lines,0
+JFK,STL,Delta Air Lines,0
+LAN,DTW,Delta Air Lines,0
+LAN,MSP,Delta Air Lines,0
+LAS,CVG,Delta Air Lines,0
+LAS,DTW,Delta Air Lines,0
+LAS,MCO,Delta Air Lines,0
+LAS,MEM,Delta Air Lines,0
+LAS,MSP,Delta Air Lines,0
+LAS,RDU,Delta Air Lines,0
+LAS,SLC,Delta Air Lines,0
+LAX,CVG,Delta Air Lines,0
+LAX,DTW,Delta Air Lines,0
+LAX,GEG,Delta Air Lines,0
+LAX,MCI,Delta Air Lines,0
+LAX,MEM,Delta Air Lines,0
+LAX,OAK,Delta Air Lines,0
+LAX,TPA,Delta Air Lines,0
+LEX,DCA,Delta Air Lines,0
+LEX,DTW,Delta Air Lines,0
+LEX,LGA,Delta Air Lines,0
+LEX,MSP,Delta Air Lines,0
+LGA,BGR,Delta Air Lines,0
+LGA,BHM,Delta Air Lines,0
+LGA,BTV,Delta Air Lines,0
+LGA,BUF,Delta Air Lines,0
+LGA,CAE,Delta Air Lines,0
+LGA,CHS,Delta Air Lines,0
+LGA,CLE,Delta Air Lines,0
+LGA,CVG,Delta Air Lines,0
+LGA,DEN,Delta Air Lines,0
+LGA,DSM,Delta Air Lines,0
+LGA,EYW,Delta Air Lines,0
+LGA,GRR,Delta Air Lines,0
+LGA,GSP,Delta Air Lines,0
+LGA,IAH,Delta Air Lines,0
+LGA,IND,Delta Air Lines,0
+LGA,JAX,Delta Air Lines,0
+LGA,LEX,Delta Air Lines,0
+LGA,MCI,Delta Air Lines,0
+LGA,MEM,Delta Air Lines,0
+LGA,MHT,Delta Air Lines,0
+LGA,MKE,Delta Air Lines,0
+LGA,MSN,Delta Air Lines,0
+LGA,MSP,Delta Air Lines,0
+LGA,MYR,Delta Air Lines,0
+LGA,OMA,Delta Air Lines,0
+LGA,PWM,Delta Air Lines,0
+LGA,ROC,Delta Air Lines,0
+LGA,SAV,Delta Air Lines,0
+LGA,SYR,Delta Air Lines,0
+LIT,DTW,Delta Air Lines,0
+LNK,MSP,Delta Air Lines,0
+LSE,MSP,Delta Air Lines,0
+LWS,SLC,Delta Air Lines,0
+MBS,DTW,Delta Air Lines,0
+MBS,MSP,Delta Air Lines,0
+MCI,CVG,Delta Air Lines,0
+MCI,DTW,Delta Air Lines,0
+MCI,LAX,Delta Air Lines,0
+MCI,LGA,Delta Air Lines,0
+MCI,MCO,Delta Air Lines,0
+MCI,MEM,Delta Air Lines,0
+MCI,MSP,Delta Air Lines,0
+MCI,SLC,Delta Air Lines,0
+MCO,BHM,Delta Air Lines,0
+MCO,BNA,Delta Air Lines,0
+MCO,CMH,Delta Air Lines,0
+MCO,CVG,Delta Air Lines,0
+MCO,DTW,Delta Air Lines,0
+MCO,GRR,Delta Air Lines,0
+MCO,IND,Delta Air Lines,0
+MCO,LAS,Delta Air Lines,0
+MCO,MCI,Delta Air Lines,0
+MCO,MEM,Delta Air Lines,0
+MCO,MKE,Delta Air Lines,0
+MCO,MSP,Delta Air Lines,0
+MCO,OMA,Delta Air Lines,0
+MCO,ORF,Delta Air Lines,0
+MCO,PIT,Delta Air Lines,0
+MCO,RDU,Delta Air Lines,0
+MCO,SAT,Delta Air Lines,0
+MCO,SDF,Delta Air Lines,0
+MCO,SLC,Delta Air Lines,0
+MDT,DTW,Delta Air Lines,0
+MDW,DTW,Delta Air Lines,0
+MDW,MSP,Delta Air Lines,0
+MEM,AUS,Delta Air Lines,0
+MEM,CVG,Delta Air Lines,0
+MEM,DEN,Delta Air Lines,0
+MEM,DTW,Delta Air Lines,0
+MEM,IAH,Delta Air Lines,0
+MEM,IND,Delta Air Lines,0
+MEM,LAS,Delta Air Lines,0
+MEM,LAX,Delta Air Lines,0
+MEM,LGA,Delta Air Lines,0
+MEM,MCI,Delta Air Lines,0
+MEM,MCO,Delta Air Lines,0
+MEM,MSP,Delta Air Lines,0
+MEM,PIT,Delta Air Lines,0
+MEM,RDU,Delta Air Lines,0
+MEM,SAT,Delta Air Lines,0
+MEM,SLC,Delta Air Lines,0
+MFR,SLC,Delta Air Lines,0
+MHT,ATL,Delta Air Lines,0
+MHT,DTW,Delta Air Lines,0
+MHT,LGA,Delta Air Lines,0
+MKE,CVG,Delta Air Lines,0
+MKE,DTW,Delta Air Lines,0
+MKE,LGA,Delta Air Lines,0
+MKE,MCO,Delta Air Lines,0
+MKE,MSP,Delta Air Lines,0
+MLI,DTW,Delta Air Lines,0
+MLI,MSP,Delta Air Lines,0
+MOT,MSP,Delta Air Lines,0
+MQT,DTW,Delta Air Lines,0
+MSN,CVG,Delta Air Lines,0
+MSN,DCA,Delta Air Lines,0
+MSN,DTW,Delta Air Lines,0
+MSN,LGA,Delta Air Lines,0
+MSN,MSP,Delta Air Lines,0
+MSN,SLC,Delta Air Lines,0
+MSO,MSP,Delta Air Lines,0
+MSO,SLC,Delta Air Lines,0
+MSP,ABQ,Delta Air Lines,0
+MSP,ABR,Delta Air Lines,0
+MSP,ALB,Delta Air Lines,0
+MSP,ANC,Delta Air Lines,0
+MSP,APN,Delta Air Lines,0
+MSP,ATW,Delta Air Lines,0
+MSP,AUS,Delta Air Lines,0
+MSP,AZO,Delta Air Lines,0
+MSP,BDL,Delta Air Lines,0
+MSP,BHM,Delta Air Lines,0
+MSP,BIL,Delta Air Lines,0
+MSP,BIS,Delta Air Lines,0
+MSP,BJI,Delta Air Lines,0
+MSP,BMI,Delta Air Lines,0
+MSP,BNA,Delta Air Lines,0
+MSP,BOI,Delta Air Lines,0
+MSP,BOS,Delta Air Lines,0
+MSP,BRD,Delta Air Lines,0
+MSP,BUF,Delta Air Lines,0
+MSP,BWI,Delta Air Lines,0
+MSP,BZN,Delta Air Lines,0
+MSP,CID,Delta Air Lines,0
+MSP,CLE,Delta Air Lines,0
+MSP,CMH,Delta Air Lines,0
+MSP,CVG,Delta Air Lines,0
+MSP,CWA,Delta Air Lines,0
+MSP,DAY,Delta Air Lines,0
+MSP,DEN,Delta Air Lines,0
+MSP,DIK,Delta Air Lines,0
+MSP,DLH,Delta Air Lines,0
+MSP,DSM,Delta Air Lines,0
+MSP,DTW,Delta Air Lines,0
+MSP,EWR,Delta Air Lines,0
+MSP,FAR,Delta Air Lines,0
+MSP,FCA,Delta Air Lines,0
+MSP,FLL,Delta Air Lines,0
+MSP,FNT,Delta Air Lines,0
+MSP,FSD,Delta Air Lines,0
+MSP,FWA,Delta Air Lines,0
+MSP,GEG,Delta Air Lines,0
+MSP,GFK,Delta Air Lines,0
+MSP,GRB,Delta Air Lines,0
+MSP,GRR,Delta Air Lines,0
+MSP,GTF,Delta Air Lines,0
+MSP,HIB,Delta Air Lines,0
+MSP,HLN,Delta Air Lines,0
+MSP,IAD,Delta Air Lines,0
+MSP,IAH,Delta Air Lines,0
+MSP,ICT,Delta Air Lines,0
+MSP,IMT,Delta Air Lines,0
+MSP,IND,Delta Air Lines,0
+MSP,INL,Delta Air Lines,0
+MSP,ISN,Delta Air Lines,0
+MSP,JAX,Delta Air Lines,0
+MSP,JFK,Delta Air Lines,0
+MSP,LAN,Delta Air Lines,0
+MSP,LAS,Delta Air Lines,0
+MSP,LEX,Delta Air Lines,0
+MSP,LGA,Delta Air Lines,0
+MSP,LNK,Delta Air Lines,0
+MSP,LSE,Delta Air Lines,0
+MSP,MBS,Delta Air Lines,0
+MSP,MCI,Delta Air Lines,0
+MSP,MCO,Delta Air Lines,0
+MSP,MDW,Delta Air Lines,0
+MSP,MEM,Delta Air Lines,0
+MSP,MKE,Delta Air Lines,0
+MSP,MLI,Delta Air Lines,0
+MSP,MOT,Delta Air Lines,0
+MSP,MSN,Delta Air Lines,0
+MSP,MSO,Delta Air Lines,0
+MSP,OKC,Delta Air Lines,0
+MSP,OMA,Delta Air Lines,0
+MSP,ORF,Delta Air Lines,0
+MSP,PDX,Delta Air Lines,0
+MSP,PIA,Delta Air Lines,0
+MSP,PIT,Delta Air Lines,0
+MSP,PSC,Delta Air Lines,0
+MSP,PSP,Delta Air Lines,0
+MSP,RAP,Delta Air Lines,0
+MSP,RDU,Delta Air Lines,0
+MSP,RHI,Delta Air Lines,0
+MSP,RIC,Delta Air Lines,0
+MSP,ROC,Delta Air Lines,0
+MSP,RST,Delta Air Lines,0
+MSP,RSW,Delta Air Lines,0
+MSP,SAT,Delta Air Lines,0
+MSP,SBN,Delta Air Lines,0
+MSP,SDF,Delta Air Lines,0
+MSP,SJC,Delta Air Lines,0
+MSP,SLC,Delta Air Lines,0
+MSP,SMF,Delta Air Lines,0
+MSP,SNA,Delta Air Lines,0
+MSP,STL,Delta Air Lines,0
+MSP,SYR,Delta Air Lines,0
+MSP,TPA,Delta Air Lines,0
+MSP,TUL,Delta Air Lines,0
+MSP,TUS,Delta Air Lines,0
+MSP,TVC,Delta Air Lines,0
+MSP,TYS,Delta Air Lines,0
+MSP,XNA,Delta Air Lines,0
+MSY,CVG,Delta Air Lines,0
+MYR,BOS,Delta Air Lines,0
+MYR,DTW,Delta Air Lines,0
+MYR,LGA,Delta Air Lines,0
+OAK,LAX,Delta Air Lines,0
+OAK,SLC,Delta Air Lines,0
+OKC,DTW,Delta Air Lines,0
+OKC,MSP,Delta Air Lines,0
+OKC,SLC,Delta Air Lines,0
+OMA,DTW,Delta Air Lines,0
+OMA,LGA,Delta Air Lines,0
+OMA,MCO,Delta Air Lines,0
+OMA,MSP,Delta Air Lines,0
+OMA,SLC,Delta Air Lines,0
+ONT,SLC,Delta Air Lines,0
+ORF,DTW,Delta Air Lines,0
+ORF,MCO,Delta Air Lines,0
+ORF,MSP,Delta Air Lines,0
+PBI,DTW,Delta Air Lines,0
+PDX,MSP,Delta Air Lines,0
+PHL,JFK,Delta Air Lines,0
+PIA,DTW,Delta Air Lines,0
+PIA,MSP,Delta Air Lines,0
+PIH,SLC,Delta Air Lines,0
+PIT,CVG,Delta Air Lines,0
+PIT,DTW,Delta Air Lines,0
+PIT,MCO,Delta Air Lines,0
+PIT,MEM,Delta Air Lines,0
+PIT,MSP,Delta Air Lines,0
+PLN,DTW,Delta Air Lines,0
+PSC,MSP,Delta Air Lines,0
+PSC,SLC,Delta Air Lines,0
+PSP,MSP,Delta Air Lines,0
+PSP,SLC,Delta Air Lines,0
+PVD,DTW,Delta Air Lines,0
+RAP,MSP,Delta Air Lines,0
+RAP,SLC,Delta Air Lines,0
+RDM,SLC,Delta Air Lines,0
+RDU,BDL,Delta Air Lines,0
+RDU,BWI,Delta Air Lines,0
+RDU,CMH,Delta Air Lines,0
+RDU,CVG,Delta Air Lines,0
+RDU,DTW,Delta Air Lines,0
+RDU,IND,Delta Air Lines,0
+RDU,LAS,Delta Air Lines,0
+RDU,MCO,Delta Air Lines,0
+RDU,MEM,Delta Air Lines,0
+RDU,MSP,Delta Air Lines,0
+RDU,SLC,Delta Air Lines,0
+RDU,TPA,Delta Air Lines,0
+RHI,IMT,Delta Air Lines,0
+RHI,MSP,Delta Air Lines,0
+RIC,CVG,Delta Air Lines,0
+RIC,DTW,Delta Air Lines,0
+RIC,JFK,Delta Air Lines,0
+RIC,MSP,Delta Air Lines,0
+RKS,GCC,Delta Air Lines,0
+RKS,SLC,Delta Air Lines,0
+RNO,SLC,Delta Air Lines,0
+ROA,DTW,Delta Air Lines,0
+ROC,DTW,Delta Air Lines,0
+ROC,LGA,Delta Air Lines,0
+ROC,MSP,Delta Air Lines,0
+RST,MSP,Delta Air Lines,0
+RSW,CMH,Delta Air Lines,0
+RSW,CVG,Delta Air Lines,0
+RSW,DTW,Delta Air Lines,0
+RSW,IND,Delta Air Lines,0
+RSW,MSP,Delta Air Lines,0
+SAT,DTW,Delta Air Lines,0
+SAT,JFK,Delta Air Lines,0
+SAT,MCO,Delta Air Lines,0
+SAT,MEM,Delta Air Lines,0
+SAT,MSP,Delta Air Lines,0
+SAT,SLC,Delta Air Lines,0
+SAV,DTW,Delta Air Lines,0
+SAV,LGA,Delta Air Lines,0
+SBN,DTW,Delta Air Lines,0
+SBN,MSP,Delta Air Lines,0
+SCE,DTW,Delta Air Lines,0
+SDF,DTW,Delta Air Lines,0
+SDF,JFK,Delta Air Lines,0
+SDF,MCO,Delta Air Lines,0
+SDF,MSP,Delta Air Lines,0
+SEA,DTW,Delta Air Lines,0
+SFO,CVG,Delta Air Lines,0
+SFO,DTW,Delta Air Lines,0
+SFO,MSP,Delta Air Lines,0
+SFO,SLC,Delta Air Lines,0
+SGU,SLC,Delta Air Lines,0
+SJC,ATL,Delta Air Lines,0
+SJC,MSP,Delta Air Lines,0
+SJC,SLC,Delta Air Lines,0
+SLC,ABQ,Delta Air Lines,0
+SLC,ANC,Delta Air Lines,0
+SLC,AUS,Delta Air Lines,0
+SLC,BIL,Delta Air Lines,0
+SLC,BNA,Delta Air Lines,0
+SLC,BOI,Delta Air Lines,0
+SLC,BOS,Delta Air Lines,0
+SLC,BTM,Delta Air Lines,0
+SLC,BUR,Delta Air Lines,0
+SLC,BWI,Delta Air Lines,0
+SLC,BZN,Delta Air Lines,0
+SLC,CDC,Delta Air Lines,0
+SLC,CNY,Delta Air Lines,0
+SLC,COD,Delta Air Lines,0
+SLC,COS,Delta Air Lines,0
+SLC,CPR,Delta Air Lines,0
+SLC,DCA,Delta Air Lines,0
+SLC,DEN,Delta Air Lines,0
+SLC,DTW,Delta Air Lines,0
+SLC,EKO,Delta Air Lines,0
+SLC,EUG,Delta Air Lines,0
+SLC,EWR,Delta Air Lines,0
+SLC,FAR,Delta Air Lines,0
+SLC,FAT,Delta Air Lines,0
+SLC,FCA,Delta Air Lines,0
+SLC,GCC,Delta Air Lines,0
+SLC,GEG,Delta Air Lines,0
+SLC,GJT,Delta Air Lines,0
+SLC,GTF,Delta Air Lines,0
+SLC,HLN,Delta Air Lines,0
+SLC,HNL,Delta Air Lines,0
+SLC,IAH,Delta Air Lines,0
+SLC,IDA,Delta Air Lines,0
+SLC,IND,Delta Air Lines,0
+SLC,JAC,Delta Air Lines,0
+SLC,LAS,Delta Air Lines,0
+SLC,LWS,Delta Air Lines,0
+SLC,MCI,Delta Air Lines,0
+SLC,MCO,Delta Air Lines,0
+SLC,MEM,Delta Air Lines,0
+SLC,MFR,Delta Air Lines,0
+SLC,MSN,Delta Air Lines,0
+SLC,MSO,Delta Air Lines,0
+SLC,MSP,Delta Air Lines,0
+SLC,OAK,Delta Air Lines,0
+SLC,OKC,Delta Air Lines,0
+SLC,OMA,Delta Air Lines,0
+SLC,ONT,Delta Air Lines,0
+SLC,PIH,Delta Air Lines,0
+SLC,PSC,Delta Air Lines,0
+SLC,PSP,Delta Air Lines,0
+SLC,RAP,Delta Air Lines,0
+SLC,RDM,Delta Air Lines,0
+SLC,RDU,Delta Air Lines,0
+SLC,RKS,Delta Air Lines,0
+SLC,RNO,Delta Air Lines,0
+SLC,SAT,Delta Air Lines,0
+SLC,SFO,Delta Air Lines,0
+SLC,SGU,Delta Air Lines,0
+SLC,SJC,Delta Air Lines,0
+SLC,SMF,Delta Air Lines,0
+SLC,SNA,Delta Air Lines,0
+SLC,STL,Delta Air Lines,0
+SLC,TUL,Delta Air Lines,0
+SLC,TUS,Delta Air Lines,0
+SLC,TWF,Delta Air Lines,0
+SLC,VEL,Delta Air Lines,0
+SMF,MSP,Delta Air Lines,0
+SMF,SLC,Delta Air Lines,0
+SNA,MSP,Delta Air Lines,0
+SNA,SLC,Delta Air Lines,0
+STL,CVG,Delta Air Lines,0
+STL,DTW,Delta Air Lines,0
+STL,JFK,Delta Air Lines,0
+STL,MSP,Delta Air Lines,0
+STL,SLC,Delta Air Lines,0
+SWF,DTW,Delta Air Lines,0
+SYR,DTW,Delta Air Lines,0
+SYR,LGA,Delta Air Lines,0
+SYR,MSP,Delta Air Lines,0
+TPA,CMH,Delta Air Lines,0
+TPA,CVG,Delta Air Lines,0
+TPA,DTW,Delta Air Lines,0
+TPA,IND,Delta Air Lines,0
+TPA,LAX,Delta Air Lines,0
+TPA,MSP,Delta Air Lines,0
+TPA,RDU,Delta Air Lines,0
+TUL,DTW,Delta Air Lines,0
+TUL,MSP,Delta Air Lines,0
+TUL,SLC,Delta Air Lines,0
+TUS,MSP,Delta Air Lines,0
+TUS,SLC,Delta Air Lines,0
+TVC,DTW,Delta Air Lines,0
+TVC,MSP,Delta Air Lines,0
+TWF,SLC,Delta Air Lines,0
+TYS,DTW,Delta Air Lines,0
+TYS,MSP,Delta Air Lines,0
+VEL,SLC,Delta Air Lines,0
+XNA,CVG,Delta Air Lines,0
+XNA,DTW,Delta Air Lines,0
+XNA,MSP,Delta Air Lines,0
+AIA,CDR,Frontier Airlines,0
+ALS,DEN,Frontier Airlines,0
+ALS,FMN,Frontier Airlines,0
+ATL,TTN,Frontier Airlines,0
+ATY,PIR,Frontier Airlines,0
+AUS,DEN,Frontier Airlines,0
+BIS,DEN,Frontier Airlines,0
+BKG,DEN,Frontier Airlines,0
+BMI,DEN,Frontier Airlines,0
+BMI,MCO,Frontier Airlines,0
+BNA,DEN,Frontier Airlines,0
+BNA,TTN,Frontier Airlines,0
+BZN,DEN,Frontier Airlines,0
+CDR,DEN,Frontier Airlines,0
+CID,DEN,Frontier Airlines,0
+CLE,DEN,Frontier Airlines,0
+CLE,TTN,Frontier Airlines,0
+CLT,TTN,Frontier Airlines,0
+CVG,TTN,Frontier Airlines,0
+CYS,DEN,Frontier Airlines,0
+CYS,WRL,Frontier Airlines,0
+DCA,DEN,Frontier Airlines,0
+DDC,DEN,Frontier Airlines,0
+DDC,LBL,Frontier Airlines,0
+DEN,AIA,Frontier Airlines,0
+DEN,ALS,Frontier Airlines,0
+DEN,AUS,Frontier Airlines,0
+DEN,BIS,Frontier Airlines,0
+DEN,BKG,Frontier Airlines,0
+DEN,BMI,Frontier Airlines,0
+DEN,BNA,Frontier Airlines,0
+DEN,BZN,Frontier Airlines,0
+DEN,CID,Frontier Airlines,0
+DEN,CLE,Frontier Airlines,0
+DEN,CYS,Frontier Airlines,0
+DEN,DCA,Frontier Airlines,0
+DEN,DSM,Frontier Airlines,0
+DEN,EUG,Frontier Airlines,0
+DEN,FAR,Frontier Airlines,0
+DEN,FAT,Frontier Airlines,0
+DEN,FLL,Frontier Airlines,0
+DEN,FMN,Frontier Airlines,0
+DEN,FSD,Frontier Airlines,0
+DEN,GEG,Frontier Airlines,0
+DEN,GSO,Frontier Airlines,0
+DEN,IAH,Frontier Airlines,0
+DEN,ILG,Frontier Airlines,0
+DEN,IND,Frontier Airlines,0
+DEN,LAS,Frontier Airlines,0
+DEN,LIT,Frontier Airlines,0
+DEN,MCI,Frontier Airlines,0
+DEN,MCO,Frontier Airlines,0
+DEN,MDT,Frontier Airlines,0
+DEN,MDW,Frontier Airlines,0
+DEN,MKE,Frontier Airlines,0
+DEN,MOT,Frontier Airlines,0
+DEN,MSN,Frontier Airlines,0
+DEN,OKC,Frontier Airlines,0
+DEN,OMA,Frontier Airlines,0
+DEN,PDX,Frontier Airlines,0
+DEN,PHF,Frontier Airlines,0
+DEN,PIR,Frontier Airlines,0
+DEN,PSP,Frontier Airlines,0
+DEN,RSW,Frontier Airlines,0
+DEN,SAN,Frontier Airlines,0
+DEN,SBA,Frontier Airlines,0
+DEN,SFO,Frontier Airlines,0
+DEN,SNA,Frontier Airlines,0
+DEN,STL,Frontier Airlines,0
+DEN,TPA,Frontier Airlines,0
+DEN,TYS,Frontier Airlines,0
+DSM,DEN,Frontier Airlines,0
+DTW,ILG,Frontier Airlines,0
+DTW,TTN,Frontier Airlines,0
+EUG,DEN,Frontier Airlines,0
+FAR,DEN,Frontier Airlines,0
+FAT,DEN,Frontier Airlines,0
+FLL,DEN,Frontier Airlines,0
+FLL,TTN,Frontier Airlines,0
+FMN,ALS,Frontier Airlines,0
+FMN,DEN,Frontier Airlines,0
+FMN,SOW,Frontier Airlines,0
+FSD,DEN,Frontier Airlines,0
+GEG,DEN,Frontier Airlines,0
+GSO,DEN,Frontier Airlines,0
+HON,PIR,Frontier Airlines,0
+IAH,DEN,Frontier Airlines,0
+ILG,DEN,Frontier Airlines,0
+ILG,DTW,Frontier Airlines,0
+ILG,MCO,Frontier Airlines,0
+ILG,MDW,Frontier Airlines,0
+ILG,RSW,Frontier Airlines,0
+ILG,TPA,Frontier Airlines,0
+IND,DEN,Frontier Airlines,0
+IND,TTN,Frontier Airlines,0
+LAS,DEN,Frontier Airlines,0
+LBL,DDC,Frontier Airlines,0
+LBL,DEN,Frontier Airlines,0
+LIT,DEN,Frontier Airlines,0
+MCI,DEN,Frontier Airlines,0
+MCO,BMI,Frontier Airlines,0
+MCO,DEN,Frontier Airlines,0
+MCO,ILG,Frontier Airlines,0
+MCO,MDT,Frontier Airlines,0
+MCO,TTN,Frontier Airlines,0
+MDT,DEN,Frontier Airlines,0
+MDT,MCO,Frontier Airlines,0
+MDW,DEN,Frontier Airlines,0
+MDW,ILG,Frontier Airlines,0
+MDW,TTN,Frontier Airlines,0
+MKE,DEN,Frontier Airlines,0
+MOT,DEN,Frontier Airlines,0
+MSN,DEN,Frontier Airlines,0
+OKC,DEN,Frontier Airlines,0
+OMA,DEN,Frontier Airlines,0
+PDX,DEN,Frontier Airlines,0
+PGA,DEN,Frontier Airlines,0
+PHF,DEN,Frontier Airlines,0
+PHX,SOW,Frontier Airlines,0
+PIR,ATY,Frontier Airlines,0
+PIR,DEN,Frontier Airlines,0
+PIR,HON,Frontier Airlines,0
+PSP,DEN,Frontier Airlines,0
+RDU,TTN,Frontier Airlines,0
+RSW,DEN,Frontier Airlines,0
+RSW,ILG,Frontier Airlines,0
+RSW,TTN,Frontier Airlines,0
+SAN,DEN,Frontier Airlines,0
+SBA,DEN,Frontier Airlines,0
+SFO,DEN,Frontier Airlines,0
+SNA,DEN,Frontier Airlines,0
+SOW,FMN,Frontier Airlines,0
+SOW,PHX,Frontier Airlines,0
+STL,DEN,Frontier Airlines,0
+TPA,DEN,Frontier Airlines,0
+TPA,ILG,Frontier Airlines,0
+TPA,TTN,Frontier Airlines,0
+TTN,ATL,Frontier Airlines,0
+TTN,BNA,Frontier Airlines,0
+TTN,CLE,Frontier Airlines,0
+TTN,CLT,Frontier Airlines,0
+TTN,CVG,Frontier Airlines,0
+TTN,DTW,Frontier Airlines,0
+TTN,FLL,Frontier Airlines,0
+TTN,IND,Frontier Airlines,0
+TTN,MCO,Frontier Airlines,0
+TTN,MDW,Frontier Airlines,0
+TTN,RDU,Frontier Airlines,0
+TTN,RSW,Frontier Airlines,0
+TTN,TPA,Frontier Airlines,0
+TTN,UST,Frontier Airlines,0
+TYS,DEN,Frontier Airlines,0
+UST,TTN,Frontier Airlines,0
+WRL,CYS,Frontier Airlines,0
+ABQ,DEN,AirTran Airways,0
+ABQ,LAS,AirTran Airways,0
+ABQ,MCI,AirTran Airways,0
+ABQ,MDW,AirTran Airways,0
+ABQ,PDX,AirTran Airways,0
+ALB,BWI,AirTran Airways,0
+ALB,EWR,AirTran Airways,0
+ALB,FLL,AirTran Airways,0
+ALB,MDW,AirTran Airways,0
+ALB,TPA,AirTran Airways,0
+AMA,DAL,AirTran Airways,0
+AMA,DEN,AirTran Airways,0
+AMA,MDW,AirTran Airways,0
+AUS,ELP,AirTran Airways,0
+AUS,HRL,AirTran Airways,0
+AUS,MDW,AirTran Airways,0
+AUS,OAK,AirTran Airways,0
+AUS,SJC,AirTran Airways,0
+AUS,SMF,AirTran Airways,0
+BDL,BWI,AirTran Airways,0
+BDL,MDW,AirTran Airways,0
+BHM,BWI,AirTran Airways,0
+BHM,DAL,AirTran Airways,0
+BHM,LAS,AirTran Airways,0
+BHM,TPA,AirTran Airways,0
+BNA,BWI,AirTran Airways,0
+BNA,CHS,AirTran Airways,0
+BNA,HOU,AirTran Airways,0
+BNA,MDW,AirTran Airways,0
+BNA,PIT,AirTran Airways,0
+BNA,PVD,AirTran Airways,0
+BNA,TPA,AirTran Airways,0
+BOI,DEN,AirTran Airways,0
+BOS,CAK,AirTran Airways,0
+BOS,MDW,AirTran Airways,0
+BUF,BWI,AirTran Airways,0
+BUF,FLL,AirTran Airways,0
+BUF,MDW,AirTran Airways,0
+BUR,LAS,AirTran Airways,0
+BWI,ABQ,AirTran Airways,0
+BWI,ALB,AirTran Airways,0
+BWI,AUS,AirTran Airways,0
+BWI,BDL,AirTran Airways,0
+BWI,BNA,AirTran Airways,0
+BWI,BUF,AirTran Airways,0
+BWI,CLE,AirTran Airways,0
+BWI,CMH,AirTran Airways,0
+BWI,DAY,AirTran Airways,0
+BWI,DEN,AirTran Airways,0
+BWI,FLL,AirTran Airways,0
+BWI,FNT,AirTran Airways,0
+BWI,IND,AirTran Airways,0
+BWI,ISP,AirTran Airways,0
+BWI,LAS,AirTran Airways,0
+BWI,LAX,AirTran Airways,0
+BWI,MCO,AirTran Airways,0
+BWI,MDW,AirTran Airways,0
+BWI,MEM,AirTran Airways,0
+BWI,MHT,AirTran Airways,0
+BWI,MSY,AirTran Airways,0
+BWI,ORF,AirTran Airways,0
+BWI,PIT,AirTran Airways,0
+BWI,PVD,AirTran Airways,0
+BWI,PWM,AirTran Airways,0
+BWI,ROC,AirTran Airways,0
+BWI,RSW,AirTran Airways,0
+BWI,SAN,AirTran Airways,0
+BWI,SAT,AirTran Airways,0
+BWI,SDF,AirTran Airways,0
+BWI,STL,AirTran Airways,0
+BWI,TPA,AirTran Airways,0
+CAK,BOS,AirTran Airways,0
+CAK,LGA,AirTran Airways,0
+CAK,MCO,AirTran Airways,0
+CAK,TPA,AirTran Airways,0
+CHS,BWI,AirTran Airways,0
+CHS,MDW,AirTran Airways,0
+CHS,TPA,AirTran Airways,0
+CLE,MDW,AirTran Airways,0
+CLT,MDW,AirTran Airways,0
+CMH,BWI,AirTran Airways,0
+CMH,MDW,AirTran Airways,0
+CMH,RNO,AirTran Airways,0
+CMH,STL,AirTran Airways,0
+CRP,LBB,AirTran Airways,0
+DAL,AMA,AirTran Airways,0
+DAL,AUS,AirTran Airways,0
+DAL,BHM,AirTran Airways,0
+DAL,HOU,AirTran Airways,0
+DAL,LBB,AirTran Airways,0
+DAL,LIT,AirTran Airways,0
+DAL,MAF,AirTran Airways,0
+DAL,MCI,AirTran Airways,0
+DAL,MSY,AirTran Airways,0
+DAL,OKC,AirTran Airways,0
+DAL,SAT,AirTran Airways,0
+DAL,SEA,AirTran Airways,0
+DAL,SFO,AirTran Airways,0
+DAL,SLC,AirTran Airways,0
+DAL,STL,AirTran Airways,0
+DAY,BWI,AirTran Airways,0
+DAY,TPA,AirTran Airways,0
+DCA,MKE,AirTran Airways,0
+DEN,ABQ,AirTran Airways,0
+DEN,AMA,AirTran Airways,0
+DEN,BWI,AirTran Airways,0
+DEN,CMH,AirTran Airways,0
+DEN,ONT,AirTran Airways,0
+DEN,ORF,AirTran Airways,0
+DEN,SAT,AirTran Airways,0
+DEN,SMF,AirTran Airways,0
+DEN,TUS,AirTran Airways,0
+DSM,MDW,AirTran Airways,0
+ELP,PHL,AirTran Airways,0
+ELP,SAT,AirTran Airways,0
+EWR,BNA,AirTran Airways,0
+EWR,MDW,AirTran Airways,0
+FLL,BWI,AirTran Airways,0
+FLL,HOU,AirTran Airways,0
+FLL,MKE,AirTran Airways,0
+FLL,MSY,AirTran Airways,0
+FNT,BWI,AirTran Airways,0
+FNT,MCO,AirTran Airways,0
+FNT,TPA,AirTran Airways,0
+GRR,STL,AirTran Airways,0
+GSP,MDW,AirTran Airways,0
+HOU,AUS,AirTran Airways,0
+HOU,BWI,AirTran Airways,0
+HOU,CHS,AirTran Airways,0
+HOU,CLT,AirTran Airways,0
+HOU,CRP,AirTran Airways,0
+HOU,DAL,AirTran Airways,0
+HOU,DEN,AirTran Airways,0
+HOU,GSP,AirTran Airways,0
+HOU,HRL,AirTran Airways,0
+HOU,ISP,AirTran Airways,0
+HOU,LAS,AirTran Airways,0
+HOU,LAX,AirTran Airways,0
+HOU,LIT,AirTran Airways,0
+HOU,MCI,AirTran Airways,0
+HOU,MCO,AirTran Airways,0
+HOU,MDW,AirTran Airways,0
+HOU,MSY,AirTran Airways,0
+HOU,OKC,AirTran Airways,0
+HOU,PHX,AirTran Airways,0
+HOU,PVD,AirTran Airways,0
+HOU,RDU,AirTran Airways,0
+HOU,SAT,AirTran Airways,1
+HOU,SNA,AirTran Airways,0
+HOU,TPA,AirTran Airways,0
+HOU,TUL,AirTran Airways,0
+HRL,HOU,AirTran Airways,0
+HRL,MAF,AirTran Airways,0
+IAD,DEN,AirTran Airways,0
+IAD,MDW,AirTran Airways,0
+IAD,TPA,AirTran Airways,0
+ICT,DAL,AirTran Airways,0
+ICT,MDW,AirTran Airways,0
+IND,BWI,AirTran Airways,0
+IND,LAS,AirTran Airways,0
+IND,MCI,AirTran Airways,0
+ISP,BWI,AirTran Airways,0
+ISP,FLL,AirTran Airways,0
+ISP,MCO,AirTran Airways,0
+ISP,SNA,AirTran Airways,0
+ISP,TPA,AirTran Airways,0
+JAN,HOU,AirTran Airways,0
+JAN,MCO,AirTran Airways,0
+JAX,BWI,AirTran Airways,0
+LAS,AUS,AirTran Airways,0
+LAS,BUR,AirTran Airways,0
+LAS,BWI,AirTran Airways,0
+LAS,HOU,AirTran Airways,0
+LAS,IND,AirTran Airways,0
+LAS,MDW,AirTran Airways,0
+LAS,MKE,AirTran Airways,0
+LAS,OAK,AirTran Airways,0
+LAS,PVD,AirTran Airways,0
+LAS,RNO,AirTran Airways,0
+LAS,SAN,AirTran Airways,0
+LAS,SAT,AirTran Airways,0
+LAS,SMF,AirTran Airways,0
+LAS,SNA,AirTran Airways,0
+LAS,TPA,AirTran Airways,0
+LAS,TUS,AirTran Airways,0
+LAX,HOU,AirTran Airways,0
+LAX,MDW,AirTran Airways,0
+LAX,MKE,AirTran Airways,0
+LAX,PWM,AirTran Airways,0
+LBB,DAL,AirTran Airways,0
+LBB,HRL,AirTran Airways,0
+LBB,LAS,AirTran Airways,0
+LGA,CAK,AirTran Airways,0
+LGA,MDW,AirTran Airways,0
+LIT,BWI,AirTran Airways,0
+LIT,DAL,AirTran Airways,0
+LIT,STL,AirTran Airways,0
+MAF,DAL,AirTran Airways,0
+MCI,BWI,AirTran Airways,0
+MCI,DAL,AirTran Airways,0
+MCI,IND,AirTran Airways,0
+MCI,LAS,AirTran Airways,0
+MCI,MDW,AirTran Airways,0
+MCI,MKE,AirTran Airways,0
+MCI,MSY,AirTran Airways,0
+MCI,PDX,AirTran Airways,0
+MCI,SFO,AirTran Airways,0
+MCI,STL,AirTran Airways,0
+MCI,TPA,AirTran Airways,0
+MCO,ALB,AirTran Airways,0
+MCO,BWI,AirTran Airways,0
+MCO,CAK,AirTran Airways,0
+MCO,HOU,AirTran Airways,1
+MCO,ISP,AirTran Airways,0
+MCO,JAN,AirTran Airways,0
+MCO,MDW,AirTran Airways,0
+MCO,MSY,AirTran Airways,0
+MCO,STL,AirTran Airways,0
+MDW,ABQ,AirTran Airways,0
+MDW,ALB,AirTran Airways,0
+MDW,AUS,AirTran Airways,0
+MDW,BDL,AirTran Airways,0
+MDW,BHM,AirTran Airways,0
+MDW,BNA,AirTran Airways,0
+MDW,BOS,AirTran Airways,0
+MDW,BUF,AirTran Airways,0
+MDW,BWI,AirTran Airways,0
+MDW,CHS,AirTran Airways,0
+MDW,CLE,AirTran Airways,0
+MDW,CLT,AirTran Airways,0
+MDW,CMH,AirTran Airways,0
+MDW,DSM,AirTran Airways,0
+MDW,EWR,AirTran Airways,0
+MDW,GSP,AirTran Airways,0
+MDW,HOU,AirTran Airways,0
+MDW,IAD,AirTran Airways,0
+MDW,ICT,AirTran Airways,0
+MDW,JAN,AirTran Airways,0
+MDW,LAS,AirTran Airways,0
+MDW,LAX,AirTran Airways,0
+MDW,LGA,AirTran Airways,0
+MDW,LIT,AirTran Airways,0
+MDW,MCI,AirTran Airways,0
+MDW,MCO,AirTran Airways,0
+MDW,MEM,AirTran Airways,0
+MDW,MHT,AirTran Airways,0
+MDW,MSY,AirTran Airways,0
+MDW,OAK,AirTran Airways,0
+MDW,OKC,AirTran Airways,0
+MDW,OMA,AirTran Airways,0
+MDW,ONT,AirTran Airways,0
+MDW,ORF,AirTran Airways,0
+MDW,PDX,AirTran Airways,0
+MDW,PHL,AirTran Airways,0
+MDW,PHX,AirTran Airways,0
+MDW,PIT,AirTran Airways,0
+MDW,PVD,AirTran Airways,0
+MDW,RDU,AirTran Airways,0
+MDW,ROC,AirTran Airways,0
+MDW,RSW,AirTran Airways,0
+MDW,SAN,AirTran Airways,0
+MDW,SAT,AirTran Airways,0
+MDW,SDF,AirTran Airways,0
+MDW,SEA,AirTran Airways,0
+MDW,SFO,AirTran Airways,0
+MDW,SJC,AirTran Airways,0
+MDW,SLC,AirTran Airways,0
+MDW,SMF,AirTran Airways,0
+MDW,STL,AirTran Airways,0
+MDW,TPA,AirTran Airways,0
+MDW,TUL,AirTran Airways,0
+MDW,TUS,AirTran Airways,0
+MEM,BWI,AirTran Airways,0
+MEM,HOU,AirTran Airways,0
+MEM,MDW,AirTran Airways,0
+MEM,TPA,AirTran Airways,0
+MHT,BWI,AirTran Airways,0
+MHT,MDW,AirTran Airways,0
+MHT,MSP,AirTran Airways,0
+MHT,TPA,AirTran Airways,0
+MKE,BOS,AirTran Airways,0
+MKE,BWI,AirTran Airways,0
+MKE,DCA,AirTran Airways,0
+MKE,FLL,AirTran Airways,0
+MKE,LAS,AirTran Airways,0
+MKE,LAX,AirTran Airways,0
+MKE,MCI,AirTran Airways,0
+MKE,MSY,AirTran Airways,0
+MKE,RSW,AirTran Airways,0
+MKE,SEA,AirTran Airways,0
+MKE,SFO,AirTran Airways,0
+MKE,STL,AirTran Airways,0
+MKE,TPA,AirTran Airways,0
+MSP,OAK,AirTran Airways,0
+MSY,BWI,AirTran Airways,0
+MSY,DAL,AirTran Airways,0
+MSY,EYW,AirTran Airways,0
+MSY,FLL,AirTran Airways,0
+MSY,HOU,AirTran Airways,0
+MSY,LAS,AirTran Airways,0
+MSY,MCI,AirTran Airways,0
+MSY,MCO,AirTran Airways,0
+MSY,MDW,AirTran Airways,0
+MSY,MKE,AirTran Airways,0
+MSY,SAN,AirTran Airways,0
+MSY,STL,AirTran Airways,0
+MSY,TPA,AirTran Airways,0
+OAK,CMH,AirTran Airways,0
+OAK,DEN,AirTran Airways,0
+OAK,LAS,AirTran Airways,0
+OAK,MDW,AirTran Airways,0
+OAK,OKC,AirTran Airways,0
+OAK,SNA,AirTran Airways,0
+OKC,BWI,AirTran Airways,0
+OKC,DAL,AirTran Airways,0
+OKC,HOU,AirTran Airways,0
+OKC,LAS,AirTran Airways,0
+OKC,MDW,AirTran Airways,0
+OKC,STL,AirTran Airways,0
+OMA,MDW,AirTran Airways,0
+OMA,SAN,AirTran Airways,0
+OMA,STL,AirTran Airways,0
+ONT,DEN,AirTran Airways,0
+ONT,LAS,AirTran Airways,0
+ORF,BWI,AirTran Airways,0
+ORF,MDW,AirTran Airways,0
+PDX,MDW,AirTran Airways,0
+PDX,OKC,AirTran Airways,0
+PHL,ICT,AirTran Airways,0
+PHL,MDW,AirTran Airways,0
+PHX,HOU,AirTran Airways,0
+PIT,BWI,AirTran Airways,0
+PIT,MDW,AirTran Airways,0
+PIT,TPA,AirTran Airways,0
+PVD,BWI,AirTran Airways,0
+PVD,LAS,AirTran Airways,0
+PVD,MDW,AirTran Airways,0
+PVD,SAN,AirTran Airways,0
+PVD,SLC,AirTran Airways,0
+PWM,BWI,AirTran Airways,0
+RDU,BNA,AirTran Airways,0
+RDU,MDW,AirTran Airways,0
+RDU,SFO,AirTran Airways,0
+RNO,DEN,AirTran Airways,0
+RNO,MDW,AirTran Airways,0
+ROC,MCO,AirTran Airways,0
+ROC,MDW,AirTran Airways,0
+RSW,BWI,AirTran Airways,0
+RSW,MDW,AirTran Airways,0
+SAN,BWI,AirTran Airways,0
+SAN,HOU,AirTran Airways,0
+SAN,LAS,AirTran Airways,0
+SAN,MCI,AirTran Airways,0
+SAN,RNO,AirTran Airways,0
+SAN,SAT,AirTran Airways,0
+SAN,SDF,AirTran Airways,0
+SAN,SJC,AirTran Airways,0
+SAT,BWI,AirTran Airways,0
+SAT,DAL,AirTran Airways,0
+SAT,DEN,AirTran Airways,0
+SAT,HOU,AirTran Airways,0
+SAT,LAS,AirTran Airways,0
+SAT,LAX,AirTran Airways,0
+SAT,MDW,AirTran Airways,0
+SAT,STL,AirTran Airways,0
+SAT,TPA,AirTran Airways,0
+SDF,BWI,AirTran Airways,0
+SDF,MDW,AirTran Airways,0
+SEA,BWI,AirTran Airways,0
+SEA,MDW,AirTran Airways,0
+SEA,MKE,AirTran Airways,0
+SFO,MDW,AirTran Airways,0
+SFO,MKE,AirTran Airways,0
+SFO,ORF,AirTran Airways,0
+SJC,DEN,AirTran Airways,0
+SJC,LAS,AirTran Airways,0
+SJC,SAN,AirTran Airways,0
+SLC,MDW,AirTran Airways,0
+SLC,MHT,AirTran Airways,0
+SMF,DEN,AirTran Airways,0
+SMF,LAS,AirTran Airways,0
+SMF,SAN,AirTran Airways,0
+SMF,SNA,AirTran Airways,0
+SNA,LAS,AirTran Airways,0
+SNA,OAK,AirTran Airways,0
+SNA,SFO,AirTran Airways,0
+STL,BNA,AirTran Airways,0
+STL,BWI,AirTran Airways,0
+STL,CMH,AirTran Airways,0
+STL,DAL,AirTran Airways,0
+STL,FLL,AirTran Airways,0
+STL,GRR,AirTran Airways,0
+STL,LAS,AirTran Airways,0
+STL,MCI,AirTran Airways,0
+STL,MDW,AirTran Airways,0
+STL,MKE,AirTran Airways,0
+STL,MSY,AirTran Airways,0
+STL,OKC,AirTran Airways,0
+STL,OMA,AirTran Airways,0
+STL,RDU,AirTran Airways,0
+STL,SAT,AirTran Airways,0
+STL,TPA,AirTran Airways,0
+TPA,ALB,AirTran Airways,0
+TPA,BHM,AirTran Airways,0
+TPA,BWI,AirTran Airways,0
+TPA,CAK,AirTran Airways,0
+TPA,DAY,AirTran Airways,0
+TPA,HOU,AirTran Airways,0
+TPA,ISP,AirTran Airways,0
+TPA,MCI,AirTran Airways,0
+TPA,MDW,AirTran Airways,0
+TPA,MKE,AirTran Airways,0
+TPA,MSY,AirTran Airways,0
+TPA,PDX,AirTran Airways,0
+TPA,PIT,AirTran Airways,0
+TPA,PVD,AirTran Airways,0
+TPA,SAT,AirTran Airways,0
+TPA,SEA,AirTran Airways,0
+TPA,STL,AirTran Airways,0
+TUL,DEN,AirTran Airways,0
+TUS,LAS,AirTran Airways,0
+TUS,MDW,AirTran Airways,0
+TUS,SJC,AirTran Airways,0
+ABE,MYR,Allegiant Air,0
+ABE,PGD,Allegiant Air,0
+ABE,PIE,Allegiant Air,0
+ABE,SFB,Allegiant Air,0
+ATW,AZA,Allegiant Air,0
+ATW,LAS,Allegiant Air,0
+ATW,SFB,Allegiant Air,0
+AUS,LAS,Allegiant Air,0
+AVL,FLL,Allegiant Air,0
+AVL,PGD,Allegiant Air,0
+AVL,PIE,Allegiant Air,0
+AVL,SFB,Allegiant Air,0
+AVP,SFB,Allegiant Air,0
+AZA,ATW,Allegiant Air,0
+AZA,BIL,Allegiant Air,0
+AZA,BIS,Allegiant Air,0
+AZA,BLI,Allegiant Air,0
+AZA,BZN,Allegiant Air,0
+AZA,CID,Allegiant Air,0
+AZA,DLH,Allegiant Air,0
+AZA,EUG,Allegiant Air,0
+AZA,FAR,Allegiant Air,0
+AZA,FSD,Allegiant Air,0
+AZA,FWA,Allegiant Air,0
+AZA,GFK,Allegiant Air,0
+AZA,GRI,Allegiant Air,0
+AZA,GRR,Allegiant Air,0
+AZA,GTF,Allegiant Air,0
+AZA,ICT,Allegiant Air,0
+AZA,IDA,Allegiant Air,0
+AZA,LAS,Allegiant Air,0
+AZA,MLI,Allegiant Air,0
+AZA,MOT,Allegiant Air,0
+AZA,MSO,Allegiant Air,0
+AZA,OAK,Allegiant Air,0
+AZA,OGD,Allegiant Air,0
+AZA,PIA,Allegiant Air,0
+AZA,PSC,Allegiant Air,0
+AZA,PVU,Allegiant Air,0
+AZA,RAP,Allegiant Air,0
+AZA,RFD,Allegiant Air,0
+AZA,RST,Allegiant Air,0
+AZA,SBN,Allegiant Air,0
+AZA,SGF,Allegiant Air,0
+AZA,STC,Allegiant Air,0
+BGR,PIE,Allegiant Air,0
+BGR,SFB,Allegiant Air,0
+BIL,AZA,Allegiant Air,0
+BIL,LAS,Allegiant Air,0
+BIS,AZA,Allegiant Air,0
+BIS,LAS,Allegiant Air,0
+BIS,SFB,Allegiant Air,0
+BLI,AZA,Allegiant Air,0
+BLI,LAX,Allegiant Air,0
+BLI,OAK,Allegiant Air,0
+BLI,PSP,Allegiant Air,0
+BLI,SAN,Allegiant Air,0
+BLV,SFB,Allegiant Air,0
+BMI,SFB,Allegiant Air,0
+BOI,LAS,Allegiant Air,0
+BTV,SFB,Allegiant Air,0
+BZN,AZA,Allegiant Air,0
+BZN,LAS,Allegiant Air,0
+CHA,PIE,Allegiant Air,0
+CHA,SFB,Allegiant Air,0
+CID,AZA,Allegiant Air,0
+CID,LAS,Allegiant Air,0
+CID,PGD,Allegiant Air,0
+CID,PIE,Allegiant Air,0
+CID,SFB,Allegiant Air,0
+CKB,SFB,Allegiant Air,0
+COS,LAS,Allegiant Air,0
+CPR,LAS,Allegiant Air,0
+CVG,PGD,Allegiant Air,0
+CVG,SFB,Allegiant Air,0
+DLH,AZA,Allegiant Air,0
+DLH,LAS,Allegiant Air,0
+DSM,LAS,Allegiant Air,0
+DSM,PGD,Allegiant Air,0
+DSM,PIE,Allegiant Air,0
+DSM,SFB,Allegiant Air,0
+ELM,PIE,Allegiant Air,0
+ELM,SFB,Allegiant Air,0
+EUG,AZA,Allegiant Air,0
+EUG,LAS,Allegiant Air,0
+EUG,OAK,Allegiant Air,0
+FAR,AZA,Allegiant Air,0
+FAR,LAS,Allegiant Air,0
+FAR,PIE,Allegiant Air,0
+FAR,SFB,Allegiant Air,0
+FAT,LAS,Allegiant Air,0
+FCA,LAS,Allegiant Air,0
+FLL,AVL,Allegiant Air,0
+FLL,GSP,Allegiant Air,0
+FLL,LEX,Allegiant Air,0
+FLL,PBG,Allegiant Air,0
+FLL,TYS,Allegiant Air,0
+FSD,AZA,Allegiant Air,0
+FSD,LAS,Allegiant Air,0
+FSD,PIE,Allegiant Air,0
+FSD,SFB,Allegiant Air,0
+FWA,AZA,Allegiant Air,0
+FWA,MYR,Allegiant Air,0
+FWA,PGD,Allegiant Air,0
+FWA,PIE,Allegiant Air,0
+FWA,SFB,Allegiant Air,0
+GFK,AZA,Allegiant Air,0
+GFK,LAS,Allegiant Air,0
+GFK,SFB,Allegiant Air,0
+GJT,LAS,Allegiant Air,0
+GRI,AZA,Allegiant Air,0
+GRI,LAS,Allegiant Air,0
+GRR,AZA,Allegiant Air,0
+GRR,LAS,Allegiant Air,0
+GRR,PIE,Allegiant Air,0
+GRR,SFB,Allegiant Air,0
+GSO,PIE,Allegiant Air,0
+GSO,SFB,Allegiant Air,0
+GSP,FLL,Allegiant Air,0
+GSP,PGD,Allegiant Air,0
+GSP,PIE,Allegiant Air,0
+GSP,SFB,Allegiant Air,0
+GTF,AZA,Allegiant Air,0
+GTF,LAS,Allegiant Air,0
+HGR,SFB,Allegiant Air,0
+HNL,LAS,Allegiant Air,0
+HTS,MYR,Allegiant Air,0
+HTS,PIE,Allegiant Air,0
+HTS,SFB,Allegiant Air,0
+IAG,PGD,Allegiant Air,0
+IAG,PIE,Allegiant Air,0
+IAG,SFB,Allegiant Air,0
+ICT,AZA,Allegiant Air,0
+ICT,LAS,Allegiant Air,0
+IDA,AZA,Allegiant Air,0
+IDA,LAS,Allegiant Air,0
+ISP,PGD,Allegiant Air,0
+LAN,SFB,Allegiant Air,0
+LAS,ATW,Allegiant Air,0
+LAS,AZA,Allegiant Air,0
+LAS,BIL,Allegiant Air,0
+LAS,BIS,Allegiant Air,0
+LAS,BOI,Allegiant Air,0
+LAS,BZN,Allegiant Air,0
+LAS,CID,Allegiant Air,0
+LAS,COS,Allegiant Air,0
+LAS,CPR,Allegiant Air,0
+LAS,DLH,Allegiant Air,0
+LAS,DSM,Allegiant Air,0
+LAS,EUG,Allegiant Air,0
+LAS,FAR,Allegiant Air,0
+LAS,FAT,Allegiant Air,0
+LAS,FCA,Allegiant Air,0
+LAS,FSD,Allegiant Air,0
+LAS,GFK,Allegiant Air,0
+LAS,GJT,Allegiant Air,0
+LAS,GRI,Allegiant Air,0
+LAS,GRR,Allegiant Air,0
+LAS,GTF,Allegiant Air,0
+LAS,HNL,Allegiant Air,0
+LAS,ICT,Allegiant Air,0
+LAS,IDA,Allegiant Air,0
+LAS,LRD,Allegiant Air,0
+LAS,MFE,Allegiant Air,0
+LAS,MFR,Allegiant Air,0
+LAS,MLI,Allegiant Air,0
+LAS,MOT,Allegiant Air,0
+LAS,MRY,Allegiant Air,0
+LAS,MSO,Allegiant Air,0
+LAS,PIA,Allegiant Air,0
+LAS,PSC,Allegiant Air,0
+LAS,RAP,Allegiant Air,0
+LAS,RFD,Allegiant Air,0
+LAS,SBN,Allegiant Air,0
+LAS,SCK,Allegiant Air,0
+LAS,SGF,Allegiant Air,0
+LAS,SHV,Allegiant Air,0
+LAS,SMX,Allegiant Air,0
+LAS,XNA,Allegiant Air,0
+LAX,BLI,Allegiant Air,0
+LAX,PVU,Allegiant Air,0
+LCK,PIE,Allegiant Air,0
+LCK,SFB,Allegiant Air,0
+LEX,FLL,Allegiant Air,0
+LEX,PGD,Allegiant Air,0
+LEX,PIE,Allegiant Air,0
+LEX,SFB,Allegiant Air,0
+LIT,SFB,Allegiant Air,0
+LRD,LAS,Allegiant Air,0
+MDT,PIE,Allegiant Air,0
+MDT,SFB,Allegiant Air,0
+MFE,LAS,Allegiant Air,0
+MFR,LAS,Allegiant Air,0
+MLI,AZA,Allegiant Air,0
+MLI,LAS,Allegiant Air,0
+MLI,PIE,Allegiant Air,0
+MLI,SFB,Allegiant Air,0
+MOT,AZA,Allegiant Air,0
+MOT,LAS,Allegiant Air,0
+MRY,LAS,Allegiant Air,0
+MSO,AZA,Allegiant Air,0
+MSO,LAS,Allegiant Air,0
+MYR,ABE,Allegiant Air,0
+MYR,FWA,Allegiant Air,0
+MYR,HTS,Allegiant Air,0
+MYR,YNG,Allegiant Air,0
+OAK,AZA,Allegiant Air,0
+OAK,BLI,Allegiant Air,0
+OAK,EUG,Allegiant Air,0
+OAK,PVU,Allegiant Air,0
+OGD,AZA,Allegiant Air,0
+OKC,SFB,Allegiant Air,0
+OWB,SFB,Allegiant Air,0
+PBG,FLL,Allegiant Air,0
+PBG,PIE,Allegiant Air,0
+PBG,SFB,Allegiant Air,0
+PGD,ABE,Allegiant Air,0
+PGD,AVL,Allegiant Air,0
+PGD,CID,Allegiant Air,0
+PGD,CVG,Allegiant Air,0
+PGD,DSM,Allegiant Air,0
+PGD,FWA,Allegiant Air,0
+PGD,GSP,Allegiant Air,0
+PGD,IAG,Allegiant Air,0
+PGD,ISP,Allegiant Air,0
+PGD,LEX,Allegiant Air,0
+PGD,PIA,Allegiant Air,0
+PGD,RFD,Allegiant Air,0
+PGD,SBN,Allegiant Air,0
+PGD,SGF,Allegiant Air,0
+PGD,SPI,Allegiant Air,0
+PGD,TOL,Allegiant Air,0
+PGD,TYS,Allegiant Air,0
+PGD,YNG,Allegiant Air,0
+PHF,SFB,Allegiant Air,0
+PIA,AZA,Allegiant Air,0
+PIA,LAS,Allegiant Air,0
+PIA,PGD,Allegiant Air,0
+PIA,PIE,Allegiant Air,0
+PIE,ABE,Allegiant Air,0
+PIE,AVL,Allegiant Air,0
+PIE,BGR,Allegiant Air,0
+PIE,CHA,Allegiant Air,0
+PIE,CID,Allegiant Air,0
+PIE,DSM,Allegiant Air,0
+PIE,ELM,Allegiant Air,0
+PIE,FAR,Allegiant Air,0
+PIE,FSD,Allegiant Air,0
+PIE,FWA,Allegiant Air,0
+PIE,GRR,Allegiant Air,0
+PIE,GSO,Allegiant Air,0
+PIE,GSP,Allegiant Air,0
+PIE,HTS,Allegiant Air,0
+PIE,IAG,Allegiant Air,0
+PIE,LCK,Allegiant Air,0
+PIE,LEX,Allegiant Air,0
+PIE,MDT,Allegiant Air,0
+PIE,MLI,Allegiant Air,0
+PIE,PBG,Allegiant Air,0
+PIE,PIA,Allegiant Air,0
+PIE,RFD,Allegiant Air,0
+PIE,ROA,Allegiant Air,0
+PIE,SBN,Allegiant Air,0
+PIE,SGF,Allegiant Air,0
+PIE,SWF,Allegiant Air,0
+PIE,SYR,Allegiant Air,0
+PIE,TOL,Allegiant Air,0
+PIE,TRI,Allegiant Air,0
+PIE,TYS,Allegiant Air,0
+PIE,YNG,Allegiant Air,0
+PSC,AZA,Allegiant Air,0
+PSC,LAS,Allegiant Air,0
+PSM,SFB,Allegiant Air,0
+PSP,BLI,Allegiant Air,0
+PVU,AZA,Allegiant Air,0
+PVU,LAX,Allegiant Air,0
+PVU,OAK,Allegiant Air,0
+RAP,AZA,Allegiant Air,0
+RAP,LAS,Allegiant Air,0
+RFD,AZA,Allegiant Air,0
+RFD,LAS,Allegiant Air,0
+RFD,PGD,Allegiant Air,0
+RFD,PIE,Allegiant Air,0
+RFD,SFB,Allegiant Air,0
+RNO,LAS,Allegiant Air,0
+ROA,PIE,Allegiant Air,0
+ROA,SFB,Allegiant Air,0
+RST,AZA,Allegiant Air,0
+SAN,BLI,Allegiant Air,0
+SBN,AZA,Allegiant Air,0
+SBN,LAS,Allegiant Air,0
+SBN,PGD,Allegiant Air,0
+SBN,PIE,Allegiant Air,0
+SBN,SFB,Allegiant Air,0
+SCK,LAS,Allegiant Air,0
+SFB,ABE,Allegiant Air,0
+SFB,ATW,Allegiant Air,0
+SFB,AVL,Allegiant Air,0
+SFB,AVP,Allegiant Air,0
+SFB,BGR,Allegiant Air,0
+SFB,BIS,Allegiant Air,0
+SFB,BLV,Allegiant Air,0
+SFB,BMI,Allegiant Air,0
+SFB,BTV,Allegiant Air,0
+SFB,CHA,Allegiant Air,0
+SFB,CID,Allegiant Air,0
+SFB,CKB,Allegiant Air,0
+SFB,CVG,Allegiant Air,0
+SFB,DSM,Allegiant Air,0
+SFB,ELM,Allegiant Air,0
+SFB,FAR,Allegiant Air,0
+SFB,FSD,Allegiant Air,0
+SFB,FWA,Allegiant Air,0
+SFB,GFK,Allegiant Air,0
+SFB,GRR,Allegiant Air,0
+SFB,GSO,Allegiant Air,0
+SFB,GSP,Allegiant Air,0
+SFB,HGR,Allegiant Air,0
+SFB,HTS,Allegiant Air,0
+SFB,IAG,Allegiant Air,0
+SFB,LAN,Allegiant Air,0
+SFB,LCK,Allegiant Air,0
+SFB,LEX,Allegiant Air,0
+SFB,LIT,Allegiant Air,0
+SFB,MDT,Allegiant Air,0
+SFB,MLI,Allegiant Air,0
+SFB,OKC,Allegiant Air,0
+SFB,OWB,Allegiant Air,0
+SFB,PBG,Allegiant Air,0
+SFB,PHF,Allegiant Air,0
+SFB,PSM,Allegiant Air,0
+SFB,RFD,Allegiant Air,0
+SFB,ROA,Allegiant Air,0
+SFB,SBN,Allegiant Air,0
+SFB,SGF,Allegiant Air,0
+SFB,SPI,Allegiant Air,0
+SFB,TOL,Allegiant Air,0
+SFB,TRI,Allegiant Air,0
+SFB,TUL,Allegiant Air,0
+SFB,TYS,Allegiant Air,0
+SFB,XNA,Allegiant Air,0
+SFB,YNG,Allegiant Air,0
+SGF,AZA,Allegiant Air,0
+SGF,LAS,Allegiant Air,0
+SGF,PGD,Allegiant Air,0
+SGF,PIE,Allegiant Air,0
+SGF,SFB,Allegiant Air,0
+SHV,LAS,Allegiant Air,0
+SMX,LAS,Allegiant Air,0
+STC,AZA,Allegiant Air,0
+SWF,PIE,Allegiant Air,0
+SYR,PIE,Allegiant Air,0
+TOL,PGD,Allegiant Air,0
+TOL,PIE,Allegiant Air,0
+TOL,SFB,Allegiant Air,0
+TRI,PIE,Allegiant Air,0
+TRI,SFB,Allegiant Air,0
+TUL,SFB,Allegiant Air,0
+TYS,FLL,Allegiant Air,0
+TYS,PGD,Allegiant Air,0
+TYS,PIE,Allegiant Air,0
+TYS,SFB,Allegiant Air,0
+XNA,LAS,Allegiant Air,0
+XNA,SFB,Allegiant Air,0
+YNG,MYR,Allegiant Air,0
+YNG,PGD,Allegiant Air,0
+YNG,PIE,Allegiant Air,0
+YNG,SFB,Allegiant Air,0
+AKB,DUT,Aero Flight,0
+AKN,DLG,Aero Flight,0
+AKN,PIP,Aero Flight,0
+AKN,WSN,Aero Flight,0
+BET,EMK,Aero Flight,0
+CDB,KFP,Aero Flight,0
+CDB,KVC,Aero Flight,0
+CDB,NLG,Aero Flight,0
+DLG,AKN,Aero Flight,0
+DUT,AKB,Aero Flight,0
+DUT,IKO,Aero Flight,0
+DUT,KQA,Aero Flight,0
+EGX,AKN,Aero Flight,0
+EMK,BET,Aero Flight,0
+IGG,AKN,Aero Flight,0
+IKO,DUT,Aero Flight,0
+KFP,CDB,Aero Flight,0
+KPV,AKN,Aero Flight,0
+KQA,DUT,Aero Flight,0
+KVC,CDB,Aero Flight,0
+NLG,CDB,Aero Flight,0
+PTH,AKN,Aero Flight,0
+WSN,EGX,Aero Flight,0
+HNL,ITO,Hawaiian Airlines,0
+HNL,JFK,Hawaiian Airlines,0
+HNL,KOA,Hawaiian Airlines,0
+HNL,LIH,Hawaiian Airlines,0
+HNL,LNY,Hawaiian Airlines,0
+HNL,MKK,Hawaiian Airlines,0
+HNL,OGG,Hawaiian Airlines,0
+HNL,PPG,Hawaiian Airlines,0
+HNL,SMF,Hawaiian Airlines,0
+ITO,HNL,Hawaiian Airlines,0
+ITO,OGG,Hawaiian Airlines,0
+JFK,HNL,Hawaiian Airlines,0
+KOA,HNL,Hawaiian Airlines,0
+KOA,OGG,Hawaiian Airlines,0
+LAS,SFO,Hawaiian Airlines,0
+LIH,HNL,Hawaiian Airlines,0
+LIH,OGG,Hawaiian Airlines,0
+LNY,HNL,Hawaiian Airlines,0
+MKK,HNL,Hawaiian Airlines,0
+OGG,HNL,Hawaiian Airlines,0
+OGG,ITO,Hawaiian Airlines,0
+OGG,KOA,Hawaiian Airlines,0
+OGG,LIH,Hawaiian Airlines,0
+PPG,HNL,Hawaiian Airlines,0
+SFO,LAS,Hawaiian Airlines,0
+SMF,HNL,Hawaiian Airlines,0
+KLW,KTN,International AirLink,0
+KTN,KLW,International AirLink,0
+ELV,JNU,Alaska Seaplane Service,0
+GST,JNU,Alaska Seaplane Service,0
+HNH,JNU,Alaska Seaplane Service,0
+HNS,JNU,Alaska Seaplane Service,0
+HNS,SGY,Alaska Seaplane Service,0
+JNU,AGN,Alaska Seaplane Service,0
+JNU,GST,Alaska Seaplane Service,0
+JNU,HNH,Alaska Seaplane Service,0
+JNU,HNS,Alaska Seaplane Service,0
+JNU,SGY,Alaska Seaplane Service,0
+SGY,JNU,Alaska Seaplane Service,0
+HYG,KTN,Atlantic Air Cargo,0
+KTN,HYG,Atlantic Air Cargo,0
+AHN,BNA,SeaPort Airlines,0
+BNA,AHN,SeaPort Airlines,0
+BNA,MKL,SeaPort Airlines,0
+BUR,IPL,SeaPort Airlines,0
+DAL,ELD,SeaPort Airlines,0
+ELD,DAL,SeaPort Airlines,0
+ELD,HOT,SeaPort Airlines,0
+GST,HNH,SeaPort Airlines,0
+HNH,GST,SeaPort Airlines,0
+HOT,ELD,SeaPort Airlines,0
+HOT,MEM,SeaPort Airlines,0
+HRO,MCI,SeaPort Airlines,0
+HRO,MEM,SeaPort Airlines,0
+IPL,BUR,SeaPort Airlines,0
+IPL,SAN,SeaPort Airlines,0
+MCI,HRO,SeaPort Airlines,0
+MCI,SLN,SeaPort Airlines,0
+MEM,ELD,SeaPort Airlines,0
+MEM,HOT,SeaPort Airlines,0
+MEM,HRO,SeaPort Airlines,0
+MEM,MKL,SeaPort Airlines,0
+MKL,BNA,SeaPort Airlines,0
+MKL,MEM,SeaPort Airlines,0
+OTH,PDX,SeaPort Airlines,0
+PDT,PDX,SeaPort Airlines,0
+PDX,OTH,SeaPort Airlines,0
+PDX,PDT,SeaPort Airlines,0
+SAN,IPL,SeaPort Airlines,0
+SGY,HNS,SeaPort Airlines,0
+SLN,MCI,SeaPort Airlines,0
+ANC,ILI,Alaska Central Express,0
+ILI,ANC,Alaska Central Express,0
+SNP,STG,Peninsula Airways,0
+STG,SNP,Peninsula Airways,0
+ABQ,CNM,Pacific Wings,0
+ABQ,LAM,Pacific Wings,0
+CNM,ABQ,Pacific Wings,0
+HGR,IAD,Pacific Wings,0
+IAD,HGR,Pacific Wings,0
+IAD,LNS,Pacific Wings,0
+IAH,VCT,Pacific Wings,0
+LAM,ABQ,Pacific Wings,0
+LNS,IAD,Pacific Wings,0
+VCT,IAH,Pacific Wings,0
+BFI,CLM,Kenmore Air,0
+BFI,ESD,Kenmore Air,0
+CLM,BFI,Kenmore Air,0
+ESD,FRD,Kenmore Air,0
+FRD,BFI,Kenmore Air,0
+HNL,JHM,Maya Island Air,0
+HNM,OGG,Maya Island Air,0
+JHM,HNL,Maya Island Air,0
+JHM,KOA,Maya Island Air,0
+KOA,JHM,Maya Island Air,0
+LNY,MKK,Maya Island Air,0
+LNY,OGG,Maya Island Air,0
+MKK,OGG,Maya Island Air,0
+MUE,OGG,Maya Island Air,0
+OGG,HNM,Maya Island Air,0
+OGG,LNY,Maya Island Air,0
+OGG,MKK,Maya Island Air,0
+OGG,MUE,Maya Island Air,0
+ACY,BOS,Spirit Airlines,0
+ACY,DTW,Spirit Airlines,0
+ACY,FLL,Spirit Airlines,0
+ACY,MCO,Spirit Airlines,0
+ACY,MYR,Spirit Airlines,0
+ACY,ORD,Spirit Airlines,0
+ACY,RSW,Spirit Airlines,0
+ACY,TPA,Spirit Airlines,0
+BOS,ACY,Spirit Airlines,0
+BWI,MYR,Spirit Airlines,0
+CRW,MYR,Spirit Airlines,0
+DFW,MYR,Spirit Airlines,0
+DFW,OAK,Spirit Airlines,0
+DTW,ACY,Spirit Airlines,0
+FLL,ACY,Spirit Airlines,0
+FLL,IAG,Spirit Airlines,0
+FLL,LAS,Spirit Airlines,0
+FLL,LBE,Spirit Airlines,0
+FLL,MYR,Spirit Airlines,0
+FLL,STT,Spirit Airlines,0
+IAG,FLL,Spirit Airlines,0
+IAG,MYR,Spirit Airlines,0
+IAH,LAS,Spirit Airlines,0
+IAH,MCO,Spirit Airlines,0
+LAS,FLL,Spirit Airlines,0
+LAS,IAH,Spirit Airlines,0
+LBE,FLL,Spirit Airlines,0
+LBE,MCO,Spirit Airlines,0
+LBE,MYR,Spirit Airlines,0
+MCO,ACY,Spirit Airlines,0
+MCO,IAH,Spirit Airlines,0
+MCO,LBE,Spirit Airlines,0
+MYR,ACY,Spirit Airlines,0
+MYR,BWI,Spirit Airlines,0
+MYR,CRW,Spirit Airlines,0
+MYR,DFW,Spirit Airlines,0
+MYR,FLL,Spirit Airlines,0
+MYR,IAG,Spirit Airlines,0
+MYR,LBE,Spirit Airlines,0
+MYR,ORD,Spirit Airlines,0
+MYR,PBG,Spirit Airlines,0
+OAK,DFW,Spirit Airlines,0
+OAK,ORD,Spirit Airlines,0
+ORD,ACY,Spirit Airlines,0
+ORD,MYR,Spirit Airlines,0
+ORD,OAK,Spirit Airlines,0
+PBG,MYR,Spirit Airlines,0
+RSW,ACY,Spirit Airlines,0
+STT,FLL,Spirit Airlines,0
+TPA,ACY,Spirit Airlines,0
+SFB,MIA,Arkefly,0
+CLT,LUK,NA,0
+CVG,MMU,NA,0
+LUK,CLT,NA,0
+LUK,MDW,NA,0
+LUK,MMU,NA,0
+MBL,MDW,NA,0
+MDW,LUK,NA,0
+MDW,MBL,NA,0
+MMU,CVG,NA,0
+MMU,LUK,NA,0
+FAI,HKB,40-Mile Air,0
+HKB,FAI,40-Mile Air,0
+DCA,LAN,Sun Country Airlines,0
+LAN,DCA,Sun Country Airlines,0
+ACK,HPN,T.J. Air,0
+ACK,TEB,T.J. Air,0
+HPN,ACK,T.J. Air,0
+TEB,ACK,T.J. Air,0
+ABE,ORD,United Airlines,0
+ABQ,IAH,United Airlines,0
+ABQ,SFO,United Airlines,0
+ACV,CEC,United Airlines,0
+ACV,SFO,United Airlines,0
+ACV,SMF,United Airlines,0
+ACY,IAH,United Airlines,0
+AEX,IAH,United Airlines,0
+ALB,CLE,United Airlines,0
+ALB,IAD,United Airlines,0
+ALB,ORD,United Airlines,0
+AMA,IAH,United Airlines,0
+ANC,DEN,United Airlines,0
+AOO,IAD,United Airlines,0
+AOO,JST,United Airlines,0
+ASE,DEN,United Airlines,0
+ASE,LAX,United Airlines,0
+ATW,ORD,United Airlines,0
+AUS,CLE,United Airlines,0
+AUS,EWR,United Airlines,0
+AUS,IAD,United Airlines,0
+AUS,IAH,United Airlines,0
+AVL,ORD,United Airlines,0
+AVP,ORD,United Airlines,0
+BDL,IAD,United Airlines,0
+BFD,CLE,United Airlines,0
+BFD,JHW,United Airlines,0
+BFL,DEN,United Airlines,0
+BFL,IAH,United Airlines,0
+BFL,LAX,United Airlines,0
+BFL,SFO,United Airlines,0
+BGM,IAD,United Airlines,0
+BHM,DEN,United Airlines,0
+BHM,IAH,United Airlines,0
+BHM,ORD,United Airlines,0
+BIL,DEN,United Airlines,0
+BKW,IAD,United Airlines,0
+BKW,SHD,United Airlines,0
+BNA,CLE,United Airlines,0
+BNA,EWR,United Airlines,0
+BNA,IAD,United Airlines,0
+BNA,IAH,United Airlines,0
+BOI,LAX,United Airlines,0
+BOI,ORD,United Airlines,0
+BOI,SFO,United Airlines,0
+BOS,CLE,United Airlines,0
+BOS,IAH,United Airlines,0
+BRO,IAH,United Airlines,0
+BTR,IAH,United Airlines,0
+BTV,EWR,United Airlines,0
+BTV,IAD,United Airlines,0
+BTV,ORD,United Airlines,0
+BUF,CLE,United Airlines,0
+BUF,EWR,United Airlines,0
+BUF,IAD,United Airlines,0
+BUR,DEN,United Airlines,0
+BUR,SFO,United Airlines,0
+BWI,EWR,United Airlines,0
+BWI,IAH,United Airlines,0
+BWI,SFO,United Airlines,0
+BZN,ORD,United Airlines,0
+CAE,IAD,United Airlines,0
+CAE,IAH,United Airlines,0
+CAE,ORD,United Airlines,0
+CAK,ORD,United Airlines,0
+CEC,ACV,United Airlines,0
+CEC,SFO,United Airlines,0
+CHO,IAD,United Airlines,0
+CHS,CLE,United Airlines,0
+CHS,EWR,United Airlines,0
+CHS,IAD,United Airlines,0
+CHS,IAH,United Airlines,0
+CHS,ORD,United Airlines,0
+CIC,SFO,United Airlines,0
+CKB,IAD,United Airlines,0
+CKB,MGW,United Airlines,0
+CLD,LAX,United Airlines,0
+CLE,ALB,United Airlines,0
+CLE,AUS,United Airlines,0
+CLE,BFD,United Airlines,0
+CLE,BNA,United Airlines,0
+CLE,BOS,United Airlines,0
+CLE,BUF,United Airlines,0
+CLE,BWI,United Airlines,0
+CLE,CHS,United Airlines,0
+CLE,CMH,United Airlines,0
+CLE,DAY,United Airlines,0
+CLE,DCA,United Airlines,0
+CLE,DUJ,United Airlines,0
+CLE,ERI,United Airlines,0
+CLE,EWR,United Airlines,0
+CLE,FKL,United Airlines,0
+CLE,FLL,United Airlines,0
+CLE,FNT,United Airlines,0
+CLE,GRR,United Airlines,0
+CLE,GSP,United Airlines,0
+CLE,IAD,United Airlines,0
+CLE,IAH,United Airlines,0
+CLE,IND,United Airlines,0
+CLE,JHW,United Airlines,0
+CLE,LAS,United Airlines,0
+CLE,LAX,United Airlines,0
+CLE,MCI,United Airlines,0
+CLE,MCO,United Airlines,0
+CLE,MKE,United Airlines,0
+CLE,MSY,United Airlines,0
+CLE,PBI,United Airlines,0
+CLE,PHX,United Airlines,0
+CLE,PKB,United Airlines,0
+CLE,RIC,United Airlines,0
+CLE,ROC,United Airlines,0
+CLE,RSW,United Airlines,0
+CLE,SDF,United Airlines,0
+CLE,SFO,United Airlines,0
+CLE,STL,United Airlines,0
+CLE,SYR,United Airlines,0
+CLE,TPA,United Airlines,0
+CLL,IAH,United Airlines,0
+CMH,CLE,United Airlines,0
+CMH,DEN,United Airlines,0
+CMH,EWR,United Airlines,0
+CMH,IAD,United Airlines,0
+CMH,IAH,United Airlines,0
+CMX,ORD,United Airlines,0
+COD,DEN,United Airlines,0
+COS,DEN,United Airlines,0
+COS,IAD,United Airlines,0
+COS,IAH,United Airlines,0
+COS,LAX,United Airlines,0
+COS,ORD,United Airlines,0
+COS,SFO,United Airlines,0
+CPR,DEN,United Airlines,0
+CRP,IAH,United Airlines,0
+CVG,IAD,United Airlines,0
+DAL,IAH,United Airlines,0
+DAY,CLE,United Airlines,0
+DAY,DEN,United Airlines,0
+DAY,EWR,United Airlines,0
+DAY,IAD,United Airlines,0
+DCA,CLE,United Airlines,0
+DCA,EWR,United Airlines,0
+DCA,IAH,United Airlines,0
+DCA,SFO,United Airlines,0
+DEN,ANC,United Airlines,0
+DEN,ASE,United Airlines,0
+DEN,BFL,United Airlines,0
+DEN,BHM,United Airlines,0
+DEN,BIL,United Airlines,0
+DEN,BOI,United Airlines,0
+DEN,BUR,United Airlines,0
+DEN,COD,United Airlines,0
+DEN,COS,United Airlines,0
+DEN,CPR,United Airlines,0
+DEN,DAY,United Airlines,0
+DEN,DIK,United Airlines,0
+DEN,DRO,United Airlines,0
+DEN,EGE,United Airlines,0
+DEN,ELP,United Airlines,0
+DEN,EWR,United Airlines,0
+DEN,FCA,United Airlines,0
+DEN,GCC,United Airlines,0
+DEN,GJT,United Airlines,0
+DEN,GRR,United Airlines,0
+DEN,GTF,United Airlines,0
+DEN,GUC,United Airlines,0
+DEN,HDN,United Airlines,0
+DEN,HLN,United Airlines,0
+DEN,HNL,United Airlines,0
+DEN,HSV,United Airlines,0
+DEN,IAD,United Airlines,0
+DEN,ICT,United Airlines,0
+DEN,IDA,United Airlines,0
+DEN,ISN,United Airlines,0
+DEN,JAC,United Airlines,0
+DEN,KOA,United Airlines,0
+DEN,LAR,United Airlines,0
+DEN,LBB,United Airlines,0
+DEN,LIH,United Airlines,0
+DEN,LNK,United Airlines,0
+DEN,MAF,United Airlines,0
+DEN,MFR,United Airlines,0
+DEN,MLI,United Airlines,0
+DEN,MRY,United Airlines,0
+DEN,MSO,United Airlines,0
+DEN,MTJ,United Airlines,0
+DEN,OGG,United Airlines,0
+DEN,PIA,United Airlines,0
+DEN,PIT,United Airlines,0
+DEN,PSC,United Airlines,0
+DEN,PUB,United Airlines,0
+DEN,RAP,United Airlines,0
+DEN,RDM,United Airlines,0
+DEN,RKS,United Airlines,0
+DEN,RNO,United Airlines,0
+DEN,SAF,United Airlines,0
+DEN,SDF,United Airlines,0
+DEN,SGF,United Airlines,0
+DEN,SGU,United Airlines,0
+DEN,SHV,United Airlines,0
+DEN,SJC,United Airlines,0
+DEN,TUL,United Airlines,0
+DEN,XNA,United Airlines,0
+DIK,DEN,United Airlines,0
+DLH,ORD,United Airlines,0
+DRO,DEN,United Airlines,0
+DSM,EWR,United Airlines,0
+DSM,IAH,United Airlines,0
+DUJ,CLE,United Airlines,0
+DUJ,FKL,United Airlines,0
+EAU,ORD,United Airlines,0
+EGE,DEN,United Airlines,0
+ELM,ORD,United Airlines,0
+ELP,DEN,United Airlines,0
+ELP,IAH,United Airlines,0
+ERI,CLE,United Airlines,0
+EUG,SFO,United Airlines,0
+EWR,ALB,United Airlines,0
+EWR,AUS,United Airlines,0
+EWR,BTV,United Airlines,0
+EWR,BUF,United Airlines,0
+EWR,BWI,United Airlines,0
+EWR,CHS,United Airlines,0
+EWR,CLE,United Airlines,0
+EWR,CMH,United Airlines,0
+EWR,DAY,United Airlines,0
+EWR,DCA,United Airlines,0
+EWR,DEN,United Airlines,0
+EWR,DSM,United Airlines,0
+EWR,GRR,United Airlines,0
+EWR,GSO,United Airlines,0
+EWR,GSP,United Airlines,0
+EWR,HNL,United Airlines,0
+EWR,IAD,United Airlines,0
+EWR,IAH,United Airlines,0
+EWR,IND,United Airlines,0
+EWR,ITH,United Airlines,0
+EWR,JAX,United Airlines,0
+EWR,LAS,United Airlines,0
+EWR,LAX,United Airlines,0
+EWR,MCI,United Airlines,0
+EWR,MEM,United Airlines,0
+EWR,MHT,United Airlines,0
+EWR,MKE,United Airlines,0
+EWR,MSN,United Airlines,0
+EWR,MYR,United Airlines,0
+EWR,OKC,United Airlines,0
+EWR,OMA,United Airlines,0
+EWR,ORF,United Airlines,0
+EWR,PDX,United Airlines,0
+EWR,PIT,United Airlines,0
+EWR,PVD,United Airlines,0
+EWR,PWM,United Airlines,0
+EWR,RDU,United Airlines,0
+EWR,RIC,United Airlines,0
+EWR,ROC,United Airlines,0
+EWR,SAN,United Airlines,0
+EWR,SAT,United Airlines,0
+EWR,SAV,United Airlines,0
+EWR,SDF,United Airlines,0
+EWR,SFO,United Airlines,0
+EWR,SNA,United Airlines,0
+EWR,STL,United Airlines,0
+EWR,STT,United Airlines,0
+EWR,SYR,United Airlines,0
+EWR,TUL,United Airlines,0
+EWR,TYS,United Airlines,0
+EWR,XNA,United Airlines,0
+FAT,SFO,United Airlines,0
+FAY,IAD,United Airlines,0
+FCA,DEN,United Airlines,0
+FKL,CLE,United Airlines,0
+FKL,DUJ,United Airlines,0
+FLL,CLE,United Airlines,0
+FLL,IAD,United Airlines,0
+FLL,IAH,United Airlines,0
+FNT,CLE,United Airlines,0
+FOE,ORD,United Airlines,0
+GCC,DEN,United Airlines,0
+GJT,DEN,United Airlines,0
+GJT,IAH,United Airlines,0
+GPT,IAH,United Airlines,0
+GRK,IAH,United Airlines,0
+GRR,CLE,United Airlines,0
+GRR,DEN,United Airlines,0
+GRR,EWR,United Airlines,0
+GRR,IAD,United Airlines,0
+GRR,IAH,United Airlines,0
+GSO,EWR,United Airlines,0
+GSO,IAD,United Airlines,0
+GSO,ORD,United Airlines,0
+GSP,CLE,United Airlines,0
+GSP,EWR,United Airlines,0
+GSP,IAD,United Airlines,0
+GSP,IAH,United Airlines,0
+GSP,ORD,United Airlines,0
+GTF,DEN,United Airlines,0
+GUC,DEN,United Airlines,0
+HDN,DEN,United Airlines,0
+HLN,DEN,United Airlines,0
+HNL,DEN,United Airlines,0
+HNL,EWR,United Airlines,0
+HNL,IAD,United Airlines,0
+HNL,IAH,United Airlines,0
+HNL,ORD,United Airlines,0
+HOB,IAH,United Airlines,0
+HRL,IAH,United Airlines,0
+HSV,DEN,United Airlines,0
+HSV,IAD,United Airlines,0
+HSV,IAH,United Airlines,0
+IAD,ALB,United Airlines,0
+IAD,AOO,United Airlines,0
+IAD,AUS,United Airlines,0
+IAD,BDL,United Airlines,0
+IAD,BGM,United Airlines,0
+IAD,BKW,United Airlines,0
+IAD,BNA,United Airlines,0
+IAD,BTV,United Airlines,0
+IAD,BUF,United Airlines,0
+IAD,CAE,United Airlines,0
+IAD,CHO,United Airlines,0
+IAD,CHS,United Airlines,0
+IAD,CLE,United Airlines,0
+IAD,CMH,United Airlines,0
+IAD,COS,United Airlines,0
+IAD,CRW,United Airlines,0
+IAD,CVG,United Airlines,0
+IAD,DAY,United Airlines,0
+IAD,EWR,United Airlines,0
+IAD,FAY,United Airlines,0
+IAD,FLL,United Airlines,0
+IAD,GRR,United Airlines,0
+IAD,GSO,United Airlines,0
+IAD,GSP,United Airlines,0
+IAD,HNL,United Airlines,0
+IAD,HSV,United Airlines,0
+IAD,IAH,United Airlines,0
+IAD,IND,United Airlines,0
+IAD,JAX,United Airlines,0
+IAD,JST,United Airlines,0
+IAD,LAS,United Airlines,0
+IAD,LGA,United Airlines,0
+IAD,LWB,United Airlines,0
+IAD,MCI,United Airlines,0
+IAD,MCO,United Airlines,0
+IAD,MDT,United Airlines,0
+IAD,MGW,United Airlines,0
+IAD,OKC,United Airlines,0
+IAD,OMA,United Airlines,0
+IAD,ORD,United Airlines,0
+IAD,ORF,United Airlines,0
+IAD,PDX,United Airlines,0
+IAD,PHL,United Airlines,0
+IAD,PHX,United Airlines,0
+IAD,PIT,United Airlines,0
+IAD,PVD,United Airlines,0
+IAD,PWM,United Airlines,0
+IAD,RDU,United Airlines,0
+IAD,RIC,United Airlines,0
+IAD,ROA,United Airlines,0
+IAD,ROC,United Airlines,0
+IAD,SAN,United Airlines,0
+IAD,SAT,United Airlines,0
+IAD,SAV,United Airlines,0
+IAD,SCE,United Airlines,0
+IAD,SDF,United Airlines,0
+IAD,SEA,United Airlines,0
+IAD,SFO,United Airlines,0
+IAD,SHD,United Airlines,0
+IAD,SMF,United Airlines,0
+IAD,STL,United Airlines,0
+IAD,STT,United Airlines,0
+IAD,SYR,United Airlines,0
+IAD,TUL,United Airlines,0
+IAD,TYS,United Airlines,0
+IAH,ABQ,United Airlines,0
+IAH,ACY,United Airlines,0
+IAH,AEX,United Airlines,0
+IAH,AMA,United Airlines,0
+IAH,AUS,United Airlines,0
+IAH,BFL,United Airlines,0
+IAH,BHM,United Airlines,0
+IAH,BNA,United Airlines,0
+IAH,BOS,United Airlines,0
+IAH,BRO,United Airlines,0
+IAH,BTR,United Airlines,0
+IAH,BWI,United Airlines,0
+IAH,CAE,United Airlines,0
+IAH,CHS,United Airlines,0
+IAH,CLE,United Airlines,0
+IAH,CLL,United Airlines,0
+IAH,CMH,United Airlines,0
+IAH,COS,United Airlines,0
+IAH,CRP,United Airlines,0
+IAH,CRW,United Airlines,0
+IAH,DAL,United Airlines,0
+IAH,DCA,United Airlines,0
+IAH,DSM,United Airlines,0
+IAH,ELP,United Airlines,0
+IAH,EWR,United Airlines,0
+IAH,FLL,United Airlines,0
+IAH,GJT,United Airlines,0
+IAH,GPT,United Airlines,0
+IAH,GRK,United Airlines,0
+IAH,GRR,United Airlines,0
+IAH,GSP,United Airlines,0
+IAH,HNL,United Airlines,0
+IAH,HOB,United Airlines,0
+IAH,HRL,United Airlines,0
+IAH,HSV,United Airlines,0
+IAH,IAD,United Airlines,0
+IAH,ICT,United Airlines,0
+IAH,IND,United Airlines,0
+IAH,JAN,United Airlines,0
+IAH,JAX,United Airlines,0
+IAH,LBB,United Airlines,0
+IAH,LCH,United Airlines,0
+IAH,LEX,United Airlines,0
+IAH,LFT,United Airlines,0
+IAH,LIT,United Airlines,0
+IAH,LRD,United Airlines,0
+IAH,MAF,United Airlines,0
+IAH,MCI,United Airlines,0
+IAH,MFE,United Airlines,0
+IAH,MKE,United Airlines,0
+IAH,MLU,United Airlines,0
+IAH,MOB,United Airlines,0
+IAH,OKC,United Airlines,0
+IAH,OMA,United Airlines,0
+IAH,ONT,United Airlines,0
+IAH,ORF,United Airlines,0
+IAH,PBI,United Airlines,0
+IAH,PDX,United Airlines,0
+IAH,PIT,United Airlines,0
+IAH,PNS,United Airlines,0
+IAH,PSP,United Airlines,0
+IAH,RDU,United Airlines,0
+IAH,RIC,United Airlines,0
+IAH,RSW,United Airlines,0
+IAH,SAN,United Airlines,0
+IAH,SAT,United Airlines,0
+IAH,SAV,United Airlines,0
+IAH,SDF,United Airlines,0
+IAH,SHV,United Airlines,0
+IAH,SJC,United Airlines,0
+IAH,SMF,United Airlines,0
+IAH,SNA,United Airlines,0
+IAH,STL,United Airlines,0
+IAH,TPA,United Airlines,0
+IAH,TUL,United Airlines,0
+IAH,TUS,United Airlines,0
+IAH,TYR,United Airlines,0
+IAH,TYS,United Airlines,0
+IAH,VPS,United Airlines,0
+IAH,XNA,United Airlines,0
+ICT,DEN,United Airlines,0
+ICT,IAH,United Airlines,0
+ICT,LAX,United Airlines,0
+IDA,DEN,United Airlines,0
+IND,CLE,United Airlines,0
+IND,EWR,United Airlines,0
+IND,IAD,United Airlines,0
+IND,IAH,United Airlines,0
+IND,SFO,United Airlines,0
+ISN,DEN,United Airlines,0
+ITH,EWR,United Airlines,0
+ITO,LAX,United Airlines,0
+JAC,DEN,United Airlines,0
+JAN,IAH,United Airlines,0
+JAN,ORD,United Airlines,0
+JAX,EWR,United Airlines,0
+JAX,IAD,United Airlines,0
+JAX,IAH,United Airlines,0
+JHW,BFD,United Airlines,0
+JHW,CLE,United Airlines,0
+JST,AOO,United Airlines,0
+JST,IAD,United Airlines,0
+KOA,DEN,United Airlines,0
+KOA,SFO,United Airlines,0
+LAN,ORD,United Airlines,0
+LAR,DEN,United Airlines,0
+LAS,CLE,United Airlines,0
+LAS,EWR,United Airlines,0
+LAS,IAD,United Airlines,0
+LAS,PSP,United Airlines,0
+LAX,ASE,United Airlines,0
+LAX,BFL,United Airlines,0
+LAX,BOI,United Airlines,0
+LAX,BWI,United Airlines,0
+LAX,CLD,United Airlines,0
+LAX,CLE,United Airlines,0
+LAX,COS,United Airlines,0
+LAX,EWR,United Airlines,0
+LAX,ICT,United Airlines,0
+LAX,ITO,United Airlines,0
+LAX,PSP,United Airlines,0
+LAX,SAT,United Airlines,0
+LAX,SBA,United Airlines,0
+LAX,SBP,United Airlines,0
+LAX,SMX,United Airlines,0
+LAX,YUM,United Airlines,0
+LBB,DEN,United Airlines,0
+LBB,IAH,United Airlines,0
+LCH,IAH,United Airlines,0
+LEX,IAH,United Airlines,0
+LFT,IAH,United Airlines,0
+LGA,IAD,United Airlines,0
+LIH,DEN,United Airlines,0
+LIH,SFO,United Airlines,0
+LIT,IAH,United Airlines,0
+LMT,PDX,United Airlines,0
+LMT,SFO,United Airlines,0
+LNK,DEN,United Airlines,0
+LNK,ORD,United Airlines,0
+LRD,IAH,United Airlines,0
+LWB,IAD,United Airlines,0
+MAF,DEN,United Airlines,0
+MAF,IAH,United Airlines,0
+MBS,ORD,United Airlines,0
+MCI,CLE,United Airlines,0
+MCI,EWR,United Airlines,0
+MCI,IAD,United Airlines,0
+MCI,IAH,United Airlines,0
+MCO,CLE,United Airlines,0
+MCO,IAD,United Airlines,0
+MCO,SFO,United Airlines,0
+MDT,IAD,United Airlines,0
+MEM,EWR,United Airlines,0
+MFE,IAH,United Airlines,0
+MFR,DEN,United Airlines,0
+MFR,SFO,United Airlines,0
+MGW,CKB,United Airlines,0
+MGW,IAD,United Airlines,0
+MHT,EWR,United Airlines,0
+MHT,ORD,United Airlines,0
+MKE,CLE,United Airlines,0
+MKE,EWR,United Airlines,0
+MKE,IAH,United Airlines,0
+MKG,ORD,United Airlines,0
+MLI,DEN,United Airlines,0
+MLU,IAH,United Airlines,0
+MOB,IAH,United Airlines,0
+MOB,ORD,United Airlines,0
+MOD,SFO,United Airlines,0
+MRY,DEN,United Airlines,0
+MRY,SFO,United Airlines,0
+MSN,EWR,United Airlines,0
+MSO,DEN,United Airlines,0
+MSY,CLE,United Airlines,0
+MSY,SFO,United Airlines,0
+MTJ,DEN,United Airlines,0
+MYR,EWR,United Airlines,0
+OGG,DEN,United Airlines,0
+OGG,ORD,United Airlines,0
+OGG,SFO,United Airlines,0
+OKC,EWR,United Airlines,0
+OKC,IAD,United Airlines,0
+OKC,IAH,United Airlines,0
+OKC,SFO,United Airlines,0
+OMA,EWR,United Airlines,0
+OMA,IAH,United Airlines,0
+ONT,IAH,United Airlines,0
+ONT,SFO,United Airlines,0
+ORD,ABE,United Airlines,0
+ORD,ALB,United Airlines,0
+ORD,ATW,United Airlines,0
+ORD,AVL,United Airlines,0
+ORD,AVP,United Airlines,0
+ORD,BHM,United Airlines,0
+ORD,BOI,United Airlines,0
+ORD,BTV,United Airlines,0
+ORD,BZN,United Airlines,0
+ORD,CAE,United Airlines,0
+ORD,CAK,United Airlines,0
+ORD,CHS,United Airlines,0
+ORD,CMX,United Airlines,0
+ORD,COS,United Airlines,0
+ORD,CRW,United Airlines,0
+ORD,DLH,United Airlines,0
+ORD,EAU,United Airlines,0
+ORD,ELM,United Airlines,0
+ORD,FOE,United Airlines,0
+ORD,GSO,United Airlines,0
+ORD,GSP,United Airlines,0
+ORD,HNL,United Airlines,0
+ORD,IAD,United Airlines,0
+ORD,JAN,United Airlines,0
+ORD,LAN,United Airlines,0
+ORD,LNK,United Airlines,0
+ORD,MBS,United Airlines,0
+ORD,MHT,United Airlines,0
+ORD,MKG,United Airlines,0
+ORD,MOB,United Airlines,0
+ORD,OGG,United Airlines,0
+ORD,ORF,United Airlines,0
+ORD,PAH,United Airlines,0
+ORD,PNS,United Airlines,0
+ORD,PVD,United Airlines,0
+ORD,PWM,United Airlines,0
+ORD,RAP,United Airlines,0
+ORD,ROA,United Airlines,0
+ORD,SAV,United Airlines,0
+ORD,SBN,United Airlines,0
+ORD,SCE,United Airlines,0
+ORD,SMF,United Airlines,0
+ORD,SPI,United Airlines,0
+ORD,SRQ,United Airlines,0
+ORD,STC,United Airlines,0
+ORD,STT,United Airlines,0
+ORF,EWR,United Airlines,0
+ORF,IAD,United Airlines,0
+ORF,IAH,United Airlines,0
+ORF,ORD,United Airlines,0
+OTH,SFO,United Airlines,0
+PAH,ORD,United Airlines,0
+PBI,CLE,United Airlines,0
+PBI,IAH,United Airlines,0
+PDX,EWR,United Airlines,0
+PDX,IAD,United Airlines,0
+PDX,IAH,United Airlines,0
+PDX,LMT,United Airlines,0
+PHL,IAD,United Airlines,0
+PHX,CLE,United Airlines,0
+PHX,IAD,United Airlines,0
+PIA,DEN,United Airlines,0
+PIT,DEN,United Airlines,0
+PIT,EWR,United Airlines,0
+PIT,IAD,United Airlines,0
+PIT,IAH,United Airlines,0
+PIT,SFO,United Airlines,0
+PKB,CLE,United Airlines,0
+PNS,IAH,United Airlines,0
+PNS,ORD,United Airlines,0
+PSC,DEN,United Airlines,0
+PSC,SFO,United Airlines,0
+PSP,IAH,United Airlines,0
+PSP,LAS,United Airlines,0
+PSP,LAX,United Airlines,0
+PUB,DEN,United Airlines,0
+PVD,EWR,United Airlines,0
+PVD,IAD,United Airlines,0
+PVD,ORD,United Airlines,0
+RAP,DEN,United Airlines,0
+RAP,ORD,United Airlines,0
+RDD,SFO,United Airlines,0
+RDM,DEN,United Airlines,0
+RDM,SFO,United Airlines,0
+RDU,EWR,United Airlines,0
+RDU,IAD,United Airlines,0
+RDU,IAH,United Airlines,0
+RIC,CLE,United Airlines,0
+RIC,EWR,United Airlines,0
+RIC,IAD,United Airlines,0
+RIC,IAH,United Airlines,0
+RKS,DEN,United Airlines,0
+RNO,SFO,United Airlines,0
+ROA,IAD,United Airlines,0
+ROA,ORD,United Airlines,0
+ROC,CLE,United Airlines,0
+ROC,EWR,United Airlines,0
+ROC,IAD,United Airlines,0
+RSW,CLE,United Airlines,0
+RSW,IAH,United Airlines,0
+SAF,DEN,United Airlines,0
+SAN,EWR,United Airlines,0
+SAN,IAD,United Airlines,0
+SAN,IAH,United Airlines,0
+SAN,SFO,United Airlines,0
+SAT,EWR,United Airlines,0
+SAT,IAD,United Airlines,0
+SAT,IAH,United Airlines,0
+SAT,SFO,United Airlines,0
+SAV,EWR,United Airlines,0
+SAV,IAD,United Airlines,0
+SAV,IAH,United Airlines,0
+SAV,ORD,United Airlines,0
+SBA,LAX,United Airlines,0
+SBA,SFO,United Airlines,0
+SBN,ORD,United Airlines,0
+SBP,LAX,United Airlines,0
+SBP,SFO,United Airlines,0
+SCE,IAD,United Airlines,0
+SCE,ORD,United Airlines,0
+SDF,CLE,United Airlines,0
+SDF,DEN,United Airlines,0
+SDF,EWR,United Airlines,0
+SDF,IAD,United Airlines,0
+SDF,IAH,United Airlines,0
+SEA,IAD,United Airlines,0
+SFO,ABQ,United Airlines,0
+SFO,ACV,United Airlines,0
+SFO,BFL,United Airlines,0
+SFO,BOI,United Airlines,0
+SFO,BUR,United Airlines,0
+SFO,BWI,United Airlines,0
+SFO,CEC,United Airlines,0
+SFO,CIC,United Airlines,0
+SFO,CLE,United Airlines,0
+SFO,COS,United Airlines,0
+SFO,DCA,United Airlines,0
+SFO,EUG,United Airlines,0
+SFO,EWR,United Airlines,0
+SFO,FAT,United Airlines,0
+SFO,IAD,United Airlines,0
+SFO,IAH,United Airlines,0
+SFO,IND,United Airlines,0
+SFO,KOA,United Airlines,0
+SFO,LIH,United Airlines,0
+SFO,LMT,United Airlines,0
+SFO,MCI,United Airlines,0
+SFO,MCO,United Airlines,0
+SFO,MFR,United Airlines,0
+SFO,MOD,United Airlines,0
+SFO,MRY,United Airlines,0
+SFO,MSY,United Airlines,0
+SFO,OGG,United Airlines,0
+SFO,OKC,United Airlines,0
+SFO,ONT,United Airlines,0
+SFO,OTH,United Airlines,0
+SFO,PIT,United Airlines,0
+SFO,PSC,United Airlines,0
+SFO,RDD,United Airlines,0
+SFO,RDM,United Airlines,0
+SFO,RDU,United Airlines,0
+SFO,RNO,United Airlines,0
+SFO,SAN,United Airlines,0
+SFO,SAT,United Airlines,0
+SFO,SBA,United Airlines,0
+SFO,SBP,United Airlines,0
+SFO,SMF,United Airlines,0
+SFO,SNA,United Airlines,0
+SFO,STL,United Airlines,0
+SFO,TUS,United Airlines,0
+SGF,DEN,United Airlines,0
+SGU,DEN,United Airlines,0
+SHD,IAD,United Airlines,0
+SHV,DEN,United Airlines,0
+SHV,IAH,United Airlines,0
+SJC,IAH,United Airlines,0
+SMF,ACV,United Airlines,0
+SMF,IAD,United Airlines,0
+SMF,IAH,United Airlines,0
+SMF,ORD,United Airlines,0
+SMF,SFO,United Airlines,0
+SMX,LAX,United Airlines,0
+SNA,EWR,United Airlines,0
+SNA,IAH,United Airlines,0
+SRQ,ORD,United Airlines,0
+STC,ORD,United Airlines,0
+STL,CLE,United Airlines,0
+STL,EWR,United Airlines,0
+STL,IAD,United Airlines,0
+STL,IAH,United Airlines,0
+STL,SFO,United Airlines,0
+STT,EWR,United Airlines,0
+STT,IAD,United Airlines,0
+STT,ORD,United Airlines,0
+SYR,CLE,United Airlines,0
+SYR,EWR,United Airlines,0
+SYR,IAD,United Airlines,0
+TPA,CLE,United Airlines,0
+TPA,IAD,United Airlines,0
+TPA,IAH,United Airlines,0
+TUL,EWR,United Airlines,0
+TUL,IAD,United Airlines,0
+TUL,IAH,United Airlines,0
+TUS,DEN,United Airlines,0
+TUS,IAH,United Airlines,0
+TUS,SFO,United Airlines,0
+TYR,IAH,United Airlines,0
+TYS,EWR,United Airlines,0
+TYS,IAD,United Airlines,0
+TYS,IAH,United Airlines,0
+VPS,IAH,United Airlines,0
+XNA,DEN,United Airlines,0
+XNA,EWR,United Airlines,0
+XNA,IAH,United Airlines,0
+YUM,LAX,United Airlines,0
+ABQ,BWI,Southwest Airlines,0
+ABQ,DAL,Southwest Airlines,0
+ABQ,HOU,Southwest Airlines,0
+ABQ,OAK,Southwest Airlines,0
+ABQ,SAN,Southwest Airlines,0
+ABQ,SEA,Southwest Airlines,0
+ALB,LAS,Southwest Airlines,0
+ALB,MCO,Southwest Airlines,0
+AMA,LAS,Southwest Airlines,0
+AUS,BNA,Southwest Airlines,0
+AUS,BWI,Southwest Airlines,0
+AUS,DAL,Southwest Airlines,0
+AUS,DCA,Southwest Airlines,0
+AUS,HOU,Southwest Airlines,0
+AUS,LBB,Southwest Airlines,0
+AUS,SAN,Southwest Airlines,0
+AUS,TPA,Southwest Airlines,0
+BDL,DEN,Southwest Airlines,0
+BDL,LAS,Southwest Airlines,0
+BDL,RSW,Southwest Airlines,0
+BHM,HOU,Southwest Airlines,0
+BHM,MDW,Southwest Airlines,0
+BKG,DAL,Southwest Airlines,0
+BKG,HOU,Southwest Airlines,0
+BKG,MDW,Southwest Airlines,0
+BNA,AUS,Southwest Airlines,0
+BNA,BOS,Southwest Airlines,0
+BNA,CMH,Southwest Airlines,0
+BNA,ECP,Southwest Airlines,0
+BNA,FLL,Southwest Airlines,0
+BNA,GSP,Southwest Airlines,0
+BNA,JAX,Southwest Airlines,0
+BNA,LAS,Southwest Airlines,0
+BNA,MCI,Southwest Airlines,0
+BNA,MSY,Southwest Airlines,0
+BNA,PHX,Southwest Airlines,0
+BNA,PNS,Southwest Airlines,0
+BNA,RDU,Southwest Airlines,0
+BNA,SAN,Southwest Airlines,0
+BNA,SAT,Southwest Airlines,0
+BNA,STL,Southwest Airlines,0
+BOI,GEG,Southwest Airlines,0
+BOI,OAK,Southwest Airlines,0
+BOS,BNA,Southwest Airlines,0
+BOS,MCI,Southwest Airlines,0
+BOS,MKE,Southwest Airlines,0
+BOS,STL,Southwest Airlines,0
+BUF,LAS,Southwest Airlines,0
+BUF,PHX,Southwest Airlines,0
+BUF,TPA,Southwest Airlines,0
+BUR,OAK,Southwest Airlines,0
+BUR,SJC,Southwest Airlines,0
+BUR,SMF,Southwest Airlines,0
+BWI,BHM,Southwest Airlines,0
+BWI,CHS,Southwest Airlines,0
+BWI,ECP,Southwest Airlines,0
+BWI,GRR,Southwest Airlines,0
+BWI,GSP,Southwest Airlines,0
+BWI,HOU,Southwest Airlines,0
+BWI,JAX,Southwest Airlines,0
+BWI,LIT,Southwest Airlines,0
+BWI,MCI,Southwest Airlines,0
+BWI,MKE,Southwest Airlines,0
+BWI,OKC,Southwest Airlines,0
+BWI,PBI,Southwest Airlines,0
+BWI,SEA,Southwest Airlines,0
+CAK,DEN,Southwest Airlines,0
+CHS,BNA,Southwest Airlines,0
+CHS,HOU,Southwest Airlines,0
+CLT,HOU,Southwest Airlines,0
+CMH,BNA,Southwest Airlines,0
+CMH,FLL,Southwest Airlines,0
+CMH,LAS,Southwest Airlines,0
+CRP,HOU,Southwest Airlines,0
+DAL,ABQ,Southwest Airlines,0
+DAL,BKG,Southwest Airlines,0
+DAL,ELP,Southwest Airlines,0
+DAL,HRL,Southwest Airlines,0
+DAL,ICT,Southwest Airlines,0
+DAL,TUL,Southwest Airlines,0
+DAY,MCO,Southwest Airlines,0
+DCA,AUS,Southwest Airlines,0
+DCA,HOU,Southwest Airlines,0
+DEN,BDL,Southwest Airlines,0
+DEN,CAK,Southwest Airlines,0
+DEN,HOU,Southwest Airlines,0
+DEN,JAX,Southwest Airlines,0
+DEN,OAK,Southwest Airlines,0
+DEN,RDU,Southwest Airlines,0
+ECP,BNA,Southwest Airlines,0
+ECP,BWI,Southwest Airlines,0
+ECP,HOU,Southwest Airlines,0
+ECP,STL,Southwest Airlines,0
+ELP,AUS,Southwest Airlines,0
+ELP,DAL,Southwest Airlines,0
+ELP,HOU,Southwest Airlines,0
+ELP,LAS,Southwest Airlines,0
+EWR,HOU,Southwest Airlines,0
+EYW,MCO,Southwest Airlines,0
+EYW,MSY,Southwest Airlines,0
+FLL,ALB,Southwest Airlines,0
+FLL,BNA,Southwest Airlines,0
+FLL,BUF,Southwest Airlines,0
+FLL,CMH,Southwest Airlines,0
+FLL,IND,Southwest Airlines,0
+FLL,ISP,Southwest Airlines,0
+FLL,JAX,Southwest Airlines,0
+FLL,MCI,Southwest Airlines,0
+FLL,MDW,Southwest Airlines,0
+FLL,PIT,Southwest Airlines,0
+FLL,STL,Southwest Airlines,0
+FNT,LAS,Southwest Airlines,0
+GEG,BOI,Southwest Airlines,0
+GEG,LAS,Southwest Airlines,0
+GEG,OAK,Southwest Airlines,0
+GRR,BWI,Southwest Airlines,0
+GRR,TPA,Southwest Airlines,0
+GSP,BNA,Southwest Airlines,0
+GSP,BWI,Southwest Airlines,0
+GSP,HOU,Southwest Airlines,0
+HOU,ABQ,Southwest Airlines,0
+HOU,BHM,Southwest Airlines,0
+HOU,BKG,Southwest Airlines,0
+HOU,BNA,Southwest Airlines,0
+HOU,DCA,Southwest Airlines,0
+HOU,ECP,Southwest Airlines,0
+HOU,ELP,Southwest Airlines,0
+HOU,EWR,Southwest Airlines,0
+HOU,FLL,Southwest Airlines,0
+HOU,IND,Southwest Airlines,0
+HOU,JAN,Southwest Airlines,0
+HOU,JAX,Southwest Airlines,0
+HOU,LGA,Southwest Airlines,0
+HOU,MAF,Southwest Airlines,0
+HOU,MEM,Southwest Airlines,0
+HOU,OAK,Southwest Airlines,0
+HOU,PIT,Southwest Airlines,0
+HOU,PNS,Southwest Airlines,0
+HOU,SAN,Southwest Airlines,0
+HOU,STL,Southwest Airlines,0
+HRL,AUS,Southwest Airlines,0
+HRL,DAL,Southwest Airlines,0
+HRL,SAT,Southwest Airlines,0
+IND,FLL,Southwest Airlines,0
+IND,HOU,Southwest Airlines,0
+ISP,PBI,Southwest Airlines,0
+JAN,MDW,Southwest Airlines,0
+JAX,BNA,Southwest Airlines,0
+JAX,DEN,Southwest Airlines,0
+JAX,FLL,Southwest Airlines,0
+JAX,HOU,Southwest Airlines,0
+JAX,LAS,Southwest Airlines,0
+JAX,MDW,Southwest Airlines,0
+LAS,ABQ,Southwest Airlines,0
+LAS,ALB,Southwest Airlines,0
+LAS,AMA,Southwest Airlines,0
+LAS,BDL,Southwest Airlines,0
+LAS,BHM,Southwest Airlines,0
+LAS,BNA,Southwest Airlines,0
+LAS,BUF,Southwest Airlines,0
+LAS,CMH,Southwest Airlines,0
+LAS,ELP,Southwest Airlines,0
+LAS,FNT,Southwest Airlines,0
+LAS,GEG,Southwest Airlines,0
+LAS,JAX,Southwest Airlines,0
+LAS,LBB,Southwest Airlines,0
+LAS,LIT,Southwest Airlines,0
+LAS,MAF,Southwest Airlines,0
+LAS,MCI,Southwest Airlines,0
+LAS,MSY,Southwest Airlines,0
+LAS,OKC,Southwest Airlines,0
+LAS,OMA,Southwest Airlines,0
+LAS,ONT,Southwest Airlines,0
+LAS,PIT,Southwest Airlines,0
+LAS,SDF,Southwest Airlines,0
+LAS,SJC,Southwest Airlines,0
+LAS,STL,Southwest Airlines,0
+LAS,TUL,Southwest Airlines,0
+LBB,AUS,Southwest Airlines,0
+LGA,HOU,Southwest Airlines,0
+LIT,HOU,Southwest Airlines,0
+LIT,LAS,Southwest Airlines,0
+LIT,MDW,Southwest Airlines,0
+LIT,PHX,Southwest Airlines,0
+MAF,HOU,Southwest Airlines,0
+MAF,LAS,Southwest Airlines,0
+MCI,ABQ,Southwest Airlines,0
+MCI,BNA,Southwest Airlines,0
+MCI,BOS,Southwest Airlines,0
+MCI,FLL,Southwest Airlines,0
+MCI,HOU,Southwest Airlines,0
+MCI,OAK,Southwest Airlines,0
+MCI,SAN,Southwest Airlines,0
+MCO,DAY,Southwest Airlines,0
+MCO,EYW,Southwest Airlines,0
+MCO,FNT,Southwest Airlines,0
+MCO,MHT,Southwest Airlines,0
+MCO,ROC,Southwest Airlines,0
+MDW,BKG,Southwest Airlines,0
+MDW,FLL,Southwest Airlines,0
+MDW,JAX,Southwest Airlines,0
+MDW,RNO,Southwest Airlines,0
+MHT,MCO,Southwest Airlines,0
+MSY,BNA,Southwest Airlines,0
+MSY,PHX,Southwest Airlines,0
+OAK,ABQ,Southwest Airlines,0
+OAK,AUS,Southwest Airlines,0
+OAK,BOI,Southwest Airlines,0
+OAK,BUR,Southwest Airlines,0
+OAK,GEG,Southwest Airlines,0
+OAK,HOU,Southwest Airlines,0
+OAK,MCI,Southwest Airlines,0
+OAK,ONT,Southwest Airlines,0
+OAK,SAN,Southwest Airlines,0
+OKC,PHX,Southwest Airlines,0
+OMA,LAS,Southwest Airlines,0
+ONT,MDW,Southwest Airlines,0
+ONT,OAK,Southwest Airlines,0
+ONT,SJC,Southwest Airlines,0
+ONT,SMF,Southwest Airlines,0
+PBI,BWI,Southwest Airlines,0
+PBI,ISP,Southwest Airlines,0
+PDX,ABQ,Southwest Airlines,0
+PDX,MCI,Southwest Airlines,0
+PHX,BNA,Southwest Airlines,0
+PHX,BUF,Southwest Airlines,0
+PHX,LIT,Southwest Airlines,0
+PHX,MDW,Southwest Airlines,0
+PHX,MSY,Southwest Airlines,0
+PHX,OKC,Southwest Airlines,0
+PHX,RDU,Southwest Airlines,0
+PHX,SDF,Southwest Airlines,0
+PHX,TUL,Southwest Airlines,0
+PIT,BNA,Southwest Airlines,0
+PIT,FLL,Southwest Airlines,0
+PIT,HOU,Southwest Airlines,0
+PIT,LAS,Southwest Airlines,0
+PIT,RSW,Southwest Airlines,0
+PNS,BNA,Southwest Airlines,0
+PNS,HOU,Southwest Airlines,0
+PVD,RSW,Southwest Airlines,0
+PVD,TPA,Southwest Airlines,0
+RDU,DEN,Southwest Airlines,0
+RDU,HOU,Southwest Airlines,0
+RDU,PHX,Southwest Airlines,0
+RDU,STL,Southwest Airlines,0
+RNO,SAN,Southwest Airlines,0
+ROC,BWI,Southwest Airlines,0
+ROC,TPA,Southwest Airlines,0
+RSW,BDL,Southwest Airlines,0
+RSW,MKE,Southwest Airlines,0
+RSW,PIT,Southwest Airlines,0
+RSW,PVD,Southwest Airlines,0
+RSW,STL,Southwest Airlines,0
+SAN,ABQ,Southwest Airlines,0
+SAN,AUS,Southwest Airlines,0
+SAN,BNA,Southwest Airlines,0
+SAN,MDW,Southwest Airlines,0
+SAN,MSY,Southwest Airlines,0
+SAN,OAK,Southwest Airlines,0
+SAN,SMF,Southwest Airlines,0
+SAN,STL,Southwest Airlines,0
+SAN,TUS,Southwest Airlines,0
+SAT,BNA,Southwest Airlines,0
+SAT,ELP,Southwest Airlines,0
+SAT,HRL,Southwest Airlines,0
+SAT,SAN,Southwest Airlines,0
+SDF,LAS,Southwest Airlines,0
+SDF,PHX,Southwest Airlines,0
+SDF,TPA,Southwest Airlines,0
+SEA,ABQ,Southwest Airlines,0
+SJC,AUS,Southwest Airlines,0
+SJC,BUR,Southwest Airlines,0
+SJC,MDW,Southwest Airlines,0
+SJC,ONT,Southwest Airlines,0
+SJC,SNA,Southwest Airlines,0
+SMF,BUR,Southwest Airlines,0
+SMF,MDW,Southwest Airlines,0
+SMF,ONT,Southwest Airlines,0
+SNA,HOU,Southwest Airlines,0
+SNA,SJC,Southwest Airlines,0
+SNA,SMF,Southwest Airlines,0
+STL,BOS,Southwest Airlines,0
+STL,ECP,Southwest Airlines,0
+STL,HOU,Southwest Airlines,0
+STL,MCO,Southwest Airlines,0
+STL,RSW,Southwest Airlines,0
+STL,SAN,Southwest Airlines,0
+STL,TUL,Southwest Airlines,0
+TPA,AUS,Southwest Airlines,0
+TPA,BNA,Southwest Airlines,0
+TPA,BUF,Southwest Airlines,0
+TPA,FNT,Southwest Airlines,0
+TPA,GRR,Southwest Airlines,0
+TPA,LAS,Southwest Airlines,0
+TPA,MEM,Southwest Airlines,0
+TPA,MHT,Southwest Airlines,0
+TPA,ROC,Southwest Airlines,0
+TPA,SDF,Southwest Airlines,0
+TUL,DAL,Southwest Airlines,0
+TUL,HOU,Southwest Airlines,0
+TUL,LAS,Southwest Airlines,0
+TUL,MDW,Southwest Airlines,0
+TUL,PHX,Southwest Airlines,0
+TUL,STL,Southwest Airlines,0
+TUS,SAN,Southwest Airlines,0
+APF,MIA,Chitaavia,0
+MIA,APF,Chitaavia,0
+GCN,PGA,SENIC AIRLINES,0
+PGA,GCN,SENIC AIRLINES,0
+ATY,MSP,Great Lakes Airlines,0
+BFF,DEN,Great Lakes Airlines,0
+CEZ,DEN,Great Lakes Airlines,0
+DEN,BFF,Great Lakes Airlines,0
+DEN,CEZ,Great Lakes Airlines,0
+DEN,DDC,Great Lakes Airlines,0
+DEN,LBF,Great Lakes Airlines,0
+DEN,LBL,Great Lakes Airlines,0
+DEN,MCK,Great Lakes Airlines,0
+DEN,PGA,Great Lakes Airlines,0
+DEN,RIW,Great Lakes Airlines,0
+DEN,SHR,Great Lakes Airlines,0
+LAX,MCE,Great Lakes Airlines,0
+LAX,PRC,Great Lakes Airlines,0
+LAX,VIS,Great Lakes Airlines,0
+LBF,DEN,Great Lakes Airlines,0
+MCE,LAX,Great Lakes Airlines,0
+MCK,DEN,Great Lakes Airlines,0
+MSP,ATY,Great Lakes Airlines,0
+PGA,PHX,Great Lakes Airlines,0
+PHX,PGA,Great Lakes Airlines,0
+PRC,LAX,Great Lakes Airlines,0
+RIW,DEN,Great Lakes Airlines,0
+SHR,DEN,Great Lakes Airlines,0
+VIS,LAX,Great Lakes Airlines,0
