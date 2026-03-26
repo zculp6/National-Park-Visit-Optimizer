@@ -1585,7 +1585,6 @@ ui <- dashboardPage(
                     p(em("Map initializes on app startup. If no route has been calculated yet, a starter map is shown.")),
                     leafletOutput("route_map", height = 700)
                   )
-                ),
                 )
               ),
               fluidRow(
