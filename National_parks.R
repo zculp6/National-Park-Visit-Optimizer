@@ -140,6 +140,18 @@ major_airports <- major_airports %>%
   rename(lon = longitude_deg) %>%
   mutate(iata_code = str_to_upper(trimws(local_code)))
 
+# Add key territory airports that are not present in us-airports.csv
+territory_airports <- tibble::tribble(
+  ~ident, ~name, ~lat, ~lon, ~region_name, ~local_region, ~municipality, ~local_code, ~iata_code,
+  "NSTU", "Pago Pago International Airport", -14.3310, -170.7100, "American Samoa", "AS", "Pago Pago", "PPG", "PPG",
+  "TISX", "Henry E. Rohlsen Airport", 17.7019, -64.7986, "U.S. Virgin Islands", "VI", "St. Croix", "STX", "STX",
+  "TIST", "Cyril E. King Airport", 18.3373, -64.9734, "U.S. Virgin Islands", "VI", "St. Thomas", "STT", "STT"
+)
+
+major_airports <- major_airports %>%
+  bind_rows(territory_airports) %>%
+  distinct(iata_code, .keep_all = TRUE)
+
 territory_flights <- read.csv("us_territory_flights.csv", stringsAsFactors = FALSE) %>%
   mutate(
     airport_depart = str_to_upper(trimws(airport_depart)),
@@ -176,6 +188,7 @@ find_nearest_airport <- function(lat, lon, airports = major_airports) {
 }
 
 nearest_airport_cache <- new.env(parent = emptyenv())
+osrm_route_cache <- new.env(parent = emptyenv())
 find_nearest_airport_cached <- function(lat, lon, airports = major_airports) {
   key <- paste0(round(as.numeric(lat), 4), "_", round(as.numeric(lon), 4))
   if (exists(key, envir = nearest_airport_cache, inherits = FALSE)) {
@@ -849,6 +862,20 @@ infer_route_mode <- function(dist_km, threshold_km = drive_threshold_km) {
   ifelse(dist_km < threshold_km, "Drive", "Flight")
 }
 
+infer_route_mode_for_segment <- function(lat1, lon1, state1, lat2, lon2, state2, threshold_km = drive_threshold_km) {
+  territory_states <- c("U.S. Virgin Islands", "American Samoa")
+  state1_clean <- trimws(as.character(state1))
+  state2_clean <- trimws(as.character(state2))
+  
+  if (!is.na(state1_clean) && !is.na(state2_clean) &&
+      ((state1_clean %in% territory_states) || (state2_clean %in% territory_states))) {
+    return("Flight")
+  }
+  
+  dist_km <- haversine_distance(lon1, lat1, lon2, lat2)
+  infer_route_mode(dist_km, threshold_km = threshold_km)
+}
+
 drive_speed_kmh <- default_speed_kmh
 flight_speed_kmh <- default_flight_speed_kmh
 
@@ -871,11 +898,22 @@ compute_distance_matrix <- function(locations, mode_matrix = NULL, speed_drive =
   for (i in seq_len(n)) {
     for (j in seq_len(n)) {
       if (i == j) next
+      mode <- if (!is.null(mode_matrix)) {
+        mode_matrix[i, j]
+      } else {
+        infer_route_mode_for_segment(
+          lat1 = locations$latitude[i],
+          lon1 = locations$longitude[i],
+          state1 = locations$state[i],
+          lat2 = locations$latitude[j],
+          lon2 = locations$longitude[j],
+          state2 = locations$state[j]
+        )
+      }
       dist_km <- haversine_distance(
         locations$longitude[i], locations$latitude[i],
         locations$longitude[j], locations$latitude[j]
       )
-      mode <- if (!is.null(mode_matrix)) mode_matrix[i, j] else infer_route_mode(dist_km)
       time_hours <- estimate_travel_time(dist_km, mode, speed_drive, speed_flight)
       
       dist_mat[i, j] <- dist_km
@@ -893,16 +931,19 @@ build_mode_matrix <- function(locations, distance_type = "mixed") {
   for (i in seq_len(n)) {
     for (j in seq_len(n)) {
       if (i == j) next
-      dist_km <- haversine_distance(
-        locations$longitude[i], locations$latitude[i],
-        locations$longitude[j], locations$latitude[j]
-      )
       mode_matrix[i, j] <- if (distance_type == "driving") {
         "Drive"
       } else if (distance_type == "flying") {
         "Flight"
       } else {
-        infer_route_mode(dist_km)
+        infer_route_mode_for_segment(
+          lat1 = locations$latitude[i],
+          lon1 = locations$longitude[i],
+          state1 = locations$state[i],
+          lat2 = locations$latitude[j],
+          lon2 = locations$longitude[j],
+          state2 = locations$state[j]
+        )
       }
     }
   }
@@ -1132,16 +1173,27 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
 }
 
 get_osrm_route <- function(lon1, lat1, lon2, lat2) {
-  base_url <- "http://router.project-osrm.org/route/v1/driving/"
+  base_url <- "https://router.project-osrm.org/route/v1/driving/"
+  osrm_key <- paste(
+    round(as.numeric(lon1), 5),
+    round(as.numeric(lat1), 5),
+    round(as.numeric(lon2), 5),
+    round(as.numeric(lat2), 5),
+    sep = "_"
+  )
+  
+  if (exists(osrm_key, envir = osrm_route_cache, inherits = FALSE)) {
+    return(get(osrm_key, envir = osrm_route_cache, inherits = FALSE))
+  }
   url <- sprintf("%s%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson",
                  base_url, lon1, lat1, lon2, lat2)
   
-  tryCatch({
-    response <- GET(url)
+  result <- tryCatch({
+    response <- GET(url, timeout(8))
     if (status_code(response) == 200) {
-      result <- content(response, as = "parsed")
-      if (!is.null(result$routes) && length(result$routes) > 0) {
-        route <- result$routes[[1]]
+      response_content <- content(response, as = "parsed")
+      if (!is.null(response_content$routes) && length(response_content$routes) > 0) {
+        route <- response_content$routes[[1]]
         geometry <- route$geometry$coordinates
         distance_m <- route$distance
         duration_s <- route$duration
@@ -1153,10 +1205,13 @@ get_osrm_route <- function(lon1, lat1, lon2, lat2) {
         ))
       }
     }
-    return(list(success = FALSE))
+    list(success = FALSE)
   }, error = function(e) {
-    return(list(success = FALSE))
+    list(success = FALSE)
   })
+  
+  assign(osrm_key, result, envir = osrm_route_cache)
+  result
 }
 
 route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) {
@@ -1184,7 +1239,14 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
     dist_km <- haversine_distance(lon1, lat1, lon2, lat2)
     mode <- if (!is.null(mode_matrix)) mode_matrix[idx_from, idx_to] else "Auto"
     if (is.na(mode) || mode == "Auto") {
-      mode <- infer_route_mode(dist_km)
+      mode <- infer_route_mode_for_segment(
+        lat1 = lat1,
+        lon1 = lon1,
+        state1 = locations$state[idx_from],
+        lat2 = lat2,
+        lon2 = lon2,
+        state2 = locations$state[idx_to]
+      )
     }
     
     if (mode == "Drive") {
@@ -1691,9 +1753,14 @@ ui <- dashboardPage(
                     column(12,
                            uiOutput("route_message"),
                            br(),
-                           actionButton("calculate", "Calculate Optimal Route",
-                                        icon = icon("calculator"),
-                                        class = "btn-success btn-lg"),
+                           tags$div(
+                             style = "display:flex; align-items:center; gap:12px; flex-wrap:wrap;",
+                             actionButton("calculate", "Calculate Optimal Route",
+                                          icon = icon("calculator"),
+                                          class = "btn-success btn-lg"),
+                             tags$span("⚠️ May take a few minutes to load.",
+                                       style = "color:#856404; font-weight:600;")
+                           ),
                            br(), br(),
                            textOutput("status_text")
                     )
