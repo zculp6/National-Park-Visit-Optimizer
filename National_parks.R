@@ -1093,6 +1093,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(id = "main_tabs",
                 menuItem("Home", tabName = "home", icon = icon("home")),
+                menuItem("User Information", tabName = "userinfo", icon = icon("user")),
                 menuItem("National Parks Map", tabName = "allparks", icon = icon("globe-americas")),
                 menuItem("Park Explorer", tabName = "viewpark", icon = icon("map")),
                 menuItem("Route Planner", tabName = "planner", icon = icon("route")),
@@ -1226,6 +1227,9 @@ ui <- dashboardPage(
       "))
     ),
     tags$script(HTML("
+        Shiny.addCustomMessageHandler('print_route_pdf', function(message) {
+          window.print();
+        });
         window.parkGalleryNav = function(galleryId, delta) {
           var gallery = document.getElementById(galleryId);
           if (!gallery) return;
@@ -1262,6 +1266,7 @@ ui <- dashboardPage(
                   width = 12,
                   p("Use the sidebar or buttons below to move through the app quickly."),
                   tags$ul(
+                    tags$li(strong("User Information:"), "Optionally set traveler count, MPG, airline preferences, and travel dates."),
                     tags$li(strong("National Parks Map:"), "Browse every U.S. national park with contact details and image galleries."),
                     tags$li(strong("Park Explorer:"), "Explore one park at a time with map zoom, activities, things to do, and park outline details."),
                     tags$li(strong("Route Planner:"), "Select parks and configure your trip."),
@@ -1269,11 +1274,58 @@ ui <- dashboardPage(
                     tags$li(strong("About:"), "Review features and route logic details.")
                   ),
                   br(),
+                  actionButton("go_user", "Enter User Info", class = "btn-user"),
+                  tags$span("  "),
                   actionButton("go_allparks", "See Map", class = "btn-primary"),
                   tags$span("  "),
                   actionButton("go_viewpark", "Individual Parks Info", class = "btn-info"),
                   tags$span("  "),
                   actionButton("go_planner", "Plan Route", class = "btn-success")
+                )
+              )
+      ),
+      
+      # User Information Tab
+      tabItem(tabName = "userinfo",
+              fluidRow(
+                box(
+                  title = "User Information (Optional)",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 12,
+                  p("All fields are optional. Defaults are pre-filled and can be adjusted."),
+                  fluidRow(
+                    column(
+                      4,
+                      numericInput("num_travelers", "Number of Travelers:", value = 1, min = 1, step = 1)
+                    ),
+                    column(
+                      4,
+                      numericInput("car_mpg", "Vehicle MPG:", value = 29, min = 1, step = 1)
+                    ),
+                    column(
+                      4,
+                      pickerInput(
+                        "airline_preference",
+                        "Airline Preference:",
+                        choices = c("Any", "Alaska Airlines", "Allegiant Air", "American Airlines", "Delta Air Lines", "Frontier Airlines", "JetBlue", "Southwest Airlines", "Spirit Airlines", "United Airlines"),
+                        selected = "Any",
+                        multiple = TRUE,
+                        options = list(`actions-box` = TRUE, `live-search` = TRUE)
+                      )
+                    )
+                  ),
+                  fluidRow(
+                    column(
+                      6,
+                      dateInput("travel_start_date", "Date to Leave:", value = seq(Sys.Date(), by = "1 month", length.out = 2)[2], format = "yyyy-mm-dd")
+                    ),
+                    column(
+                      6,
+                      dateInput("travel_end_date", "Date to Return / End:", value = seq(Sys.Date(), by = "1 month", length.out = 2)[2] + 7, format = "yyyy-mm-dd")
+                    )
+                  ),
+                  p(em("Default dates are one month from today for a 7-day trip window."))
                 )
               )
       ),
@@ -1475,6 +1527,8 @@ ui <- dashboardPage(
                   solidHeader = TRUE,
                   width = 12,
                   actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default"),
+                  tags$span("  "),
+                  actionButton("print_route_pdf", "Print / Save as PDF", icon = icon("file-pdf"), class = "btn-primary"),
                   br(), br(),
                   p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers).
                Click markers to see park details."),
@@ -2323,6 +2377,10 @@ server <- function(input, output, session) {
   })
   
   # Navigation buttons
+  observeEvent(input$go_user, {
+    updateTabItems(session, "main_tabs", "userinfo")
+  })
+  
   observeEvent(input$go_allparks, {
     updateTabItems(session, "main_tabs", "allparks")
   })
@@ -2337,6 +2395,10 @@ server <- function(input, output, session) {
   
   observeEvent(input$back_to_planner, {
     updateTabItems(session, "main_tabs", "planner")
+  })
+  
+  observeEvent(input$print_route_pdf, {
+    session$sendCustomMessage("print_route_pdf", list())
   })
   
   # Distance conversion
