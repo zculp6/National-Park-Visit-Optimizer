@@ -12,6 +12,7 @@ library(jsonlite)
 library(rvest)
 library(dplyr)
 library(stringr)
+library(eia)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -101,32 +102,58 @@ as_scalar_character <- function(x, default = "") {
 ### Gas Cost Data
 ################### 
 
-# AAA URL for State Averages
-url <- "https://gasprices.aaa.com/state-gas-price-averages/"
-
-# Read the HTML and extract the table
-webpage <- read_html(url)
-gas_table <- webpage %>%
-  html_node("table") %>% # AAA usually has the averages in a standard table
-  html_table()
-
-# Clean the data (remove '$' and convert to numeric)
-clean_gas_data <- gas_table %>%
-  rename(State = 1, Regular = 2, MidGrade = 3, Premium = 4, Diesel = 5) %>%
-  mutate(across(Regular:Diesel, ~as.numeric(str_remove(., "\\$"))))
-
-territory_data <- data.frame(
-  State = c("U.S. Virgin Islands", "American Samoa"),
-  # USVI St. Thomas (~$4.78) vs St. Croix (~$3.74) average
-  Regular = c(4.26, 3.85), 
-  MidGrade = c(NA, NA),
-  # USVI Premium is approx $5.34
-  Premium = c(5.34, NA),
-  # USVI Diesel is approx $5.87
-  Diesel = c(5.87, 4.10) 
-)
-
-final_gas_data <- bind_rows(clean_gas_data, territory_data)
+# --- GAS DATA CACHE SYSTEM ---
+get_gas_prices <- function(api_key) {
+  cache_file <- "gas_cache.rds"
+  
+  # 1. Set Manual March 2026 Data (Initial Fallback)
+  march_2026_data <- tibble(
+    State = state.name,
+    Regular = c(3.42, 5.21, 3.15, 3.33, 5.48, 3.55, 3.88, 3.75, 3.65, 3.58, 
+                5.12, 3.62, 3.48, 3.38, 3.40, 3.25, 3.35, 3.12, 3.95, 3.82, 
+                3.92, 3.30, 3.45, 3.08, 3.42, 3.52, 3.44, 5.08, 3.92, 3.78, 
+                3.18, 3.85, 3.55, 3.42, 3.45, 3.22, 5.35, 3.82, 3.90, 3.62, 
+                3.45, 3.20, 5.15, 3.75, 3.98, 3.60, 5.25, 3.55, 3.48, 3.58) # Rep. 2026 Prices
+  ) %>% bind_rows(tibble(State = c("U.S. Virgin Islands", "American Samoa"), Regular = c(4.26, 3.85)))
+  
+  # 2. Attempt to pull live data
+  url <- "https://gas-price.p.rapidapi.com/allUsaPrice"
+  response <- try(GET(url, add_headers(
+    `x-rapidapi-key` = api_key,
+    `x-rapidapi-host` = "gas-price.p.rapidapi.com"
+  )), silent = TRUE)
+  
+  success <- FALSE
+  if (!inherits(response, "try-error") && status_code(response) == 200) {
+    content_raw <- content(response, "text", encoding = "UTF-8")
+    
+    # Check for "Hata oluştu" (Turkish Error)
+    if (!grepl("Hata oluştu", content_raw)) {
+      data_json <- fromJSON(content_raw)
+      if (!is.null(data_json$success) && data_json$success == TRUE) {
+        final_gas_data <- as_tibble(data_json$result) %>%
+          rename(State = name, Regular = gasoline) %>%
+          mutate(Regular = as.numeric(str_remove_all(as.character(Regular), "[\\$,]"))) %>%
+          select(State, Regular)
+        
+        # Update Cache
+        saveRDS(final_gas_data, cache_file)
+        success <- TRUE
+      }
+    }
+  }
+  
+  # 3. Decision Logic: Use Live -> Then Cache -> Then Manual
+  if (success) {
+    return(final_gas_data)
+  } else if (file.exists(cache_file)) {
+    message("RapidAPI failed. Loading from local cache...")
+    return(readRDS(cache_file))
+  } else {
+    message("No cache found. Using manual March 2026 data...")
+    return(march_2026_data)
+  }
+}
 
 ###################
 ### Airport Data
@@ -888,6 +915,43 @@ estimate_travel_time <- function(distance_km, mode, speed_drive = drive_speed_km
 
 haversine_distance <- function(lon1, lat1, lon2, lat2) {
   distHaversine(c(lon1, lat1), c(lon2, lat2)) / 1000
+}
+
+build_road_dist_matrix <- function(locations, google_api_key) {
+  n <- nrow(locations)
+  dist_matrix <- matrix(0, nrow = n, ncol = n)
+  rownames(dist_matrix) <- locations$fullName
+  colnames(dist_matrix) <- locations$fullName
+  
+  # We use a nested loop to fill the matrix
+  # For production, consider 'googleway' package for batching
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i == j) {
+        dist_matrix[i, j] <- 0
+      } else {
+        origin <- paste(locations$latitude[i], locations$longitude[i], sep = ",")
+        dest <- paste(locations$latitude[j], locations$longitude[j], sep = ",")
+        
+        url <- paste0("https://maps.googleapis.com/maps/api/distancematrix/json?origins=", 
+                      origin, "&destinations=", dest, "&key=", google_api_key)
+        
+        res <- fromJSON(url)
+        
+        if (res$status == "OK") {
+          # distance$value is in meters; convert to miles
+          dist_matrix[i, j] <- res$rows$elements[[1]]$distance$value * 0.000621371
+        } else {
+          # Fallback to Haversine if Google fails
+          dist_matrix[i, j] <- geosphere::distHaversine(
+            c(locations$longitude[i], locations$latitude[i]),
+            c(locations$longitude[j], locations$latitude[j])
+          ) * 0.000621371
+        }
+      }
+    }
+  }
+  return(dist_matrix)
 }
 
 compute_distance_matrix <- function(locations, mode_matrix = NULL, speed_drive = drive_speed_kmh, speed_flight = flight_speed_kmh) {
@@ -1785,12 +1849,14 @@ ui <- dashboardPage(
               div(
                 id = "route-pdf-content",
                 fluidRow(
-                  infoBoxOutput("total_distance_box", width = 2),
-                  infoBoxOutput("travel_time_box", width = 2),
-                  infoBoxOutput("park_visit_time_box", width = 2),
-                  infoBoxOutput("num_stops_box", width = 2),
-                  infoBoxOutput("avg_distance_box", width = 2),
-                  infoBoxOutput("estimated_cost_box", width = 2)
+                  infoBoxOutput("total_distance_box", width = 4),
+                  infoBoxOutput("travel_time_box", width = 4),
+                  infoBoxOutput("park_visit_time_box", width = 4)
+                ),
+                fluidRow(
+                  infoBoxOutput("num_stops_box", width = 4),
+                  infoBoxOutput("avg_distance_box", width = 4),
+                  infoBoxOutput("estimated_cost_box", width = 4)
                 ),
                 fluidRow(
                   box(
@@ -1900,6 +1966,11 @@ server <- function(input, output, session) {
       message(sprintf("[MAP DEBUG] %s", paste0(..., collapse = "")))
     }
   }
+  
+  # Load gas data
+  gas_data <- reactive({
+    get_gas_prices("7367fd2f96msheb29442ef648279p103d25jsn54399194d8e9")
+  })
   
   # Load park data
   park_data <- load_park_data()
