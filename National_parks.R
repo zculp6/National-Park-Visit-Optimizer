@@ -13,6 +13,7 @@ library(rvest)
 library(dplyr)
 library(stringr)
 library(eia)
+library(lubridate)
 
 normalize_park_code <- function(x) {
   x %>%
@@ -338,6 +339,7 @@ load_park_data <- function() {
   df <- read.csv("df_2.csv", stringsAsFactors = FALSE)
   park_details <- read.csv("nps_park_details.csv", stringsAsFactors = FALSE)
   park_images <- read.csv("national_parks_images.csv", stringsAsFactors = FALSE)
+  visit_stats <- read.csv("Public Use Statistics.csv", stringsAsFactors = FALSE, check.names = FALSE)
   
   extract_states <- function(location_string) {
     state_match <- str_extract(location_string, "^[A-Za-z\\s,]+(?=\\d)")
@@ -364,7 +366,9 @@ load_park_data <- function() {
       coords = t(sapply(Location, extract_coordinates)),
       latitude = coords[, 1],
       longitude = coords[, 2],
-      date_established = Date.established.as.park.7..12.,
+      raw_date = str_replace_all(Date.established.as.park.7..12., "\\[.*?\\]", "") %>% str_trim(),
+      date_obj = lubridate::parse_date_time(raw_date, orders = c("mdy")),
+      date_established = format(date_obj, "%B %e, %Y"),
       area = Area..2021..13.,
       visitors = Recreation.visitors..2021..11.
     ) %>%
@@ -377,6 +381,25 @@ load_park_data <- function() {
     ) %>%
     unnest_longer(states, values_to = "state") %>%
     distinct(name, state, .keep_all = TRUE)
+  
+  latest_visit_year <- suppressWarnings(max(as.numeric(visit_stats$Year), na.rm = TRUE))
+  latest_visit_totals <- visit_stats %>%
+    transmute(
+      park_code = normalize_park_code(UnitCode),
+      visit_year = suppressWarnings(as.numeric(Year)),
+      recreation_visits = as.numeric(gsub(",", "", RecreationVisits))
+    ) %>%
+    filter(
+      !is.na(park_code), park_code != "",
+      !is.na(visit_year), visit_year == latest_visit_year,
+      !is.na(recreation_visits)
+    ) %>%
+    group_by(park_code) %>%
+    summarise(
+      visitors_latest_year = sum(recreation_visits, na.rm = TRUE),
+      visitors_year = latest_visit_year,
+      .groups = "drop"
+    )
   
   phone_fmt <- function(x) {
     digits <- str_replace_all(x, "[^0-9]", "")
@@ -487,7 +510,10 @@ load_park_data <- function() {
       description = coalesce(description, fallback_description),
       image_count = coalesce(image_count, fallback_image_count, 0L)
     ) %>%
+    left_join(latest_visit_totals, by = "park_code") %>%
     mutate(
+      visitors = coalesce(visitors_latest_year, visitors),
+      visitors_year = if_else(!is.na(visitors_latest_year), as.integer(visitors_year), 2021L),
       image_count = case_when(
         normalize_park_name_key(name) %in% c("sequoia", "kings canyon", "sequoia and kings canyon") ~ 5L,
         TRUE ~ as.integer(image_count)
@@ -788,12 +814,13 @@ build_image_gallery_html <- function(park_name, image_df, park_code = NA_charact
 build_park_popup <- function(park_row, image_df) {
   gallery_html <- build_image_gallery_html(park_row$name, image_df, park_row$park_code)
   modal_id <- paste0("gallery_modal_", gsub("[^a-zA-Z0-9]", "_", park_row$name))
+  visitors_year <- ifelse(is.na(park_row$visitors_year), 2021, park_row$visitors_year)
   paste0(
     "<h4><b>", park_row$name, "</b></h4>",
     "<b>State/Territory:</b> ", park_row$state, "<br>",
     "<b>Date Established:</b> ", park_row$date_established, "<br>",
     "<b>Area:</b> ", park_row$area, "<br>",
-    "<b>Visitors (2021):</b> ", format(park_row$visitors, big.mark = ",", scientific = FALSE), "<br>",
+    "<b>Visitors (", visitors_year, "):</b> ", format(park_row$visitors, big.mark = ",", scientific = FALSE), "<br>",
     "<b>City:</b> ", park_row$city, "<br>",
     "<b>Phone:</b> ", park_row$phone, "<br>",
     "<b>Email:</b> ", park_row$email, "<br>",
@@ -905,6 +932,7 @@ infer_route_mode_for_segment <- function(lat1, lon1, state1, lat2, lon2, state2,
 
 drive_speed_kmh <- default_speed_kmh
 flight_speed_kmh <- default_flight_speed_kmh
+google_distance_api_key <- Sys.getenv("GOOGLE_DISTANCE_MATRIX_API_KEY", Sys.getenv("GOOGLE_MAPS_API_KEY", ""))
 
 flight_fixed_time_hours <- 2
 
@@ -954,7 +982,7 @@ build_road_dist_matrix <- function(locations, google_api_key) {
   return(dist_matrix)
 }
 
-compute_distance_matrix <- function(locations, mode_matrix = NULL, speed_drive = drive_speed_kmh, speed_flight = flight_speed_kmh) {
+compute_distance_matrix <- function(locations, mode_matrix = NULL, speed_drive = drive_speed_kmh, speed_flight = flight_speed_kmh, road_dist_miles = NULL) {
   n <- nrow(locations)
   dist_mat <- matrix(0, nrow = n, ncol = n)
   time_mat <- matrix(0, nrow = n, ncol = n)
@@ -974,10 +1002,14 @@ compute_distance_matrix <- function(locations, mode_matrix = NULL, speed_drive =
           state2 = locations$state[j]
         )
       }
-      dist_km <- haversine_distance(
-        locations$longitude[i], locations$latitude[i],
-        locations$longitude[j], locations$latitude[j]
-      )
+      dist_km <- if (!is.null(road_dist_miles) && identical(mode, "Drive")) {
+        as.numeric(road_dist_miles[i, j]) / 0.621371
+      } else {
+        haversine_distance(
+          locations$longitude[i], locations$latitude[i],
+          locations$longitude[j], locations$latitude[j]
+        )
+      }
       time_hours <- estimate_travel_time(dist_km, mode, speed_drive, speed_flight)
       
       dist_mat[i, j] <- dist_km
@@ -1530,6 +1562,14 @@ ui <- dashboardPage(
         Shiny.addCustomMessageHandler('download_route_pdf', function(message) {
           var source = document.getElementById('route-pdf-content');
           if (!source || typeof html2pdf === 'undefined') return;
+          var leafletWidget = (window.HTMLWidgets && typeof HTMLWidgets.find === 'function') ? HTMLWidgets.find('#route_map') : null;
+          var leafletMap = (leafletWidget && typeof leafletWidget.getMap === 'function') ? leafletWidget.getMap() : null;
+          if (leafletMap) {
+            if (message && message.fit_bounds && Array.isArray(message.fit_bounds) && message.fit_bounds.length === 2) {
+              leafletMap.fitBounds(message.fit_bounds);
+            }
+            leafletMap.invalidateSize(true);
+          }
           var filename = (message && message.filename) ? message.filename : 'optimal_route.pdf';
           var options = {
             margin: [0.35, 0.35, 0.35, 0.35],
@@ -1539,7 +1579,20 @@ ui <- dashboardPage(
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
           };
-          html2pdf().set(options).from(source).save();
+          window.setTimeout(function() {
+            var pdfClone = source.cloneNode(true);
+            pdfClone.id = 'route-pdf-content-clone';
+            pdfClone.style.position = 'fixed';
+            pdfClone.style.left = '-10000px';
+            pdfClone.style.top = '0';
+            pdfClone.style.width = source.offsetWidth + 'px';
+            var removable = pdfClone.querySelectorAll('.pdf-hide-control');
+            removable.forEach(function(el) { el.remove(); });
+            document.body.appendChild(pdfClone);
+            html2pdf().set(options).from(pdfClone).save().then(function() {
+              if (pdfClone && pdfClone.parentNode) pdfClone.parentNode.removeChild(pdfClone);
+            });
+          }, 700);
         });
         window.parkGalleryNav = function(galleryId, delta) {
           var gallery = document.getElementById(galleryId);
@@ -1864,9 +1917,9 @@ ui <- dashboardPage(
                     status = "primary",
                     solidHeader = TRUE,
                     width = 12,
-                    actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default"),
+                    actionButton("back_to_planner", "← Back to Route Planner", class = "btn-default pdf-hide-control"),
                     tags$span("  "),
-                    actionButton("download_route_pdf", "Download PDF", icon = icon("file-pdf"), class = "btn-primary"),
+                    actionButton("download_route_pdf", "Download PDF", icon = icon("file-pdf"), class = "btn-primary pdf-hide-control"),
                     br(), br(),
                     p("Blue lines = driving routes (actual roads). Red lines = flight paths (includes airport transfers).
                  Click markers to see park details."),
@@ -1995,6 +2048,7 @@ server <- function(input, output, session) {
   park_visit_time_overrides <- reactiveVal(numeric(0))
   computed_route <- reactiveVal(NULL)
   pending_route <- reactiveVal(NULL)
+  route_map_bounds <- reactiveVal(NULL)
   
   get_named_value <- function(x, key) {
     if (length(x) == 0 || is.null(names(x))) return(NULL)
@@ -2132,7 +2186,9 @@ server <- function(input, output, session) {
   
   park_outline <- park_outline %>%
     mutate(
-      feature_type = map2_chr(type, entity_name, categorize_park_feature)
+      feature_type = map2_chr(type, entity_name, categorize_park_feature),
+      is_park_name_point = coalesce(normalize_park_name_key(entity_name) == normalize_park_name_key(park_name), FALSE),
+      feature_type = if_else(is_park_name_point, "__PARK_NAME_POINT__", feature_type)
     ) %>%
     filter(!is.na(feature_type))
   
@@ -2296,11 +2352,14 @@ server <- function(input, output, session) {
           )
         }
         selected_types <- selected_feature_types(input$view_feature_type)
+        park_name_points <- selected_points %>% filter(is_park_name_point)
+        selected_points <- selected_points %>% filter(!is_park_name_point)
         if (length(selected_types) > 0) {
           selected_points <- selected_points %>% filter(feature_type %in% selected_types)
         } else {
           selected_points <- selected_points %>% slice(0)
         }
+        selected_points <- bind_rows(selected_points, park_name_points)
       }
     }
     
@@ -2401,7 +2460,7 @@ server <- function(input, output, session) {
         label = ~name
       ) %>%
       addCircleMarkers(
-        data = selected_points,
+        data = selected_points %>% filter(!is_park_name_point),
         lng = ~longitude,
         lat = ~latitude,
         radius = 5,
@@ -2438,12 +2497,15 @@ server <- function(input, output, session) {
         } else .
       } %>%
       {
-        if (nrow(selected_points) > 0) {
+        legend_values <- selected_points %>%
+          filter(!is_park_name_point) %>%
+          pull(feature_type)
+        if (length(legend_values) > 0) {
           addLegend(
             .,
             "bottomright",
             pal = park_type_palette,
-            values = selected_points$feature_type,
+            values = legend_values,
             title = "Feature Type",
             opacity = 1
           )
@@ -2742,7 +2804,10 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$download_route_pdf, {
-    session$sendCustomMessage("download_route_pdf", list(filename = "optimal_route.pdf"))
+    session$sendCustomMessage("download_route_pdf", list(
+      filename = "optimal_route.pdf",
+      fit_bounds = route_map_bounds()
+    ))
   })
   
   # Distance conversion
@@ -2850,7 +2915,18 @@ server <- function(input, output, session) {
     incProgress(0.35, detail = "Building travel matrices")
     # Compute distance and time matrices
     base_mode_matrix <- build_mode_matrix(locations, input$distance_type)
-    matrices <- compute_distance_matrix(locations, mode_matrix = base_mode_matrix)
+    road_dist_miles <- NULL
+    if (nzchar(google_distance_api_key) && input$distance_type != "flying") {
+      incProgress(0.15, detail = "Using Google Distance Matrix for driving segments")
+      road_dist_miles <- tryCatch(
+        build_road_dist_matrix(locations, google_distance_api_key),
+        error = function(e) {
+          showNotification("Google Distance Matrix failed; using great-circle fallback.", type = "warning", duration = 5)
+          NULL
+        }
+      )
+    }
+    matrices <- compute_distance_matrix(locations, mode_matrix = base_mode_matrix, road_dist_miles = road_dist_miles)
     dist_mat <- matrices$distance
     time_mat <- matrices$time
     
@@ -3094,6 +3170,8 @@ server <- function(input, output, session) {
   trip_cost_breakdown <- reactive({
     result <- computed_route()
     if (is.null(result)) return(NULL)
+    current_gas_data <- gas_data()
+    if (is.null(current_gas_data) || nrow(current_gas_data) == 0) return(NULL)
     route <- result$route
     if (is.null(route) || nrow(route) < 2) return(NULL)
     
@@ -3111,13 +3189,13 @@ server <- function(input, output, session) {
     
     segment_states <- drive_rows$state
     if (length(segment_states) == 0) {
-      gas_price_per_gallon <- mean(final_gas_data$Regular, na.rm = TRUE)
+      gas_price_per_gallon <- mean(current_gas_data$Regular, na.rm = TRUE)
     } else {
-      state_prices <- final_gas_data %>%
+      state_prices <- current_gas_data %>%
         filter(State %in% segment_states) %>%
         pull(Regular)
       gas_price_per_gallon <- if (length(state_prices) == 0) {
-        mean(final_gas_data$Regular, na.rm = TRUE)
+        mean(current_gas_data$Regular, na.rm = TRUE)
       } else {
         mean(state_prices, na.rm = TRUE)
       }
@@ -3290,6 +3368,7 @@ server <- function(input, output, session) {
     map_proxy %>% clearShapes() %>% clearMarkers() %>% clearControls()
     
     if (is.null(result)) {
+      route_map_bounds(NULL)
       map_proxy %>%
         addControl(
           html = "<div style='background: rgba(255,255,255,0.92); padding: 8px 10px; border-radius: 4px;'>
@@ -3301,6 +3380,26 @@ server <- function(input, output, session) {
     }
     
     route <- result$route
+    valid_route_coords <- route %>%
+      filter(is.finite(longitude), is.finite(latitude))
+    if (nrow(valid_route_coords) > 0) {
+      lng_pad <- pmax((max(valid_route_coords$longitude) - min(valid_route_coords$longitude)) * 0.08, 0.05)
+      lat_pad <- pmax((max(valid_route_coords$latitude) - min(valid_route_coords$latitude)) * 0.08, 0.05)
+      bounds <- list(
+        c(min(valid_route_coords$latitude) - lat_pad, min(valid_route_coords$longitude) - lng_pad),
+        c(max(valid_route_coords$latitude) + lat_pad, max(valid_route_coords$longitude) + lng_pad)
+      )
+      route_map_bounds(bounds)
+      map_proxy <- map_proxy %>%
+        fitBounds(
+          lng1 = bounds[[1]][2],
+          lat1 = bounds[[1]][1],
+          lng2 = bounds[[2]][2],
+          lat2 = bounds[[2]][1]
+        )
+    } else {
+      route_map_bounds(NULL)
+    }
     
     # Only add legend if we have valid route data
     if (nrow(route) > 0) {
@@ -3373,7 +3472,7 @@ server <- function(input, output, session) {
             ifelse(name != "START" & name != "END",
                    paste0("<b>State:</b> ", state, "<br>",
                           "<b>Date Established:</b> ", date_established, "<br>",
-                          "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>"),
+                          "<b>Visitors (", visitors_year, "):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>"),
                    ""
             ),
             ifelse(!is.na(distance_to_next_km),
