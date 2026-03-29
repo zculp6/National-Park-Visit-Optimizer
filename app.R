@@ -549,7 +549,7 @@ load_park_point_data <- function() {
     left_join(park_details, by = "park_code")
 }
 
-load_park_boundaries <- function(path = "mapdata/parkboundaries.csv") {
+load_park_boundaries <- function(path = "parkboundaries.csv") {
   if (!file.exists(path)) {
     return(tibble(
       park_code = character(),
