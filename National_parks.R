@@ -1558,42 +1558,84 @@ ui <- dashboardPage(
       "))
     ),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"),
+    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
     tags$script(HTML("
         Shiny.addCustomMessageHandler('download_route_pdf', function(message) {
           var source = document.getElementById('route-pdf-content');
           if (!source || typeof html2pdf === 'undefined') return;
+      
+          var mapElement = document.getElementById('route_map');
           var leafletWidget = (window.HTMLWidgets && typeof HTMLWidgets.find === 'function') ? HTMLWidgets.find('#route_map') : null;
           var leafletMap = (leafletWidget && typeof leafletWidget.getMap === 'function') ? leafletWidget.getMap() : null;
-          if (leafletMap) {
-            if (message && message.fit_bounds && Array.isArray(message.fit_bounds) && message.fit_bounds.length === 2) {
-              leafletMap.fitBounds(message.fit_bounds);
-            }
-            leafletMap.invalidateSize(true);
-          }
+      
           var filename = (message && message.filename) ? message.filename : 'optimal_route.pdf';
-          var options = {
-            margin: [0.35, 0.35, 0.35, 0.35],
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-          };
-          window.setTimeout(function() {
-            var pdfClone = source.cloneNode(true);
-            pdfClone.id = 'route-pdf-content-clone';
-            pdfClone.style.position = 'fixed';
-            pdfClone.style.left = '-10000px';
-            pdfClone.style.top = '0';
-            pdfClone.style.width = source.offsetWidth + 'px';
-            var removable = pdfClone.querySelectorAll('.pdf-hide-control');
-            removable.forEach(function(el) { el.remove(); });
-            document.body.appendChild(pdfClone);
-            html2pdf().set(options).from(pdfClone).save().then(function() {
-              if (pdfClone && pdfClone.parentNode) pdfClone.parentNode.removeChild(pdfClone);
-            });
-          }, 700);
-        });
+      
+          async function generatePDF() {
+              // 1. Instantly hide the UI controls
+              var hideElements = source.querySelectorAll('.pdf-hide-control');
+              hideElements.forEach(function(el) { el.style.display = 'none'; });
+      
+              try {
+                  // 2. THE SPEED FIX: Capture map at low scale first to prevent hang
+                  // We use a shorter timeout and lower scale (1.0)
+                  const canvas = await html2canvas(mapElement, {
+                      useCORS: true,
+                      scale: 1, 
+                      logging: false,
+                      allowTaint: false,
+                      timeout: 15000, // Kill the process if it takes > 15 seconds
+                      ignoreElements: (el) => el.classList.contains('leaflet-control-container')
+                  });
+      
+                  // 3. Create the replacement image
+                  var mapImage = new Image();
+                  mapImage.src = canvas.toDataURL('image/png');
+                  mapImage.style.width = '100%';
+                  mapImage.style.height = '400px'; // Force a clean height for the PDF
+                  mapImage.style.objectFit = 'contain';
+                  mapImage.id = 'temp-map-img';
+      
+                  // 4. Swap Map for Image
+                  mapElement.style.display = 'none';
+                  mapElement.parentNode.insertBefore(mapImage, mapElement.nextSibling);
+      
+                  // 5. Generate PDF
+                  var options = {
+                      margin: [0.1, 0.1],
+                      filename: filename,
+                      image: { type: 'jpeg', quality: 0.98 },
+                      html2canvas: { scale: 2, useCORS: true },
+                      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                      pagebreak: { mode: ['css', 'legacy'], before: '.page-break' }
+                  };
+      
+                  await html2pdf().set(options).from(source).save();
+      
+              } catch (e) {
+                  console.error('PDF Fail:', e);
+              } finally {
+                  // 6. ALWAYS RESTORE
+                  mapElement.style.display = 'block';
+                  var tempImg = document.getElementById('temp-map-img');
+                  if (tempImg) tempImg.remove();
+                  hideElements.forEach(function(el) { el.style.display = ''; });
+                  Shiny.setInputValue('pdf_done', Math.random());
+              }
+          }
+      
+          // Ensure the map is 'ready' before snapping
+          if (leafletMap) {
+              leafletMap.invalidateSize();
+              // Snap the map immediately without animation
+              if (message.fit_bounds) {
+                  leafletMap.fitBounds(message.fit_bounds, {animate: false, padding: [30, 30]});
+              }
+              // Give it 500ms for the tiles to 'settle'
+              setTimeout(generatePDF, 500);
+          } else {
+              generatePDF();
+          }
+      });
         window.parkGalleryNav = function(galleryId, delta) {
           var gallery = document.getElementById(galleryId);
           if (!gallery) return;
@@ -1927,17 +1969,21 @@ ui <- dashboardPage(
                     leafletOutput("route_map", height = 700)
                   )
                 ),
-                fluidRow(
-                  box(
-                    title = "Optimal Route Details",
-                    status = "primary",
-                    solidHeader = TRUE,
-                    width = 12,
-                    DTOutput("route_table")
+                div(
+                  class = "page-break",
+                  fluidRow(
+                    box(
+                      title = "Optimal Route Details",
+                      status = "primary",
+                      solidHeader = TRUE,
+                      width = 12,
+                      DTOutput("route_table")
+                    )
                   )
                 )
               ),
               fluidRow(
+                class = "pdf-hide-control",
                 box(
                   title = "Per-Segment Travel Mode Overrides",
                   status = "warning",
@@ -1950,6 +1996,7 @@ ui <- dashboardPage(
                 )
               ),
               fluidRow(
+                class = "pdf-hide-control",
                 box(
                   title = "Park Visit Time Overrides (hours)",
                   status = "info",
@@ -2804,11 +2851,24 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$download_route_pdf, {
+    # Show the notification in the bottom right
+    showNotification("Preparing your PDF... please wait.", 
+                     id = "pdf_loading", 
+                     duration = NULL, # Keep it visible until we manually remove it
+                     type = "message")
+    
+    # Get current map bounds
+    bounds <- input$route_map_bounds
+    
     session$sendCustomMessage("download_route_pdf", list(
       filename = "optimal_route.pdf",
-      fit_bounds = route_map_bounds()
+      fit_bounds = list(
+        list(bounds$south, bounds$west),
+        list(bounds$north, bounds$east)
+      )
     ))
   })
+  
   
   # Distance conversion
   selected_distance_multiplier <- reactive({
@@ -3309,7 +3369,7 @@ server <- function(input, output, session) {
           Distance = NA_real_,
           `Travel Time (hours)` = NA_real_,
           `Estimated Visit Time (hours)` = as.numeric(visit_hours),
-          Description = "Park stay (arrive, visit, then depart)",
+          Description = "Park stay",
           stringsAsFactors = FALSE
         )
         row_id <- row_id + 1
@@ -3472,7 +3532,7 @@ server <- function(input, output, session) {
             ifelse(name != "START" & name != "END",
                    paste0("<b>State:</b> ", state, "<br>",
                           "<b>Date Established:</b> ", date_established, "<br>",
-                          "<b>Visitors (", visitors_year, "):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>"),
+                          "<b>Visitors (2021):</b> ", format(visitors, big.mark = ",", scientific = FALSE), "<br><br>"),
                    ""
             ),
             ifelse(!is.na(distance_to_next_km),
