@@ -8,7 +8,7 @@ library(sf)
 library(dplyr)
 
 # 1. Configuration
-api_key <- "6Ks1tnBrm9d1NqXCd2VzVlylUm8ktGMSbBkljXn4"
+api_key <- Sys.getenv("NPS_API_KEY")
 csv_file <- "nps_park_details.csv"
 base_url <- "https://developer.nps.gov/api/v1/mapdata/parkboundaries/"
 

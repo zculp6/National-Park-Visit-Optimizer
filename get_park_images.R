@@ -2,7 +2,7 @@ library(httr)
 library(jsonlite)
 library(tidyverse)
 
-api_key <- "6Ks1tnBrm9d1NqXCd2VzVlylUm8ktGMSbBkljXn4"
+api_key <- Sys.getenv("NPS_API_KEY")
 
 normalize_park_name_key <- function(x) {
   x %>%

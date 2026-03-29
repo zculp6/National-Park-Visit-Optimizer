@@ -12,8 +12,12 @@ library(jsonlite)
 library(rvest)
 library(dplyr)
 library(stringr)
-library(eia)
 library(lubridate)
+library(googleway)
+library(htmltools)
+library(shinyjs)
+
+google_api_key <- Sys.getenv("GOOGLE_MAPS_KEY")
 
 normalize_park_code <- function(x) {
   x %>%
@@ -103,57 +107,20 @@ as_scalar_character <- function(x, default = "") {
 ### Gas Cost Data
 ################### 
 
-# --- GAS DATA CACHE SYSTEM ---
-get_gas_prices <- function(api_key) {
-  cache_file <- "gas_cache.rds"
+# Inside get_gas_prices.R
+get_gas_prices <- function() {
+  cache_file <- "gas_prices.rds"
   
-  # 1. Set Manual March 2026 Data (Initial Fallback)
-  march_2026_data <- tibble(
-    State = state.name,
-    Regular = c(3.42, 5.21, 3.15, 3.33, 5.48, 3.55, 3.88, 3.75, 3.65, 3.58, 
-                5.12, 3.62, 3.48, 3.38, 3.40, 3.25, 3.35, 3.12, 3.95, 3.82, 
-                3.92, 3.30, 3.45, 3.08, 3.42, 3.52, 3.44, 5.08, 3.92, 3.78, 
-                3.18, 3.85, 3.55, 3.42, 3.45, 3.22, 5.35, 3.82, 3.90, 3.62, 
-                3.45, 3.20, 5.15, 3.75, 3.98, 3.60, 5.25, 3.55, 3.48, 3.58) # Rep. 2026 Prices
-  ) %>% bind_rows(tibble(State = c("U.S. Virgin Islands", "American Samoa"), Regular = c(4.26, 3.85)))
-  
-  # 2. Attempt to pull live data
-  url <- "https://gas-price.p.rapidapi.com/allUsaPrice"
-  response <- try(GET(url, add_headers(
-    `x-rapidapi-key` = api_key,
-    `x-rapidapi-host` = "gas-price.p.rapidapi.com"
-  )), silent = TRUE)
-  
-  success <- FALSE
-  if (!inherits(response, "try-error") && status_code(response) == 200) {
-    content_raw <- content(response, "text", encoding = "UTF-8")
+  # 1. Check if the Cache exists
+  if (file.exists(cache_file)) {
+    file_info <- file.info(cache_file)
     
-    # Check for "Hata oluştu" (Turkish Error)
-    if (!grepl("Hata oluştu", content_raw)) {
-      data_json <- fromJSON(content_raw)
-      if (!is.null(data_json$success) && data_json$success == TRUE) {
-        final_gas_data <- as_tibble(data_json$result) %>%
-          rename(State = name, Regular = gasoline) %>%
-          mutate(Regular = as.numeric(str_remove_all(as.character(Regular), "[\\$,]"))) %>%
-          select(State, Regular)
-        
-        # Update Cache
-        saveRDS(final_gas_data, cache_file)
-        success <- TRUE
-      }
-    }
+    cached_data <- readRDS(cache_file)
+    return(cached_data %>% select(State, Regular))
   }
   
-  # 3. Decision Logic: Use Live -> Then Cache -> Then Manual
-  if (success) {
-    return(final_gas_data)
-  } else if (file.exists(cache_file)) {
-    message("RapidAPI failed. Loading from local cache...")
-    return(readRDS(cache_file))
-  } else {
-    message("No cache found. Using manual March 2026 data...")
-    return(march_2026_data)
-  }
+  # Fallback if no file exists
+  return(march_2026_data)
 }
 
 ###################
@@ -366,9 +333,10 @@ load_park_data <- function() {
       coords = t(sapply(Location, extract_coordinates)),
       latitude = coords[, 1],
       longitude = coords[, 2],
-      raw_date = str_replace_all(Date.established.as.park.7..12., "\\[.*?\\]", "") %>% str_trim(),
-      date_obj = lubridate::parse_date_time(raw_date, orders = c("mdy")),
-      date_established = format(date_obj, "%B %e, %Y"),
+      date_established = Date.established.as.park.7..12. %>%
+        str_replace_all("\\[.*?\\]", "") %>%
+        str_trim() %>%
+        str_replace("^[A-Za-z]+,\\s*", ""),
       area = Area..2021..13.,
       visitors = Recreation.visitors..2021..11.
     ) %>%
@@ -932,7 +900,6 @@ infer_route_mode_for_segment <- function(lat1, lon1, state1, lat2, lon2, state2,
 
 drive_speed_kmh <- default_speed_kmh
 flight_speed_kmh <- default_flight_speed_kmh
-google_distance_api_key <- Sys.getenv("GOOGLE_DISTANCE_MATRIX_API_KEY", Sys.getenv("GOOGLE_MAPS_API_KEY", ""))
 
 flight_fixed_time_hours <- 2
 
@@ -1048,15 +1015,24 @@ build_mode_matrix <- function(locations, distance_type = "mixed") {
 }
 
 enforce_endpoint_order <- function(path, start_idx = NULL, end_idx = NULL) {
-  ordered <- path
+  if (is.null(path) || length(path) == 0) return(path)
   
-  if (!is.null(start_idx) && start_idx %in% ordered) {
-    start_pos <- which(ordered == start_idx)[1]
-    ordered <- c(ordered[start_pos:length(ordered)], ordered[seq_len(start_pos - 1)])
+  ordered <- path
+  n <- length(ordered)
+  
+  # Case 1: Start and End are specified and different (One-Way Trip)
+  if (!is.null(start_idx) && !is.null(end_idx) && start_idx != end_idx) {
+    if (ordered[1] == end_idx && ordered[n] == start_idx) {
+      return(rev(ordered))
+    }
   }
   
-  if (!is.null(end_idx) && end_idx %in% ordered) {
-    ordered <- c(ordered[ordered != end_idx], end_idx)
+  # Case 2: Round Trip (Start and End are the same)
+  if (!is.null(start_idx) && (is.null(end_idx) || start_idx == end_idx)) {
+    start_pos <- which(ordered == start_idx)[1]
+    if (!is.na(start_pos)) {
+      ordered <- c(ordered[start_pos:n], ordered[seq_len(start_pos - 1)])
+    }
   }
   
   ordered
@@ -1064,90 +1040,86 @@ enforce_endpoint_order <- function(path, start_idx = NULL, end_idx = NULL) {
 
 tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops = NULL, time_matrix = NULL, segment_mode = "distance", max_segment_value = Inf, overall_time_limit = Inf, overall_distance_limit = Inf, mode_matrix = NULL) {
   n <- nrow(dist_matrix)
+  penalty_value <- 1e9
   
-  if (!is.null(start_idx)) {
-    stopifnot(start_idx >= 1 && start_idx <= n)
-  }
-  if (!is.null(end_idx)) {
-    stopifnot(end_idx >= 1 && end_idx <= n)
-  }
-  if (!is.null(num_stops)) {
-    stopifnot(num_stops >= 1 && num_stops <= n)
-  }
+  if (!is.null(start_idx)) stopifnot(start_idx >= 1 && start_idx <= n)
+  if (!is.null(end_idx)) stopifnot(end_idx >= 1 && end_idx <= n)
+  if (!is.null(num_stops)) stopifnot(num_stops >= 1 && num_stops <= n)
   
   dist_adj <- dist_matrix
   time_adj <- if (!is.null(time_matrix)) time_matrix else dist_matrix
   
-  # Determine constraint matrix based on segment_mode
+  # 1. Apply segment constraint penalty (Keep this to avoid impossibly long single drives)
   constraint_matrix <- if (segment_mode == "time") time_adj else dist_adj
-  
-  # Apply segment constraint penalty
   if (is.finite(max_segment_value) && max_segment_value > 0) {
-    dist_adj <- ifelse(constraint_matrix > max_segment_value, dist_matrix + penalty_value * 10, dist_matrix)
+    dist_adj <- ifelse(constraint_matrix > max_segment_value, dist_matrix + penalty_value, dist_matrix)
   }
   
-  if (!is.null(start_idx) && !is.null(end_idx)) {
-    for (i in seq_len(n)) {
-      if (i != start_idx) dist_adj[i, start_idx] <- dist_adj[i, start_idx] + penalty_value
-      if (i != end_idx) dist_adj[end_idx, i] <- dist_adj[end_idx, i] + penalty_value
-    }
-    for (i in seq_len(n)) {
-      if (i == start_idx) next
-      dist_adj[start_idx, i] <- dist_adj[start_idx, i] - penalty_value / 2
-    }
-    dist_adj[start_idx, end_idx] <- dist_adj[start_idx, end_idx] + penalty_value
-  } else if (!is.null(start_idx)) {
-    for (i in seq_len(n)) {
-      if (i != start_idx) {
-        dist_adj[i, start_idx] <- dist_adj[i, start_idx] + penalty_value
-      }
-    }
-    for (i in seq_len(n)) {
-      if (i == start_idx) next
-      dist_adj[start_idx, i] <- dist_adj[start_idx, i] - penalty_value / 2
-    }
-  } else if (!is.null(end_idx)) {
-    for (i in seq_len(n)) {
-      if (i != end_idx) {
-        dist_adj[end_idx, i] <- dist_adj[end_idx, i] + penalty_value
-      }
-    }
-  }
-  
-  g <- graph_from_adjacency_matrix(dist_adj, mode = "directed", weighted = TRUE)
-  
+  # 2. The 2-Opt Solver with rigidly locked endpoints
   tsp_result <- tryCatch({
-    V(g)$name <- as.character(seq_len(n))
-    tour <- sapply(1:10, function(seed) {
+    tour <- lapply(1:20, function(seed) { # Increased to 20 seeds for better exploration
       set.seed(seed)
-      initial <- sample(n)
-      path <- initial
+      
+      # Step A: Initialize the path with the start/end locked in place
+      middle_nodes <- setdiff(seq_len(n), c(start_idx, end_idx))
+      
+      if (!is.null(start_idx) && !is.null(end_idx) && start_idx != end_idx) {
+        path <- c(start_idx, sample(middle_nodes), end_idx)
+        min_swap <- 2          # Never touch index 1 (Start)
+        max_swap <- n - 1      # Never touch index n (End)
+      } else if (!is.null(start_idx)) {
+        path <- c(start_idx, sample(middle_nodes))
+        min_swap <- 2          # Never touch index 1 (Start)
+        max_swap <- n          # Can swap the end
+      } else if (!is.null(end_idx)) {
+        path <- c(sample(middle_nodes), end_idx)
+        min_swap <- 1          # Can swap the start
+        max_swap <- n - 1      # Never touch index n (End)
+      } else {
+        path <- sample(n)
+        min_swap <- 1
+        max_swap <- n
+      }
+      
+      # Calculate actual starting distance
+      curr_dist <- sum(dist_adj[cbind(path[-n], path[-1])])
+      
       improved <- TRUE
       iterations <- 0
-      while (improved && iterations < 100) {
+      while (improved && iterations < 200) { # Increased iterations to ensure it settles
         improved <- FALSE
         iterations <- iterations + 1
-        for (i in 1:(length(path) - 1)) {
-          for (j in (i + 1):length(path)) {
+        
+        if (max_swap <= min_swap) break
+        
+        # Step B: Only swap the middle nodes!
+        for (i in min_swap:(max_swap - 1)) {
+          for (j in (i + 1):max_swap) {
+            
             new_path <- path
             new_path[i:j] <- rev(path[i:j])
-            if (sum(dist_adj[cbind(new_path[-length(new_path)], new_path[-1])]) <
-                sum(dist_adj[cbind(path[-length(path)], path[-1])])) {
+            
+            new_dist <- sum(dist_adj[cbind(new_path[-n], new_path[-1])])
+            
+            if (new_dist < curr_dist) {
               path <- new_path
+              curr_dist <- new_dist
               improved <- TRUE
             }
           }
         }
       }
-      list(path = path, distance = sum(dist_adj[cbind(path[-length(path)], path[-1])]))
+      list(path = path, distance = curr_dist)
     })
     
+    # Extract the absolute shortest route found across all 20 attempts
     best_tour <- tour[[which.min(sapply(tour, function(x) x$distance))]]
     best_tour$path
   }, error = function(e) {
-    seq_len(n)
+    seq_len(n) # Fallback to 1,2,3..n if an error occurs
   })
   
+  # 3. Limit Enforcement (Dropping parks if over total time/distance limits)
   route_metrics <- function(route_indices, dmat, tmat) {
     if (length(route_indices) < 2) return(list(distance = 0, time = 0))
     total_dist <- 0
@@ -1159,7 +1131,6 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
     list(distance = total_dist, time = total_time)
   }
   
-  # If overall limits are specified and would be exceeded, fit maximum parks within limits.
   if (is.finite(overall_time_limit) || is.finite(overall_distance_limit)) {
     current_metrics <- route_metrics(tsp_result, dist_matrix, time_adj)
     
@@ -1236,13 +1207,17 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
     }
   }
   
+  # 4. Limit Stops
   if (!is.null(num_stops) && num_stops < n && (is.infinite(overall_time_limit) && is.infinite(overall_distance_limit))) {
     distances_from_path <- numeric(n)
     for (i in seq_len(n)) {
       idx <- tsp_result[i]
-      prev_idx <- if (i == 1) tsp_result[n] else tsp_result[i - 1]
-      next_idx <- if (i == n) tsp_result[1] else tsp_result[i + 1]
-      distances_from_path[i] <- dist_matrix[prev_idx, idx] + dist_matrix[idx, next_idx]
+      prev_idx <- if (i == 1) NA else tsp_result[i - 1]
+      next_idx <- if (i == n) NA else tsp_result[i + 1]
+      
+      d1 <- if(is.na(prev_idx)) 0 else dist_matrix[prev_idx, idx]
+      d2 <- if(is.na(next_idx)) 0 else dist_matrix[idx, next_idx]
+      distances_from_path[i] <- d1 + d2
     }
     
     must_include <- unique(c(start_idx, end_idx))
@@ -1259,13 +1234,12 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
     }
     
     tsp_result <- tsp_result[tsp_result %in% indices_to_keep]
-    
-    tsp_result <- enforce_endpoint_order(tsp_result, start_idx = start_idx, end_idx = end_idx)
-  } else {
-    tsp_result <- enforce_endpoint_order(tsp_result, start_idx = start_idx, end_idx = end_idx)
   }
   
-  tsp_result
+  # Ensure the Start and End stay in their correct positions after any nodes were dropped
+  tsp_result <- enforce_endpoint_order(tsp_result, start_idx = start_idx, end_idx = end_idx)
+  
+  return(tsp_result)
 }
 
 get_osrm_route <- function(lon1, lat1, lon2, lat2) {
@@ -1434,7 +1408,22 @@ ui <- dashboardPage(
   ),
   
   dashboardBody(
+    shinyjs::useShinyjs(), # Required for hiding the message
+    tags$div(
+      id = "init-message",
+      style = "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: #333;
+    color: white; padding: 12px 18px; border-radius: 6px; text-align: center;",
+      "Initializing Maps... Please wait."
+    ),
     tags$head(
+      tags$script(HTML("
+        $(document).on('click', '.input-group-addon', function() {
+          var input = $(this).siblings('input');
+          if (input.length) {
+            input.trigger('focus');  // open the datepicker
+          }
+        });
+      ")),
       tags$style(HTML("
         .info-box { min-height: 90px; }
         .info-box-icon { height: 90px; line-height: 90px; }
@@ -1554,6 +1543,19 @@ ui <- dashboardPage(
         .park-table-box .dataTables_wrapper .dataTable th.dt-nowrap {
           white-space: nowrap !important;
           word-break: normal;
+        }
+        table.dataTable {
+          width: 100% !important;
+          table-layout: fixed;
+        }
+        table.dataTable td {
+          white-space: normal !important;
+          word-wrap: break-word;
+          font-size: 12px;
+        }
+        table.dataTable th {
+          white-space: normal !important;
+          font-size: 13px;
         }
       "))
     ),
@@ -1732,10 +1734,10 @@ ui <- dashboardPage(
                   ),
                   fluidRow(
                     column(
-                      12,
+                      3,
                       airDatepickerInput(
                         "travel_dates",
-                        "Travel Dates:",
+                        "Potential Travel Dates:",
                         value = c(
                           seq(Sys.Date(), by = "1 month", length.out = 2)[2],
                           seq(Sys.Date(), by = "1 month", length.out = 2)[2] + 7
@@ -1747,7 +1749,7 @@ ui <- dashboardPage(
                       )
                     )
                   ),
-                  p(em("Default dates are one month from today for a 7-day trip window."))
+                  p(em("Default dates are one month from today for a 7-day trip window. The dates are used for flight price calculation only."))
                 )
               )
       ),
@@ -1943,6 +1945,13 @@ ui <- dashboardPage(
       tabItem(tabName = "optimalroute",
               div(
                 id = "route-pdf-content",
+                div(
+                  style = "text-align:center; margin-bottom: 25px;",
+                  h1("Optimal Route Summary", style = "margin-bottom: 5px;"),
+                  p("Your optimized travel plan across selected parks", 
+                    style = "color: #7f8c8d; font-size: 16px;")
+                ),
+                br(),
                 fluidRow(
                   infoBoxOutput("total_distance_box", width = 4),
                   infoBoxOutput("travel_time_box", width = 4),
@@ -1954,6 +1963,12 @@ ui <- dashboardPage(
                   infoBoxOutput("estimated_cost_box", width = 4)
                 ),
                 fluidRow(
+                  infoBoxOutput("personal_time_box", width = 4),
+                  infoBoxOutput("overnight_stays_box", width = 4),
+                  infoBoxOutput("states_visited_box", width = 4)
+                ),
+                fluidRow(
+                  class = "pdf-hide-control",
                   box(
                     title = "Interactive Route Map with GPS-Style Paths",
                     status = "primary",
@@ -1970,14 +1985,29 @@ ui <- dashboardPage(
                   )
                 ),
                 div(
-                  class = "page-break",
                   fluidRow(
+                    br(),
                     box(
                       title = "Optimal Route Details",
                       status = "primary",
                       solidHeader = TRUE,
                       width = 12,
+                      style = "width: 100%;",
                       DTOutput("route_table")
+                    )
+                  )
+                ),
+                div(
+                  class = "page-break",
+                  style = "page-break-before: always;",
+                  fluidRow(
+                    box(
+                      title = "Turn-by-Turn Driving Directions",
+                      status = "success",
+                      solidHeader = TRUE,
+                      width = 12,
+                      style = "width: 100%;",
+                      uiOutput("driving_directions_ui")
                     )
                   )
                 )
@@ -2054,6 +2084,9 @@ ui <- dashboardPage(
 ###################
 server <- function(input, output, session) {
   
+  # Map Initialization Message (Shows for 5 seconds)
+  shinyjs::delay(5000, shinyjs::hide("init-message"))
+  
   map_debug_targets <- c("GLBA", "KATM", "KOVA")
   
   log_map_debug <- function(..., .park_code = NULL, .park_name = NULL) {
@@ -2069,7 +2102,7 @@ server <- function(input, output, session) {
   
   # Load gas data
   gas_data <- reactive({
-    get_gas_prices("7367fd2f96msheb29442ef648279p103d25jsn54399194d8e9")
+    get_gas_prices()
   })
   
   # Load park data
@@ -2110,7 +2143,7 @@ server <- function(input, output, session) {
   }
   
   selected_feature_types <- function(x) {
-    if (is.null(x)) return(park_type_levels)
+    if (is.null(x)) return(character())
     values <- as.character(unlist(x, use.names = FALSE))
     values <- values[!is.na(values) & nzchar(str_trim(values))]
     if (length(values) == 0) return(character(0))
@@ -2899,227 +2932,227 @@ server <- function(input, output, session) {
       parks_subset <- park_data %>%
         filter(name %in% selected) %>%
         distinct(name, .keep_all = TRUE)
-    
-    # Parse start location
-    start_loc <- NULL
-    start_idx <- NULL
-    if (!is.null(input$start_zip_choice) && nzchar(input$start_zip_choice)) {
-      geo_result <- geocode_location(input$start_zip_choice)
-      if (isTRUE(geo_result$success)) {
-        start_loc <- list(
-          name = "START",
-          state = geo_result$source_state,
-          latitude = geo_result$latitude,
-          longitude = geo_result$longitude,
-          description = paste0(geo_result$source_city, ", ", geo_result$source_state),
-          date_established = NA,
-          area = NA,
-          visitors = NA
-        )
-      } else {
-        showNotification(paste("Could not geocode start:", geo_result$message), type = "warning")
-      }
-    }
-    
-    # Parse end location
-    end_loc <- NULL
-    end_idx <- NULL
-    effective_end_zip <- if (isTRUE(input$same_as_start) &&
-                             !is.null(input$start_zip_choice) &&
-                             nzchar(input$start_zip_choice)) {
-      input$start_zip_choice
-    } else {
-      input$end_zip_choice
-    }
-    
-    if (!is.null(effective_end_zip) && nzchar(effective_end_zip)) {
-      geo_result <- geocode_location(effective_end_zip)
-      if (isTRUE(geo_result$success)) {
-        end_loc <- list(
-          name = "END",
-          state = geo_result$source_state,
-          latitude = geo_result$latitude,
-          longitude = geo_result$longitude,
-          description = paste0(geo_result$source_city, ", ", geo_result$source_state),
-          date_established = NA,
-          area = NA,
-          visitors = NA
-        )
-      } else {
-        showNotification(paste("Could not geocode end:", geo_result$message), type = "warning")
-      }
-    }
-    
-    # Build locations dataframe
-    locations_list <- list()
-    idx <- 1
-    
-    if (!is.null(start_loc)) {
-      locations_list[[idx]] <- as.data.frame(start_loc, stringsAsFactors = FALSE)
-      start_idx <- idx
-      idx <- idx + 1
-    }
-    
-    for (i in seq_len(nrow(parks_subset))) {
-      locations_list[[idx]] <- parks_subset[i, ]
-      idx <- idx + 1
-    }
-    
-    if (!is.null(end_loc)) {
-      locations_list[[idx]] <- as.data.frame(end_loc, stringsAsFactors = FALSE)
-      end_idx <- idx
-    }
-    
-    locations <- bind_rows(locations_list)
-    
-    incProgress(0.35, detail = "Building travel matrices")
-    # Compute distance and time matrices
-    base_mode_matrix <- build_mode_matrix(locations, input$distance_type)
-    road_dist_miles <- NULL
-    if (nzchar(google_distance_api_key) && input$distance_type != "flying") {
-      incProgress(0.15, detail = "Using Google Distance Matrix for driving segments")
-      road_dist_miles <- tryCatch(
-        build_road_dist_matrix(locations, google_distance_api_key),
-        error = function(e) {
-          showNotification("Google Distance Matrix failed; using great-circle fallback.", type = "warning", duration = 5)
-          NULL
+      
+      # Parse start location
+      start_loc <- NULL
+      start_idx <- NULL
+      if (!is.null(input$start_zip_choice) && nzchar(input$start_zip_choice)) {
+        geo_result <- geocode_location(input$start_zip_choice)
+        if (isTRUE(geo_result$success)) {
+          start_loc <- list(
+            name = "START",
+            state = geo_result$source_state,
+            latitude = geo_result$latitude,
+            longitude = geo_result$longitude,
+            description = paste0(geo_result$source_city, ", ", geo_result$source_state),
+            date_established = NA,
+            area = NA,
+            visitors = NA
+          )
+        } else {
+          showNotification(paste("Could not geocode start:", geo_result$message), type = "warning")
         }
-      )
-    }
-    matrices <- compute_distance_matrix(locations, mode_matrix = base_mode_matrix, road_dist_miles = road_dist_miles)
-    dist_mat <- matrices$distance
-    time_mat <- matrices$time
-    
-    # Determine segment constraint
-    segment_mode <- input$limit_metric
-    max_segment_value <- Inf
-    
-    if (segment_mode == "time" && !is.null(input$limit_value) && is.numeric(input$limit_value)) {
-      max_segment_value <- input$limit_value
-    } else if (segment_mode == "distance" && !is.null(input$limit_value) && is.numeric(input$limit_value)) {
-      max_segment_value <- input$limit_value
-      if (input$distance_unit == "miles") {
-        max_segment_value <- max_segment_value / 0.621371  # Convert to km
       }
-    } else if (segment_mode == "none") {
-      segment_mode <- "distance"
+      
+      # Parse end location
+      end_loc <- NULL
+      end_idx <- NULL
+      effective_end_zip <- if (isTRUE(input$same_as_start) &&
+                               !is.null(input$start_zip_choice) &&
+                               nzchar(input$start_zip_choice)) {
+        input$start_zip_choice
+      } else {
+        input$end_zip_choice
+      }
+      
+      if (!is.null(effective_end_zip) && nzchar(effective_end_zip)) {
+        geo_result <- geocode_location(effective_end_zip)
+        if (isTRUE(geo_result$success)) {
+          end_loc <- list(
+            name = "END",
+            state = geo_result$source_state,
+            latitude = geo_result$latitude,
+            longitude = geo_result$longitude,
+            description = paste0(geo_result$source_city, ", ", geo_result$source_state),
+            date_established = NA,
+            area = NA,
+            visitors = NA
+          )
+        } else {
+          showNotification(paste("Could not geocode end:", geo_result$message), type = "warning")
+        }
+      }
+      
+      # Build locations dataframe
+      locations_list <- list()
+      idx <- 1
+      
+      if (!is.null(start_loc)) {
+        locations_list[[idx]] <- as.data.frame(start_loc, stringsAsFactors = FALSE)
+        start_idx <- idx
+        idx <- idx + 1
+      }
+      
+      for (i in seq_len(nrow(parks_subset))) {
+        locations_list[[idx]] <- parks_subset[i, ]
+        idx <- idx + 1
+      }
+      
+      if (!is.null(end_loc)) {
+        locations_list[[idx]] <- as.data.frame(end_loc, stringsAsFactors = FALSE)
+        end_idx <- idx
+      }
+      
+      locations <- bind_rows(locations_list)
+      
+      incProgress(0.35, detail = "Building travel matrices")
+      # Compute distance and time matrices
+      base_mode_matrix <- build_mode_matrix(locations, input$distance_type)
+      road_dist_miles <- NULL
+      if (nzchar(google_api_key) && input$distance_type != "flying") {
+        incProgress(0.15, detail = "Using Google Distance Matrix for driving segments")
+        road_dist_miles <- tryCatch(
+          build_road_dist_matrix(locations, google_api_key),
+          error = function(e) {
+            showNotification("Google Distance Matrix failed; using great-circle fallback.", type = "warning", duration = 5)
+            NULL
+          }
+        )
+      }
+      matrices <- compute_distance_matrix(locations, mode_matrix = base_mode_matrix, road_dist_miles = road_dist_miles)
+      dist_mat <- matrices$distance
+      time_mat <- matrices$time
+      
+      # Determine segment constraint
+      segment_mode <- input$limit_metric
       max_segment_value <- Inf
-    }
-    
-    # Overall limits
-    overall_time_limit <- if (!is.na(input$overall_time_limit)) input$overall_time_limit else Inf
-    overall_distance_limit <- if (!is.na(input$overall_distance_limit)) {
-      if (input$distance_unit == "miles") {
-        input$overall_distance_limit / 0.621371  # Convert to km
-      } else {
-        input$overall_distance_limit
+      
+      if (segment_mode == "time" && !is.null(input$limit_value) && is.numeric(input$limit_value)) {
+        max_segment_value <- input$limit_value
+      } else if (segment_mode == "distance" && !is.null(input$limit_value) && is.numeric(input$limit_value)) {
+        max_segment_value <- input$limit_value
+        if (input$distance_unit == "miles") {
+          max_segment_value <- max_segment_value / 0.621371  # Convert to km
+        }
+      } else if (segment_mode == "none") {
+        segment_mode <- "distance"
+        max_segment_value <- Inf
       }
-    } else {
-      Inf
-    }
-    
-    incProgress(0.25, detail = "Optimizing route order")
-    # Solve TSP
-    ordered_indices <- tsp_solver(
-      dist_mat,
-      start_idx = start_idx,
-      end_idx = end_idx,
-      num_stops = NULL,  # Use all selected parks
-      time_matrix = time_mat,
-      segment_mode = segment_mode,
-      max_segment_value = max_segment_value,
-      overall_time_limit = overall_time_limit,
-      overall_distance_limit = overall_distance_limit
-    )
-    
-    incProgress(0.2, detail = "Resolving segment geometry")
-    # Generate route with geometry
-    result <- route_with_geometry(ordered_indices, locations, mode_matrix = base_mode_matrix)
-    
-    # Enforce overall limits using computed segment times/distances (includes start/end travel when provided)
-    has_time_limit <- is.finite(overall_time_limit)
-    has_distance_limit <- is.finite(overall_distance_limit)
-    must_keep <- unique(na.omit(c(start_idx, end_idx)))
-    
-    while ((has_time_limit && result$total_time > overall_time_limit) ||
-           (has_distance_limit && result$total_distance > overall_distance_limit)) {
-      removable_positions <- which(!ordered_indices %in% must_keep)
-      if (length(removable_positions) == 0) break
-      if (length(ordered_indices) <= length(must_keep) + 1) break
       
-      marginal_cost <- sapply(removable_positions, function(pos) {
-        left <- if (pos > 1) ordered_indices[pos - 1] else NA_integer_
-        center <- ordered_indices[pos]
-        right <- if (pos < length(ordered_indices)) ordered_indices[pos + 1] else NA_integer_
-        remove_dist <- 0
-        remove_time <- 0
-        add_dist <- 0
-        add_time <- 0
-        
-        if (!is.na(left)) {
-          remove_dist <- remove_dist + dist_mat[left, center]
-          remove_time <- remove_time + time_mat[left, center]
+      # Overall limits
+      overall_time_limit <- if (!is.na(input$overall_time_limit)) input$overall_time_limit else Inf
+      overall_distance_limit <- if (!is.na(input$overall_distance_limit)) {
+        if (input$distance_unit == "miles") {
+          input$overall_distance_limit / 0.621371  # Convert to km
+        } else {
+          input$overall_distance_limit
         }
-        if (!is.na(right)) {
-          remove_dist <- remove_dist + dist_mat[center, right]
-          remove_time <- remove_time + time_mat[center, right]
-        }
-        if (!is.na(left) && !is.na(right)) {
-          add_dist <- dist_mat[left, right]
-          add_time <- time_mat[left, right]
-        }
-        (remove_dist - add_dist) + (remove_time - add_time)
-      })
+      } else {
+        Inf
+      }
       
-      drop_pos <- removable_positions[which.max(marginal_cost)]
-      ordered_indices <- ordered_indices[-drop_pos]
+      incProgress(0.25, detail = "Optimizing route order")
+      # Solve TSP
+      ordered_indices <- tsp_solver(
+        dist_mat,
+        start_idx = start_idx,
+        end_idx = end_idx,
+        num_stops = NULL,  # Use all selected parks
+        time_matrix = time_mat,
+        segment_mode = segment_mode,
+        max_segment_value = max_segment_value,
+        overall_time_limit = overall_time_limit,
+        overall_distance_limit = overall_distance_limit
+      )
+      
+      incProgress(0.2, detail = "Resolving segment geometry")
+      # Generate route with geometry
       result <- route_with_geometry(ordered_indices, locations, mode_matrix = base_mode_matrix)
-    }
-    
-    result$ordered_indices <- ordered_indices
-    result$locations <- locations
-    result$default_distance_type <- input$distance_type
-    result$base_mode_matrix <- base_mode_matrix
-    result$has_start <- !is.null(start_loc)
-    result$has_end <- !is.null(end_loc)
-    
-    parks_in_route <- result$route %>% filter(!name %in% c("START", "END"))
-    num_route_parks <- nrow(parks_in_route)
-    
-    if (num_route_parks <= 2) {
-      pending_route(result)
-      if (num_route_parks == 0) {
-        showModal(modalDialog(
-          title = "No parks fit your current limits",
-          "The current constraints remove all selected parks from the route. Please change your limits and recalculate.",
-          footer = tagList(
-            modalButton("Close"),
-            actionButton("change_limits_route", "Change Limits", class = "btn-warning")
-          ),
-          easyClose = TRUE
-        ))
-      } else {
-        showModal(modalDialog(
-          title = sprintf("Only %d park%s fit the current limits", num_route_parks, ifelse(num_route_parks == 1, "", "s")),
-          "You can continue with this shorter route or go back and adjust your limits.",
-          footer = tagList(
-            actionButton("continue_limited_route", "Continue", class = "btn-success"),
-            actionButton("change_limits_route", "Change Limits", class = "btn-warning")
-          ),
-          easyClose = TRUE
-        ))
+      
+      # Enforce overall limits using computed segment times/distances (includes start/end travel when provided)
+      has_time_limit <- is.finite(overall_time_limit)
+      has_distance_limit <- is.finite(overall_distance_limit)
+      must_keep <- unique(na.omit(c(start_idx, end_idx)))
+      
+      while ((has_time_limit && result$total_time > overall_time_limit) ||
+             (has_distance_limit && result$total_distance > overall_distance_limit)) {
+        removable_positions <- which(!ordered_indices %in% must_keep)
+        if (length(removable_positions) == 0) break
+        if (length(ordered_indices) <= length(must_keep) + 1) break
+        
+        marginal_cost <- sapply(removable_positions, function(pos) {
+          left <- if (pos > 1) ordered_indices[pos - 1] else NA_integer_
+          center <- ordered_indices[pos]
+          right <- if (pos < length(ordered_indices)) ordered_indices[pos + 1] else NA_integer_
+          remove_dist <- 0
+          remove_time <- 0
+          add_dist <- 0
+          add_time <- 0
+          
+          if (!is.na(left)) {
+            remove_dist <- remove_dist + dist_mat[left, center]
+            remove_time <- remove_time + time_mat[left, center]
+          }
+          if (!is.na(right)) {
+            remove_dist <- remove_dist + dist_mat[center, right]
+            remove_time <- remove_time + time_mat[center, right]
+          }
+          if (!is.na(left) && !is.na(right)) {
+            add_dist <- dist_mat[left, right]
+            add_time <- time_mat[left, right]
+          }
+          (remove_dist - add_dist) + (remove_time - add_time)
+        })
+        
+        drop_pos <- removable_positions[which.max(marginal_cost)]
+        ordered_indices <- ordered_indices[-drop_pos]
+        result <- route_with_geometry(ordered_indices, locations, mode_matrix = base_mode_matrix)
       }
-      return()
-    }
-    
-    segment_mode_overrides(character(0))
-    park_visit_time_overrides(numeric(0))
-    
-    incProgress(0.05, detail = "Finalizing")
-    computed_route(result)
-    
-    showNotification("Route calculated successfully!", type = "message", duration = 3)
-    updateTabItems(session, "main_tabs", "optimalroute")
+      
+      result$ordered_indices <- ordered_indices
+      result$locations <- locations
+      result$default_distance_type <- input$distance_type
+      result$base_mode_matrix <- base_mode_matrix
+      result$has_start <- !is.null(start_loc)
+      result$has_end <- !is.null(end_loc)
+      
+      parks_in_route <- result$route %>% filter(!name %in% c("START", "END"))
+      num_route_parks <- nrow(parks_in_route)
+      
+      if (num_route_parks <= 2) {
+        pending_route(result)
+        if (num_route_parks == 0) {
+          showModal(modalDialog(
+            title = "No parks fit your current limits",
+            "The current constraints remove all selected parks from the route. Please change your limits and recalculate.",
+            footer = tagList(
+              modalButton("Close"),
+              actionButton("change_limits_route", "Change Limits", class = "btn-warning")
+            ),
+            easyClose = TRUE
+          ))
+        } else {
+          showModal(modalDialog(
+            title = sprintf("Only %d park%s fit the current limits", num_route_parks, ifelse(num_route_parks == 1, "", "s")),
+            "You can continue with this shorter route or go back and adjust your limits.",
+            footer = tagList(
+              actionButton("continue_limited_route", "Continue", class = "btn-success"),
+              actionButton("change_limits_route", "Change Limits", class = "btn-warning")
+            ),
+            easyClose = TRUE
+          ))
+        }
+        return()
+      }
+      
+      segment_mode_overrides(character(0))
+      park_visit_time_overrides(numeric(0))
+      
+      incProgress(0.05, detail = "Finalizing")
+      computed_route(result)
+      
+      showNotification("Route calculated successfully!", type = "message", duration = 3)
+      updateTabItems(session, "main_tabs", "optimalroute")
     })
   })
   
@@ -3158,7 +3191,7 @@ server <- function(input, output, session) {
   output$travel_time_box <- renderInfoBox({
     result <- computed_route()
     if (is.null(result)) {
-      infoBox("Travel Time", "--", "Route travel only",
+      infoBox("Travel Time", "--", "Route travel and overnight stays only",
               icon = icon("clock"), color = "green")
     } else {
       days <- floor(result$total_time / 24)
@@ -3332,8 +3365,118 @@ server <- function(input, output, session) {
           " | Flights: $", format(round(cost$flight_cost, 0), big.mark = ","),
           " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ",")
         ),
+        br(),
+        tags$small("Note: Excludes Hotels, Food, & Tolls"),
         icon = icon("dollar-sign"),
         color = "purple"
+      )
+    }
+  })
+  
+  # Estimated Personal Time (Rest & Meals)
+  output$personal_time_box <- renderInfoBox({
+    result <- computed_route()
+    if (is.null(result)) {
+      infoBox("Personal Time", "--", "Rest, sleep, and meals",
+              icon = icon("bed"), color = "purple")
+    } else {
+      # 1. Get total travel hours
+      travel_hours <- result$total_time
+      
+      # 2. Get total park hours (using your existing logic)
+      parks_only <- result$route %>% filter(!name %in% c("START", "END"))
+      visit_overrides <- park_visit_time_overrides()
+      park_hours <- if (nrow(parks_only) > 0) {
+        sum(sapply(parks_only$name, function(park_name) {
+          value <- get_named_value(visit_overrides, park_name)
+          if (is.null(value) || !is.finite(value) || value < 0) 4 else as.numeric(value)
+        }))
+      } else { 0 }
+      
+      # 3. Calculate total active time and the resulting rest time
+      total_active_time <- travel_hours + park_hours
+      # 10 hours of rest for every 14 hours of activity
+      num_rest_periods <- floor(total_active_time / 14)
+      total_rest_hours <- num_rest_periods * 10
+      
+      days <- floor(total_rest_hours / 24)
+      hours <- round(total_rest_hours %% 24, 1)
+      
+      rest_str <- if (days > 0) {
+        sprintf("%d day%s, %.1fh", days, if(days > 1) "s" else "", hours)
+      } else {
+        sprintf("%.1f hours", hours)
+      }
+      
+      infoBox("Personal Time", rest_str, "10h rest per 14h active time",
+              icon = icon("bed"), color = "purple")
+    }
+  })
+  
+  # Estimated Overnight Stays
+  output$overnight_stays_box <- renderInfoBox({
+    result <- computed_route()
+    if (is.null(result)) {
+      infoBox("Overnight Stays", "--", "Total nights on trip",
+              icon = icon("moon"), color = "navy")
+    } else {
+      # Get total active hours (travel + parks)
+      travel_hours <- result$total_time
+      
+      parks_only <- result$route %>% filter(!name %in% c("START", "END"))
+      visit_overrides <- park_visit_time_overrides()
+      park_hours <- if (nrow(parks_only) > 0) {
+        sum(sapply(parks_only$name, function(park_name) {
+          value <- get_named_value(visit_overrides, park_name)
+          if (is.null(value) || !is.finite(value) || value < 0) 4 else as.numeric(value)
+        }))
+      } else { 0 }
+      
+      total_active_time <- travel_hours + park_hours
+      
+      # Calculate nights based on the 14-hour activity threshold
+      num_nights <- floor(total_active_time / 14)
+      
+      infoBox("Overnight Stays", 
+              paste(num_nights, if(num_nights == 1) "Night" else "Nights"), 
+              "Based on 14h activity limit",
+              icon = icon("moon"), color = "navy")
+    }
+  })
+  
+  output$states_visited_box <- renderInfoBox({
+    result <- computed_route()
+    
+    if (is.null(result) || is.null(result$route)) {
+      infoBox("States Visited", "--", "States along your route",
+              icon = icon("map-location-dot"), color = "maroon")
+    } else {
+      # 1. Get the list of locations in the actual optimized order
+      # Filter out 'START' and 'END' if they are generic coordinates without state data
+      route_locations <- result$route %>% 
+        filter(!name %in% c("START", "END"))
+      
+      # 2. Extract states. 
+      # We use result$locations to ensure we match the correct state metadata
+      all_states_raw <- route_locations$state
+      
+      # 3. Clean and Split (Handles "WY, MT, ID" format)
+      unique_states <- all_states_raw %>%
+        str_split(",") %>%            # Split by comma
+        unlist() %>%                  # Flatten list
+        str_trim() %>%                # Remove whitespace
+        unique() %>%                  # Keep unique values
+        subset(. != "" & !is.na(.))   # Remove empty/NA values
+      
+      num_states <- length(unique_states)
+      state_list <- paste(sort(unique_states), collapse = ", ")
+      
+      infoBox(
+        "States Visited", 
+        paste(num_states, if(num_states == 1) "State" else "States"),
+        subtitle = if(num_states > 0) state_list else "No states identified",
+        icon = icon("map-location-dot"), 
+        color = "maroon"
       )
     }
   })
@@ -3344,6 +3487,7 @@ server <- function(input, output, session) {
     if (is.null(result)) {
       return(data.frame(Message = "Click 'Calculate Optimal Route' to begin"))
     }
+    
     route <- result$route
     visit_overrides <- park_visit_time_overrides()
     rows <- list()
@@ -3351,6 +3495,7 @@ server <- function(input, output, session) {
     
     for (i in seq_len(nrow(route))) {
       current_name <- route$name[i]
+      
       current_label <- if (current_name == "START") {
         ifelse(!is.na(route$description[i]) && nzchar(route$description[i]), route$description[i], "Starting Location")
       } else if (current_name == "END") {
@@ -3359,54 +3504,119 @@ server <- function(input, output, session) {
         paste0(current_name, " (", route$state[i], ")")
       }
       
+      # --- Park Visit Row ---
       if (!current_name %in% c("START", "END")) {
         visit_hours <- get_named_value(visit_overrides, current_name)
-        if (is.null(visit_hours) || !is.finite(visit_hours) || visit_hours < 0) visit_hours <- get_default_visit_hours(current_name)
+        if (is.null(visit_hours) || !is.finite(visit_hours) || visit_hours < 0) {
+          visit_hours <- get_default_visit_hours(current_name)
+        }
+        
         rows[[row_id]] <- data.frame(
           Type = "Park Visit",
           `Route Step` = current_label,
           `Travel Mode` = NA_character_,
           Distance = NA_real_,
-          `Travel Time (hours)` = NA_real_,
-          `Estimated Visit Time (hours)` = as.numeric(visit_hours),
-          Description = "Park stay",
-          stringsAsFactors = FALSE
+          `Travel/Visit Time (hrs)` = round(as.numeric(visit_hours), 2),
+          stringsAsFactors = FALSE,
+          check.names = FALSE
         )
         row_id <- row_id + 1
       }
       
-      
+      # --- Travel Segment Row ---
       if (i < nrow(route)) {
         next_name <- route$name[i + 1]
-        next_label <- if (next_name %in% c("START", "END")) next_name else paste0(next_name, " (", route$state[i + 1], ")")
+        next_label <- if (next_name %in% c("START", "END")) {
+          next_name
+        } else {
+          paste0(next_name, " (", route$state[i + 1], ")")
+        }
+        
         rows[[row_id]] <- data.frame(
-          Type = "Travel Segment",
+          Type = "Travel",
           `Route Step` = paste0(current_label, " -> ", next_label),
           `Travel Mode` = route$travel_mode[i],
           Distance = round(route$distance_to_next_km[i] * selected_distance_multiplier(), 1),
-          `Travel Time (hours)` = round(route$time_to_next_hours[i], 2),
-          `Estimated Visit Time (hours)` = NA_real_,
-          Description = route$segment_description[i],
-          stringsAsFactors = FALSE
+          `Travel/Visit Time (hrs)` = round(route$time_to_next_hours[i], 2),
+          stringsAsFactors = FALSE,
+          check.names = FALSE
         )
         row_id <- row_id + 1
       }
     }
     
-    display_df <- bind_rows(rows)
+    display_df <- dplyr::bind_rows(rows)
     
-    names(display_df)[names(display_df) == "Distance"] <- paste0("Distance (", selected_distance_label(), ")")
+    # Rename distance column with units
+    names(display_df)[names(display_df) == "Distance"] <- 
+      paste0("Distance (", selected_distance_label(), ")")
     
-    datatable(display_df,
-              options = list(
-                paging = FALSE,
-                searching = FALSE,
-                info = FALSE,
-                ordering = FALSE,
-                autoWidth = TRUE,
-                dom = 't'
-              ),
-              rownames = FALSE)
+    datatable(
+      display_df,
+      options = list(
+        paging = FALSE,
+        searching = FALSE,
+        info = FALSE,
+        ordering = FALSE,
+        autoWidth = FALSE,
+        dom = 't',
+        scrollX = FALSE
+      ),
+      rownames = FALSE,
+      escape = FALSE,
+      class = "compact"
+    )
+  })
+  
+  # Driving Directions UI
+  output$driving_directions_ui <- renderUI({
+    result <- computed_route()
+    if (is.null(result) || nrow(result$route) < 2) {
+      return(HTML("<p>Calculate a route to see turn-by-turn directions.</p>"))
+    }
+    
+    route <- result$route
+    directions_html <- c()
+    
+    api_key <- google_api_key
+    if (!nzchar(api_key)) {
+      return(HTML("<p><em>A valid Google Maps API key is required to fetch detailed turn-by-turn driving directions.</em></p>"))
+    }
+    
+    for (i in seq_len(nrow(route) - 1)) {
+      from_loc <- route[i, ]
+      to_loc <- route[i + 1, ]
+      mode <- route$travel_mode[i]
+      
+      directions_html <- c(directions_html, paste0("<h4 style='margin-top:20px; color:#2c3e50;'>Segment ", i, ": ", from_loc$name, " to ", to_loc$name, " (", mode, ")</h4>"))
+      
+      if (mode == "Drive") {
+        origin_str <- paste(from_loc$latitude, from_loc$longitude, sep = ",")
+        dest_str <- paste(to_loc$latitude, to_loc$longitude, sep = ",")
+        
+        res <- tryCatch({
+          google_directions(origin = origin_str, destination = dest_str, key = api_key)
+        }, error = function(e) NULL)
+        
+        if (!is.null(res) && res$status == "OK") {
+          steps_df <- res$routes$legs[[1]]$steps[[1]]
+          if (is.data.frame(steps_df) && "html_instructions" %in% names(steps_df)) {
+            instr <- steps_df$html_instructions
+            dist <- if ("distance" %in% names(steps_df)) steps_df$distance$text else ""
+            step_items <- paste0("<li style='margin-bottom:8px;'>", instr, " - <strong>", dist, "</strong></li>")
+            directions_html <- c(directions_html, "<ol style='padding-left:20px;'>", step_items, "</ol>")
+          } else {
+            directions_html <- c(directions_html, "<p>No detailed steps found.</p>")
+          }
+        } else {
+          directions_html <- c(directions_html, "<p>Directions unavailable for this segment.</p>")
+        }
+      } else {
+        directions_html <- c(directions_html, "<p><em>Flight segment. Driving directions not applicable.</em></p>")
+      }
+    }
+    
+    HTML(paste(directions_html, collapse = "\n"))
   })
   
   # Route map
@@ -3646,27 +3856,30 @@ server <- function(input, output, session) {
     result <- computed_route()
     if (is.null(result) || is.null(result$ordered_indices) || is.null(result$locations)) return()
     
-    mode_matrix <- build_mode_matrix(result$locations, result$default_distance_type)
-    overrides <- segment_mode_overrides()
-    
-    route_indices <- result$ordered_indices
-    for (i in seq_len(length(route_indices) - 1)) {
-      override_val <- get_named_value(overrides, as.character(i))
-      if (is.null(override_val) || identical(override_val, "auto")) next
-      from_idx <- route_indices[i]
-      to_idx <- route_indices[i + 1]
-      mode_matrix[from_idx, to_idx] <- ifelse(override_val == "drive", "Drive", "Flight")
-    }
-    
-    refreshed <- route_with_geometry(route_indices, result$locations, mode_matrix = mode_matrix)
-    refreshed$ordered_indices <- route_indices
-    refreshed$locations <- result$locations
-    refreshed$default_distance_type <- result$default_distance_type
-    refreshed$base_mode_matrix <- result$base_mode_matrix
-    refreshed$has_start <- result$has_start
-    refreshed$has_end <- result$has_end
-    
-    computed_route(refreshed)
+    withProgress(message = "Recalculating path...", value = 0.5, {
+      
+      mode_matrix <- build_mode_matrix(result$locations, result$default_distance_type)
+      overrides <- segment_mode_overrides()
+      
+      route_indices <- result$ordered_indices
+      for (i in seq_len(length(route_indices) - 1)) {
+        override_val <- get_named_value(overrides, as.character(i))
+        if (is.null(override_val) || identical(override_val, "auto")) next
+        from_idx <- route_indices[i]
+        to_idx <- route_indices[i + 1]
+        mode_matrix[from_idx, to_idx] <- ifelse(override_val == "drive", "Drive", "Flight")
+      }
+      
+      refreshed <- route_with_geometry(route_indices, result$locations, mode_matrix = mode_matrix)
+      refreshed$ordered_indices <- route_indices
+      refreshed$locations <- result$locations
+      refreshed$default_distance_type <- result$default_distance_type
+      refreshed$base_mode_matrix <- result$base_mode_matrix
+      refreshed$has_start <- result$has_start
+      refreshed$has_end <- result$has_end
+      
+      computed_route(refreshed)
+    })
   }, ignoreInit = TRUE)
   
   outputOptions(output, "route_map", suspendWhenHidden = FALSE)

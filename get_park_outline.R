@@ -2,7 +2,7 @@ library(httr)
 library(jsonlite)
 library(tidyverse)
 
-api_key <- "6Ks1tnBrm9d1NqXCd2VzVlylUm8ktGMSbBkljXn4"
+api_key <- Sys.getenv("NPS_API_KEY")
 
 # 1. Helper function to fetch data
 fetch_endpoint <- function(endpoint, limit = 1000) {
