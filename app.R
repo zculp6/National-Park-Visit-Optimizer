@@ -1048,7 +1048,7 @@ enforce_endpoint_order <- function(path, start_idx = NULL, end_idx = NULL) {
   ordered
 }
 
-tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops = NULL, time_matrix = NULL, segment_mode = "distance", max_segment_value = Inf, overall_time_limit = Inf, overall_distance_limit = Inf, mode_matrix = NULL) {
+tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops = NULL, time_matrix = NULL, segment_mode = "distance", max_segment_value = Inf, overall_time_limit = Inf, overall_distance_limit = Inf, mode_matrix = NULL, node_visit_times = NULL) {
   n <- nrow(dist_matrix)
   penalty_value <- 1e9
   
@@ -1059,7 +1059,7 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
   dist_adj <- dist_matrix
   time_adj <- if (!is.null(time_matrix)) time_matrix else dist_matrix
   
-  # 1. Apply segment constraint penalty (Keep this to avoid impossibly long single drives)
+  # 1. Apply segment constraint penalty
   constraint_matrix <- if (segment_mode == "time") time_adj else dist_adj
   if (is.finite(max_segment_value) && max_segment_value > 0) {
     dist_adj <- ifelse(constraint_matrix > max_segment_value, dist_matrix + penalty_value, dist_matrix)
@@ -1067,42 +1067,39 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
   
   # 2. The 2-Opt Solver with rigidly locked endpoints
   tsp_result <- tryCatch({
-    tour <- lapply(1:20, function(seed) { # Increased to 20 seeds for better exploration
+    tour <- lapply(1:20, function(seed) { 
       set.seed(seed)
       
-      # Step A: Initialize the path with the start/end locked in place
       middle_nodes <- setdiff(seq_len(n), c(start_idx, end_idx))
       
       if (!is.null(start_idx) && !is.null(end_idx) && start_idx != end_idx) {
         path <- c(start_idx, sample(middle_nodes), end_idx)
-        min_swap <- 2          # Never touch index 1 (Start)
-        max_swap <- n - 1      # Never touch index n (End)
+        min_swap <- 2          
+        max_swap <- n - 1      
       } else if (!is.null(start_idx)) {
         path <- c(start_idx, sample(middle_nodes))
-        min_swap <- 2          # Never touch index 1 (Start)
-        max_swap <- n          # Can swap the end
+        min_swap <- 2          
+        max_swap <- n          
       } else if (!is.null(end_idx)) {
         path <- c(sample(middle_nodes), end_idx)
-        min_swap <- 1          # Can swap the start
-        max_swap <- n - 1      # Never touch index n (End)
+        min_swap <- 1          
+        max_swap <- n - 1      
       } else {
         path <- sample(n)
         min_swap <- 1
         max_swap <- n
       }
       
-      # Calculate actual starting distance
       curr_dist <- sum(dist_adj[cbind(path[-n], path[-1])])
       
       improved <- TRUE
       iterations <- 0
-      while (improved && iterations < 200) { # Increased iterations to ensure it settles
+      while (improved && iterations < 200) { 
         improved <- FALSE
         iterations <- iterations + 1
         
         if (max_swap <= min_swap) break
         
-        # Step B: Only swap the middle nodes!
         for (i in min_swap:(max_swap - 1)) {
           for (j in (i + 1):max_swap) {
             
@@ -1122,36 +1119,54 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
       list(path = path, distance = curr_dist)
     })
     
-    # Extract the absolute shortest route found across all 20 attempts
     best_tour <- tour[[which.min(sapply(tour, function(x) x$distance))]]
     best_tour$path
   }, error = function(e) {
-    seq_len(n) # Fallback to 1,2,3..n if an error occurs
+    seq_len(n) 
   })
   
-  # 3. Limit Enforcement (Dropping parks if over total time/distance limits)
-  route_metrics <- function(route_indices, dmat, tmat) {
+  # 3. Limit Enforcement (Now Includes Visit Time & Personal Rest Time)
+  route_metrics <- function(route_indices, dmat, tmat, visit_times) {
     if (length(route_indices) < 2) return(list(distance = 0, time = 0))
+    
     total_dist <- 0
-    total_time <- 0
+    total_travel_time <- 0
+    
+    # Sum travel time and distance
     for (i in 1:(length(route_indices) - 1)) {
       total_dist <- total_dist + dmat[route_indices[i], route_indices[i + 1]]
-      total_time <- total_time + tmat[route_indices[i], route_indices[i + 1]]
+      total_travel_time <- total_travel_time + tmat[route_indices[i], route_indices[i + 1]]
     }
+    
+    # Calculate total park visit time
+    total_visit_time <- 0
+    if (!is.null(visit_times)) {
+      total_visit_time <- sum(visit_times[route_indices], na.rm = TRUE)
+    }
+    
+    # Apply your Rest/Personal Time Logic
+    total_active_time <- total_travel_time + total_visit_time
+    num_rest_periods <- floor(total_active_time / 14)
+    total_rest_hours <- num_rest_periods * 10
+    
+    total_time <- total_active_time + total_rest_hours
+    
     list(distance = total_dist, time = total_time)
   }
   
   if (is.finite(overall_time_limit) || is.finite(overall_distance_limit)) {
-    current_metrics <- route_metrics(tsp_result, dist_matrix, time_adj)
+    current_metrics <- route_metrics(tsp_result, dist_matrix, time_adj, node_visit_times)
     
     if ((is.finite(overall_distance_limit) && current_metrics$distance > overall_distance_limit) ||
         (is.finite(overall_time_limit) && current_metrics$time > overall_time_limit)) {
+      
       must_include <- unique(c(start_idx, end_idx))
       must_include <- must_include[!is.na(must_include)]
       candidate_route <- tsp_result
       
       while (length(candidate_route) > length(must_include)) {
-        candidate_metrics <- route_metrics(candidate_route, dist_matrix, time_adj)
+        candidate_metrics <- route_metrics(candidate_route, dist_matrix, time_adj, node_visit_times)
+        
         within_limits <- TRUE
         if (is.finite(overall_distance_limit) && candidate_metrics$distance > overall_distance_limit) within_limits <- FALSE
         if (is.finite(overall_time_limit) && candidate_metrics$time > overall_time_limit) within_limits <- FALSE
@@ -1160,30 +1175,16 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
         removable_pos <- which(!candidate_route %in% must_include)
         if (length(removable_pos) == 0) break
         
+        # Because rest time is non-linear, we evaluate the full route minus the candidate node
         marginal_cost <- sapply(removable_pos, function(pos) {
-          left <- if (pos > 1) candidate_route[pos - 1] else NA_integer_
-          center <- candidate_route[pos]
-          right <- if (pos < length(candidate_route)) candidate_route[pos + 1] else NA_integer_
+          test_route <- candidate_route[-pos]
+          test_metrics <- route_metrics(test_route, dist_matrix, time_adj, node_visit_times)
           
-          removed_dist <- 0
-          removed_time <- 0
-          added_dist <- 0
-          added_time <- 0
+          # Calculate how much time and distance we save by dropping this node
+          dist_saved <- candidate_metrics$distance - test_metrics$distance
+          time_saved <- candidate_metrics$time - test_metrics$time
           
-          if (!is.na(left)) {
-            removed_dist <- removed_dist + dist_matrix[left, center]
-            removed_time <- removed_time + time_adj[left, center]
-          }
-          if (!is.na(right)) {
-            removed_dist <- removed_dist + dist_matrix[center, right]
-            removed_time <- removed_time + time_adj[center, right]
-          }
-          if (!is.na(left) && !is.na(right)) {
-            added_dist <- dist_matrix[left, right]
-            added_time <- time_adj[left, right]
-          }
-          
-          (removed_dist - added_dist) + (removed_time - added_time)
+          return(dist_saved + time_saved)
         })
         
         drop_pos <- removable_pos[which.max(marginal_cost)]
@@ -1246,7 +1247,6 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
     tsp_result <- tsp_result[tsp_result %in% indices_to_keep]
   }
   
-  # Ensure the Start and End stay in their correct positions after any nodes were dropped
   tsp_result <- enforce_endpoint_order(tsp_result, start_idx = start_idx, end_idx = end_idx)
   
   return(tsp_result)
@@ -1583,6 +1583,10 @@ ui <- dashboardPage(
           var filename = (message && message.filename) ? message.filename : 'optimal_route.pdf';
       
           async function generatePDF() {
+              const scrollX = window.scrollX;
+              const scrollY = window.scrollY;
+              window.scrollTo(0,0);
+              
               // 1. Instantly hide the UI controls
               var hideElements = source.querySelectorAll('.pdf-hide-control');
               hideElements.forEach(function(el) { el.style.display = 'none'; });
@@ -1595,6 +1599,8 @@ ui <- dashboardPage(
                       scale: 1, 
                       logging: false,
                       allowTaint: false,
+                      scrollY: -window.scrollY, // CRITICAL: Negate any scroll offset
+                      scrollX: -window.scrollX,
                       timeout: 15000, // Kill the process if it takes > 15 seconds
                       ignoreElements: (el) => el.classList.contains('leaflet-control-container')
                   });
@@ -1994,6 +2000,31 @@ ui <- dashboardPage(
                     leafletOutput("route_map", height = 700)
                   )
                 ),
+                fluidRow(
+                  class = "pdf-hide-control",
+                  box(
+                    title = "Per-Segment Travel Mode Overrides",
+                    status = "warning",
+                    solidHeader = TRUE,
+                    width = 12,
+                    collapsible = TRUE,
+                    collapsed = TRUE,
+                    p("Override each segment to Auto/Drive/Flight and recalculate route details instantly."),
+                    uiOutput("segment_mode_controls")
+                  )
+                ),
+                fluidRow(
+                  class = "pdf-hide-control",
+                  box(
+                    title = "Park Visit Time Overrides (hours)",
+                    status = "info",
+                    solidHeader = TRUE,
+                    width = 12,
+                    collapsible = TRUE,
+                    collapsed = TRUE,
+                    uiOutput("park_visit_time_controls")
+                  )
+                ),
                 div(
                   fluidRow(
                     br(),
@@ -2020,31 +2051,6 @@ ui <- dashboardPage(
                       uiOutput("driving_directions_ui")
                     )
                   )
-                )
-              ),
-              fluidRow(
-                class = "pdf-hide-control",
-                box(
-                  title = "Per-Segment Travel Mode Overrides",
-                  status = "warning",
-                  solidHeader = TRUE,
-                  width = 12,
-                  collapsible = TRUE,
-                  collapsed = TRUE,
-                  p("Override each segment to Auto/Drive/Flight and recalculate route details instantly."),
-                  uiOutput("segment_mode_controls")
-                )
-              ),
-              fluidRow(
-                class = "pdf-hide-control",
-                box(
-                  title = "Park Visit Time Overrides (hours)",
-                  status = "info",
-                  solidHeader = TRUE,
-                  width = 12,
-                  collapsible = TRUE,
-                  collapsed = TRUE,
-                  uiOutput("park_visit_time_controls")
                 )
               ),
       ),
@@ -2899,6 +2905,7 @@ server <- function(input, output, session) {
                      id = "pdf_loading", 
                      duration = NULL, # Keep it visible until we manually remove it
                      type = "message")
+    Sys.sleep(2)
     
     # Get current map bounds
     bounds <- input$route_map_bounds
@@ -3061,6 +3068,20 @@ server <- function(input, output, session) {
         Inf
       }
       
+      # Build an array of visit times matching the locations dataframe
+      visit_times_array <- sapply(locations$name, function(loc_name) {
+        if (loc_name %in% c("START", "END")) return(0)
+        
+        # If the user has already entered manual overrides before hitting calculate
+        override_val <- get_named_value(park_visit_time_overrides(), loc_name)
+        if (!is.null(override_val) && is.finite(override_val) && override_val >= 0) {
+          return(as.numeric(override_val))
+        }
+        
+        # Otherwise use the default
+        return(get_default_visit_hours(loc_name))
+      })
+      
       incProgress(0.25, detail = "Optimizing route order")
       # Solve TSP
       ordered_indices <- tsp_solver(
@@ -3072,7 +3093,8 @@ server <- function(input, output, session) {
         segment_mode = segment_mode,
         max_segment_value = max_segment_value,
         overall_time_limit = overall_time_limit,
-        overall_distance_limit = overall_distance_limit
+        overall_distance_limit = overall_distance_limit,
+        node_visit_times = visit_times_array
       )
       
       incProgress(0.2, detail = "Resolving segment geometry")
