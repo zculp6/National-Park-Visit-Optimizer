@@ -2157,10 +2157,10 @@ ui <- dashboardPage(
                   h4("TSP Algorithm:"),
                   p("The route optimizer uses the Traveling Salesman Problem algorithm to find
                the quickest overall travel-time path. It can select multiple parks from the same state if that
-               creates a better overall route.")
+               creates a better overall route."),
+                  h4("Contact:"),
+                  p("Please contact the creator with any comments or questions at zachculp6@gmail.com or LinkedIn: zachary-culp-347494251.")
                 ),
-                h4("Contact:"),
-                p("Please contact the creator with any comments or questions at zachculp6@gmail.com or LinkedIn: zachary-culp-347494251.")
               )
       )
     )
