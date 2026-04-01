@@ -1688,14 +1688,14 @@ ui <- dashboardPage(
                   status = "primary",
                   solidHeader = TRUE,
                   width = 12,
-                  p("Use the sidebar or buttons below to move through the app quickly."),
+                  p("Use the sidebar or buttons below to move through the app quickly. Start with User Info (optional), then plan and calculate your route."),
                   tags$ul(
                     tags$li(strong("User Information:"), "Optionally set traveler count, MPG, airline preferences, and travel dates."),
                     tags$li(strong("National Parks Map:"), "Browse every U.S. national park with contact details and image galleries."),
                     tags$li(strong("Park Explorer:"), "Explore one park at a time with map zoom, activities, things to do, and park outline details."),
-                    tags$li(strong("Route Planner:"), "Select parks and configure your trip."),
-                    tags$li(strong("Optimal Route:"), "See the calculated route drawn on the map with segment details."),
-                    tags$li(strong("About:"), "Review features and route logic details.")
+                    tags$li(strong("Route Planner:"), "Select parks, set distance/time limits, and choose default transportation behavior."),
+                    tags$li(strong("Optimal Route:"), "Review route summaries, estimated costs, turn-by-turn directions, and optional per-segment overrides."),
+                    tags$li(strong("About:"), "Review feature notes, assumptions, and route logic details.")
                   ),
                   br(),
                   actionButton("go_user", "Enter User Info", class = "btn-user"),
@@ -1969,19 +1969,22 @@ ui <- dashboardPage(
                 ),
                 br(),
                 fluidRow(
+                  infoBoxOutput("total_time_box", width = 4),
                   infoBoxOutput("total_distance_box", width = 4),
-                  infoBoxOutput("travel_time_box", width = 4),
-                  infoBoxOutput("park_visit_time_box", width = 4)
+                  infoBoxOutput("travel_time_box", width = 4)
                 ),
                 fluidRow(
+                  infoBoxOutput("park_visit_time_box", width = 4),
                   infoBoxOutput("num_stops_box", width = 4),
-                  infoBoxOutput("avg_distance_box", width = 4),
-                  infoBoxOutput("estimated_cost_box", width = 4)
+                  infoBoxOutput("avg_distance_box", width = 4)
                 ),
                 fluidRow(
+                  infoBoxOutput("estimated_cost_box", width = 4),
                   infoBoxOutput("personal_time_box", width = 4),
-                  infoBoxOutput("overnight_stays_box", width = 4),
-                  infoBoxOutput("states_visited_box", width = 4)
+                  infoBoxOutput("overnight_stays_box", width = 4)
+                ),
+                fluidRow(
+                  infoBoxOutput("states_visited_box", width = 12)
                 ),
                 fluidRow(
                   class = "pdf-hide-control",
@@ -2072,8 +2075,9 @@ ui <- dashboardPage(
                     tags$li(strong("Smart Park Selection:"), "Can visit multiple parks in same state (e.g., all 5 Utah parks)"),
                     tags$li(strong("Realistic Flight Routing:"), "Includes drives to/from major airports and flight time"),
                     tags$li(strong("Mixed Transportation:"), "Automatically uses driving for mainland, flights for Alaska/Hawaii"),
-                    tags$li(strong("GPS-Accurate Routes:"), "Shows actual roads you would drive on"),
-                    tags$li(strong("Complete Park Info:"), "Dates, areas, visitor counts, and descriptions")
+                    tags$li(strong("GPS-Accurate Routes:"), "Shows actual roads for drive segments and straight-line flight paths"),
+                    tags$li(strong("Complete Park Info:"), "Dates, areas, visitor counts, and descriptions"),
+                    tags$li(strong("Route Overrides:"), "Optionally override travel mode by segment and park visit hours")
                   ),
                   
                   h4("How Flights Work:"),
@@ -3207,6 +3211,38 @@ server <- function(input, output, session) {
   })
   
   # Info boxes
+  output$total_time_box <- renderInfoBox({
+    result <- computed_route()
+    if (is.null(result)) {
+      infoBox("Total Time", "--", "Travel + park visits + personal time",
+              icon = icon("hourglass-half"), color = "aqua")
+    } else {
+      travel_hours <- result$total_time
+      parks_only <- result$route %>% filter(!name %in% c("START", "END"))
+      visit_overrides <- park_visit_time_overrides()
+      park_hours <- if (nrow(parks_only) > 0) {
+        sum(sapply(parks_only$name, function(park_name) {
+          value <- get_named_value(visit_overrides, park_name)
+          if (is.null(value) || !is.finite(value) || value < 0) get_default_visit_hours(park_name) else as.numeric(value)
+        }))
+      } else { 0 }
+      total_active_time <- travel_hours + park_hours
+      total_rest_hours <- floor(total_active_time / 14) * 10
+      total_hours <- total_active_time + total_rest_hours
+      
+      days <- floor(total_hours / 24)
+      hours <- round(total_hours %% 24, 1)
+      total_str <- if (days > 0) {
+        sprintf("%d day%s, %.1fh", days, if(days > 1) "s" else "", hours)
+      } else {
+        sprintf("%.1f hours", hours)
+      }
+      
+      infoBox("Total Time", total_str, "Travel + park visits + personal time",
+              icon = icon("hourglass-half"), color = "aqua")
+    }
+  })
+  
   output$total_distance_box <- renderInfoBox({
     result <- computed_route()
     if (is.null(result)) {
@@ -3395,10 +3431,9 @@ server <- function(input, output, session) {
         paste0(
           "Gas: $", format(round(cost$gas_cost, 0), big.mark = ","),
           " | Flights: $", format(round(cost$flight_cost, 0), big.mark = ","),
-          " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ",")
+          " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ","),
+          " | Note: Excludes hotels, food, and tolls"
         ),
-        br(),
-        tags$small("Note: Excludes Hotels, Food, & Tolls"),
         icon = icon("dollar-sign"),
         color = "purple"
       )
@@ -3853,6 +3888,7 @@ server <- function(input, output, session) {
     if (is.null(result)) return()
     
     current_overrides <- segment_mode_overrides()
+    
     for (i in 1:(nrow(result$route) - 1)) {
       segment_id <- paste0("segment_", i)
       selected_value <- input[[segment_id]]
