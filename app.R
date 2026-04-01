@@ -1587,6 +1587,25 @@ ui <- dashboardPage(
           width: 100%;
           min-width: 100%;
         }
+        body.route-progress-active #shiny-notification-panel {
+          top: 50% !important;
+          right: auto !important;
+          bottom: auto !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%);
+          width: min(420px, 90vw);
+        }
+        #route-pdf-content .states-visited-wide .info-box {
+          width: 100%;
+          display: block;
+        }
+        #driving-directions-content .direction-segment,
+        #driving-directions-content .direction-summary,
+        #driving-directions-content ol,
+        #driving-directions-content li {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
       "))
     ),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"),
@@ -1644,7 +1663,11 @@ ui <- dashboardPage(
                       image: { type: 'jpeg', quality: 0.98 },
                       html2canvas: { scale: 2, useCORS: true },
                       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                      pagebreak: { mode: ['css', 'legacy'], before: '.page-break' }
+                      pagebreak: {
+                          mode: ['css', 'legacy'],
+                          before: '.page-break',
+                          avoid: ['.direction-segment', '.direction-summary', 'li']
+                      }
                   };
       
                   await html2pdf().set(options).from(source).save();
@@ -2022,8 +2045,12 @@ ui <- dashboardPage(
                   infoBoxOutput("overnight_stays_box", width = 4)
                 ),
                 fluidRow(
-                  infoBoxOutput("states_visited_box", width = 12)
+                  div(
+                    class = "states-visited-wide",
+                    infoBoxOutput("states_visited_box", width = 12)
+                  )
                 ),
+                p("Note: Estimated Cost excludes hotel, food, and toll costs."),
                 fluidRow(
                   class = "pdf-hide-control",
                   box(
@@ -2090,7 +2117,7 @@ ui <- dashboardPage(
                       solidHeader = TRUE,
                       width = 12,
                       style = "width: 100%;",
-                      uiOutput("driving_directions_ui")
+                      div(id = "driving-directions-content", uiOutput("driving_directions_ui"))
                     )
                   )
                 )
@@ -2131,7 +2158,9 @@ ui <- dashboardPage(
                   p("The route optimizer uses the Traveling Salesman Problem algorithm to find
                the quickest overall travel-time path. It can select multiple parks from the same state if that
                creates a better overall route.")
-                )
+                ),
+                h4("Contact:"),
+                p("Please contact the creator with any comments or questions at zachculp6@gmail.com or LinkedIn: zachary-culp-347494251.")
               )
       )
     )
@@ -2886,7 +2915,7 @@ server <- function(input, output, session) {
       )
   })
   
-  observeEvent(input$park_state_filter, {
+  observeEvent(input$park_state_filter %||% "__none__", {
     selected_states <- input$park_state_filter %||% character(0)
     previous_states <- previous_state_filter()
     
@@ -2935,15 +2964,9 @@ server <- function(input, output, session) {
   
   # Deselect all parks
   observeEvent(input$deselect_all_parks, {
-    selected_states <- input$park_state_filter %||% character(0)
-    if (length(selected_states) == 0) {
-      selected_park_names(character(0))
-    } else {
-      parks_to_remove <- park_catalog %>%
-        filter(park_matches_states(states, selected_states)) %>%
-        pull(name)
-      selected_park_names(setdiff(selected_park_names(), parks_to_remove))
-    }
+    selected_park_names(character(0))
+    previous_state_filter(character(0))
+    updatePickerInput(session, "park_state_filter", selected = character(0))
   })
   
   # Route message
@@ -3091,6 +3114,11 @@ server <- function(input, output, session) {
     }
     
     # Get selected parks data
+    shinyjs::runjs("document.body.classList.add('route-progress-active');")
+    on.exit(
+      shinyjs::runjs("document.body.classList.remove('route-progress-active');"),
+      add = TRUE
+    )
     withProgress(message = "Calculating optimal route...", value = 0, {
       incProgress(0.15, detail = "Loading selected parks")
       
@@ -3462,12 +3490,12 @@ server <- function(input, output, session) {
   output$avg_distance_box <- renderInfoBox({
     result <- computed_route()
     if (is.null(result)) {
-      infoBox("Avg Between Stops", "--", "Click Calculate",
+      infoBox("Avg Btwn Stops", "--", "Click Calculate",
               icon = icon("arrows-alt-h"), color = "red")
     } else {
       avg_dist <- (result$total_distance / (nrow(result$route) - 1)) * selected_distance_multiplier()
       avg_time <- result$total_time / (nrow(result$route) - 1)
-      infoBox("Avg Between Stops",
+      infoBox("Avg Btwn Stops",
               sprintf("%.0f %s\n%.1fh", avg_dist, selected_distance_label(), avg_time),
               "Per segment", icon = icon("arrows-alt-h"), color = "red")
     }
@@ -3576,8 +3604,7 @@ server <- function(input, output, session) {
         paste0(
           "Gas: $", format(round(cost$gas_cost, 0), big.mark = ","),
           " | Flights: $", format(round(cost$flight_cost, 0), big.mark = ","),
-          " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ","),
-          " | Note: Excludes hotels, food, and tolls"
+          " | Park Fees: $", format(round(cost$park_cost, 0), big.mark = ",")
         ),
         icon = icon("dollar-sign"),
         color = "purple"
@@ -3800,7 +3827,10 @@ server <- function(input, output, session) {
       to_loc <- route[i + 1, ]
       mode <- route$travel_mode[i]
       
-      directions_html <- c(directions_html, paste0("<h4 style='margin-top:20px; color:#2c3e50;'>Segment ", i, ": ", from_loc$name, " to ", to_loc$name, " (", mode, ")</h4>"))
+      directions_html <- c(
+        directions_html,
+        paste0("<div class='direction-segment'><h4 style='margin-top:20px; color:#2c3e50;'>Segment ", i, ": ", from_loc$name, " to ", to_loc$name, " (", mode, ")</h4>")
+      )
       
       if (mode == "Drive") {
         origin_str <- paste(from_loc$latitude, from_loc$longitude, sep = ",")
@@ -3816,7 +3846,7 @@ server <- function(input, output, session) {
           directions_html <- c(
             directions_html,
             paste0(
-              "<p><strong>Segment distance:</strong> ", leg$distance$text[[1]],
+              "<p class='direction-summary'><strong>Segment distance:</strong> ", leg$distance$text[[1]],
               " | <strong>Estimated time:</strong> ", leg$duration$text[[1]], "</p>"
             )
           )
@@ -3835,6 +3865,7 @@ server <- function(input, output, session) {
       } else {
         directions_html <- c(directions_html, "<p><em>Flight segment. Driving directions not applicable.</em></p>")
       }
+      directions_html <- c(directions_html, "</div>")
     }
     
     HTML(paste(directions_html, collapse = "\n"))
