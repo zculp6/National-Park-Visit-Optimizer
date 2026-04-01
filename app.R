@@ -1571,6 +1571,15 @@ ui <- dashboardPage(
           white-space: normal !important;
           font-size: 13px;
         }
+        .state-select-dropdown .dropdown-toggle {
+          width: 100%;
+          display: block;
+          min-height: 34px;
+        }
+        .state-select-dropdown .dropdown-menu {
+          width: 100%;
+          min-width: 100%;
+        }
       "))
     ),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"),
@@ -1925,13 +1934,24 @@ ui <- dashboardPage(
                                         class = "btn-success btn-block")
                     ),
                     column(4,
-                           pickerInput(
-                             "park_state_filter",
-                             "Filter by State/Territory:",
-                             choices = all_state_choices,
-                             selected = character(0),
-                             multiple = TRUE,
-                             options = list(`actions-box` = TRUE, `live-search` = TRUE)
+                           tags$div(
+                             class = "state-select-dropdown",
+                             dropdownButton(
+                               circle = FALSE,
+                               status = "primary",
+                               size = "default",
+                               icon = icon("map-marked-alt"),
+                               label = "Select States",
+                               pickerInput(
+                                 "park_state_filter",
+                                 "State/Territory:",
+                                 choices = all_state_choices,
+                                 selected = character(0),
+                                 multiple = TRUE,
+                                 width = "100%",
+                                 options = list(`actions-box` = TRUE, `live-search` = TRUE, `selected-text-format` = "count > 2")
+                               )
+                             )
                            )
                     ),
                     column(4,
@@ -2798,12 +2818,18 @@ server <- function(input, output, session) {
       )
   })
   
+  filtered_parks_by_state <- reactive({
+    selected_states <- input$park_state_filter
+    if (is.null(selected_states) || length(selected_states) == 0) {
+      return(park_catalog)
+    }
+    park_catalog %>% filter(state %in% selected_states)
+  })
+  
   # Update map when selection changes
   observe({
     selected <- selected_park_names()
-    selected_states <- input$park_state_filter
-    map_data <- park_catalog %>%
-      filter(length(selected_states) == 0 || state %in% selected_states) %>%
+    map_data <- filtered_parks_by_state() %>%
       mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
       add_popup_html()
     
@@ -2829,6 +2855,11 @@ server <- function(input, output, session) {
       )
   })
   
+  observeEvent(input$park_state_filter, {
+    parks_to_add <- filtered_parks_by_state() %>% pull(name)
+    selected_park_names(unique(c(selected_park_names(), parks_to_add)))
+  }, ignoreInit = TRUE)
+  
   # Handle park click
   observeEvent(input$park_selector_map_marker_click, {
     clicked_park <- input$park_selector_map_marker_click$id
@@ -2842,10 +2873,7 @@ server <- function(input, output, session) {
   
   # Select all parks
   observeEvent(input$select_all_parks, {
-    selected_states <- input$park_state_filter
-    parks_to_add <- park_catalog %>%
-      filter(length(selected_states) == 0 || state %in% selected_states) %>%
-      pull(name)
+    parks_to_add <- filtered_parks_by_state() %>% pull(name)
     selected_park_names(unique(c(selected_park_names(), parks_to_add)))
   })
   
@@ -3781,10 +3809,19 @@ server <- function(input, output, session) {
     # Only add legend if we have valid route data
     if (nrow(route) > 0) {
       to_matrix <- function(coords_list) {
-        if (is.null(coords_list) || length(coords_list) < 2) return(NULL)
-        m <- do.call(rbind, lapply(coords_list, function(coord) {
-          if (is.list(coord)) c(as.numeric(coord[[1]]), as.numeric(coord[[2]])) else as.numeric(coord)
-        }))
+        if (is.null(coords_list)) return(NULL)
+        if (is.matrix(coords_list) || is.data.frame(coords_list)) {
+          m <- as.matrix(coords_list)
+        } else if (is.list(coords_list)) {
+          if (length(coords_list) < 2) return(NULL)
+          m <- do.call(rbind, lapply(coords_list, function(coord) {
+            coord_vals <- as.numeric(unlist(coord, use.names = FALSE))
+            if (length(coord_vals) < 2) return(c(NA_real_, NA_real_))
+            coord_vals[1:2]
+          }))
+        } else {
+          return(NULL)
+        }
         if (!is.matrix(m) || ncol(m) != 2 || nrow(m) < 2 || !all(is.finite(m))) return(NULL)
         m
       }
