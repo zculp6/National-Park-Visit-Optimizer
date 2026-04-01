@@ -319,7 +319,7 @@ load_park_data <- function() {
   visit_stats <- read.csv("Public Use Statistics.csv", stringsAsFactors = FALSE, check.names = FALSE)
   
   extract_states <- function(location_string) {
-    state_match <- str_extract(location_string, "^[A-Za-z\\s,]+(?=\\d)")
+    state_match <- str_extract(location_string, "^[A-Za-z\\.\\s,]+(?=\\d)")
     if (is.na(state_match)) return(NA_character_)
     str_split(str_trim(state_match), ",\\s*")[[1]]
   }
@@ -355,10 +355,17 @@ load_park_data <- function() {
     filter(!is.na(latitude) & !is.na(longitude)) %>%
     mutate(
       name = ifelse(name == "Virgin Islands", "U.S. Virgin Islands", name),
-      states = map_chr(states, ~ paste(ifelse(.x == "Virgin Islands", "U.S. Virgin Islands", .x), collapse = ", "))
+      states = map(states, ~ {
+        vals <- as.character(.x)
+        vals <- vals[!is.na(vals) & nzchar(str_trim(vals))]
+        vals <- ifelse(vals == "Virgin Islands", "U.S. Virgin Islands", vals)
+        unique(vals)
+      }),
+      state = map_chr(states, function(x) {
+        if (length(x) == 0) NA_character_ else x[[1]]
+      })
     ) %>%
-    unnest_longer(states, values_to = "state") %>%
-    distinct(name, state, .keep_all = TRUE)
+    distinct(name, .keep_all = TRUE)
   
   latest_visit_year <- suppressWarnings(max(as.numeric(visit_stats$Year), na.rm = TRUE))
   latest_visit_totals <- visit_stats %>%
@@ -2172,8 +2179,21 @@ server <- function(input, output, session) {
   park_catalog <- park_catalog %>%
     left_join(visit_time_defaults, by = c("park_code" = "park_code")) %>%
     arrange(name)
+  if (!"states" %in% names(park_catalog)) {
+    park_catalog <- park_catalog %>%
+      mutate(state = map_chr(states, function(x) {
+        if (length(x) == 0) NA_character_ else x[[1]]
+      }))
+  }
+  
+  park_matches_states <- function(states_col, selected_states) {
+    state_values <- as.character(selected_states %||% character(0))
+    if (length(state_values) == 0) return(rep(FALSE, length(states_col)))
+    map_lgl(states_col, ~ any(.x %in% state_values))
+  }
   available_state_choices <- park_catalog %>%
-    pull(state) %>%
+    pull(states) %>%
+    unlist(use.names = FALSE) %>%
     unique() %>%
     .[!is.na(.) & nzchar(.)] %>%
     sort()
@@ -2834,7 +2854,7 @@ server <- function(input, output, session) {
     if (is.null(selected_states) || length(selected_states) == 0) {
       return(park_catalog)
     }
-    park_catalog %>% filter(state %in% selected_states)
+    park_catalog %>% filter(park_matches_states(states, selected_states))
   })
   
   # Update map when selection changes
@@ -2876,12 +2896,19 @@ server <- function(input, output, session) {
     current_selected <- selected_park_names()
     
     if (length(added_states) > 0) {
-      parks_to_add <- park_catalog %>% filter(state %in% added_states) %>% pull(name)
+      parks_to_add <- park_catalog %>%
+        filter(park_matches_states(states, added_states)) %>%
+        pull(name)
       current_selected <- unique(c(current_selected, parks_to_add))
     }
     
     if (length(removed_states) > 0) {
-      parks_to_remove <- park_catalog %>% filter(state %in% removed_states) %>% pull(name)
+      parks_with_removed_states <- park_catalog %>%
+        filter(park_matches_states(states, removed_states))
+      parks_still_selected <- parks_with_removed_states %>%
+        filter(park_matches_states(states, selected_states)) %>%
+        pull(name)
+      parks_to_remove <- setdiff(parks_with_removed_states$name, parks_still_selected)
       current_selected <- setdiff(current_selected, parks_to_remove)
     }
     
@@ -2908,11 +2935,13 @@ server <- function(input, output, session) {
   
   # Deselect all parks
   observeEvent(input$deselect_all_parks, {
-    selected_states <- input$park_state_filter
+    selected_states <- input$park_state_filter %||% character(0)
     if (length(selected_states) == 0) {
       selected_park_names(character(0))
     } else {
-      parks_to_remove <- park_catalog %>% filter(state %in% selected_states) %>% pull(name)
+      parks_to_remove <- park_catalog %>%
+        filter(park_matches_states(states, selected_states)) %>%
+        pull(name)
       selected_park_names(setdiff(selected_park_names(), parks_to_remove))
     }
   })
