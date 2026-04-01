@@ -1619,7 +1619,7 @@ ui <- dashboardPage(
       
                   // 5. Generate PDF
                   var options = {
-                      margin: [0.1, 0.1],
+                      margin: [0.5, 0.5],
                       filename: filename,
                       image: { type: 'jpeg', quality: 0.98 },
                       html2canvas: { scale: 2, useCORS: true },
