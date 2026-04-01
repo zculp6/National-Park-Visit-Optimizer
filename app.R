@@ -1252,6 +1252,7 @@ tsp_solver <- function(dist_matrix, start_idx = NULL, end_idx = NULL, num_stops 
   return(tsp_result)
 }
 
+
 get_osrm_route <- function(lon1, lat1, lon2, lat2) {
   base_url <- "https://router.project-osrm.org/route/v1/driving/"
   osrm_key <- paste(
@@ -1331,6 +1332,9 @@ route_with_geometry <- function(ordered_indices, locations, mode_matrix = NULL) 
     
     if (mode == "Drive") {
       route_result <- get_osrm_route(lon1, lat1, lon2, lat2)
+      if (!isTRUE(route_result$success)) {
+        route_result <- get_osrm_route(lon1, lat1, lon2, lat2)
+      }
       if (route_result$success) {
         distance_to_next[i] <- route_result$distance_km
         time_to_next[i] <- route_result$duration_hours
@@ -1916,11 +1920,21 @@ ui <- dashboardPage(
                     )
                   ),
                   fluidRow(
-                    column(6,
+                    column(4,
                            actionButton("select_all_parks", "Select All Parks", icon = icon("check-square"),
                                         class = "btn-success btn-block")
                     ),
-                    column(6,
+                    column(4,
+                           pickerInput(
+                             "park_state_filter",
+                             "Filter by State/Territory:",
+                             choices = all_state_choices,
+                             selected = character(0),
+                             multiple = TRUE,
+                             options = list(`actions-box` = TRUE, `live-search` = TRUE)
+                           )
+                    ),
+                    column(4,
                            actionButton("deselect_all_parks", "Deselect All Parks", icon = icon("square"),
                                         class = "btn-warning btn-block")
                     )
@@ -2140,6 +2154,12 @@ server <- function(input, output, session) {
   park_catalog <- park_catalog %>%
     left_join(visit_time_defaults, by = c("park_code" = "park_code")) %>%
     arrange(name)
+  park_states_with_nps <- park_catalog %>%
+    filter(!is.na(state), nzchar(state)) %>%
+    distinct(state) %>%
+    pull(state) %>%
+    sort()
+  updatePickerInput(session, "park_state_filter", choices = park_states_with_nps, selected = character(0))
   
   selected_park_names <- reactiveVal(character(0))
   initial_view_park <- park_catalog %>% pull(name) %>% .[1]
@@ -2751,9 +2771,8 @@ server <- function(input, output, session) {
   
   # Park selector map - show all parks initially
   output$park_selector_map <- renderLeaflet({
-    selected <- selected_park_names()
     map_data <- park_catalog %>%
-      mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
+      mutate(marker_color = "red") %>%
       add_popup_html()
     
     leaflet() %>%
@@ -2782,7 +2801,9 @@ server <- function(input, output, session) {
   # Update map when selection changes
   observe({
     selected <- selected_park_names()
+    selected_states <- input$park_state_filter
     map_data <- park_catalog %>%
+      filter(length(selected_states) == 0 || state %in% selected_states) %>%
       mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
       add_popup_html()
     
@@ -2821,12 +2842,22 @@ server <- function(input, output, session) {
   
   # Select all parks
   observeEvent(input$select_all_parks, {
-    selected_park_names(park_catalog$name)
+    selected_states <- input$park_state_filter
+    parks_to_add <- park_catalog %>%
+      filter(length(selected_states) == 0 || state %in% selected_states) %>%
+      pull(name)
+    selected_park_names(unique(c(selected_park_names(), parks_to_add)))
   })
   
   # Deselect all parks
   observeEvent(input$deselect_all_parks, {
-    selected_park_names(character(0))
+    selected_states <- input$park_state_filter
+    if (length(selected_states) == 0) {
+      selected_park_names(character(0))
+    } else {
+      parks_to_remove <- park_catalog %>% filter(state %in% selected_states) %>% pull(name)
+      selected_park_names(setdiff(selected_park_names(), parks_to_remove))
+    }
   })
   
   # Route message
@@ -3660,13 +3691,22 @@ server <- function(input, output, session) {
       if (mode == "Drive") {
         origin_str <- paste(from_loc$latitude, from_loc$longitude, sep = ",")
         dest_str <- paste(to_loc$latitude, to_loc$longitude, sep = ",")
+        units_pref <- if (identical(input$distance_unit, "km")) "metric" else "imperial"
         
         res <- tryCatch({
-          google_directions(origin = origin_str, destination = dest_str, key = api_key)
+          google_directions(origin = origin_str, destination = dest_str, units = units_pref, key = api_key)
         }, error = function(e) NULL)
         
         if (!is.null(res) && res$status == "OK") {
-          steps_df <- res$routes$legs[[1]]$steps[[1]]
+          leg <- res$routes$legs[[1]]
+          directions_html <- c(
+            directions_html,
+            paste0(
+              "<p><strong>Segment distance:</strong> ", leg$distance$text[[1]],
+              " | <strong>Estimated time:</strong> ", leg$duration$text[[1]], "</p>"
+            )
+          )
+          steps_df <- leg$steps[[1]]
           if (is.data.frame(steps_df) && "html_instructions" %in% names(steps_df)) {
             instr <- steps_df$html_instructions
             dist <- if ("distance" %in% names(steps_df)) steps_df$distance$text else ""
