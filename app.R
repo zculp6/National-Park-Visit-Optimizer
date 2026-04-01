@@ -1936,25 +1936,17 @@ ui <- dashboardPage(
                     column(4,
                            tags$div(
                              class = "state-select-dropdown",
-                             dropdownButton(
-                               circle = FALSE,
-                               status = "primary",
-                               size = "default",
-                               icon = icon("map-marked-alt"),
-                               label = "Select States",
-                               pickerInput(
-                                 "park_state_filter",
-                                 "State/Territory:",
-                                 choices = all_state_choices,
-                                 selected = character(0),
-                                 multiple = TRUE,
-                                 width = "100%",
-                                 options = list(
-                                   `actions-box` = TRUE,
-                                   `live-search` = TRUE,
-                                   `selected-text-format` = "count > 2",
-                                   `none-selected-text` = "Select states/territories"
-                                 )
+                             pickerInput(
+                               "park_state_filter",
+                               choices = character(0),
+                               selected = character(0),
+                               multiple = TRUE,
+                               width = "100%",
+                               options = list(
+                                 `actions-box` = TRUE,
+                                 `live-search` = TRUE,
+                                 `selected-text-format` = "count > 2",
+                                 `none-selected-text` = "Select states/territories"
                                )
                              )
                            )
@@ -2180,13 +2172,19 @@ server <- function(input, output, session) {
   park_catalog <- park_catalog %>%
     left_join(visit_time_defaults, by = c("park_code" = "park_code")) %>%
     arrange(name)
-  updatePickerInput(session, "park_state_filter", choices = all_state_choices, selected = character(0))
+  available_state_choices <- park_catalog %>%
+    pull(state) %>%
+    unique() %>%
+    .[!is.na(.) & nzchar(.)] %>%
+    sort()
+  updatePickerInput(session, "park_state_filter", choices = available_state_choices, selected = character(0))
   
   selected_park_names <- reactiveVal(character(0))
+  previous_state_filter <- reactiveVal(character(0))
   initial_view_park <- park_catalog %>% pull(name) %>% .[1]
   selected_view_park <- reactiveVal(initial_view_park)
-  segment_mode_overrides <- reactiveVal(character(0))
-  park_visit_time_overrides <- reactiveVal(numeric(0))
+  segment_mode_overrides <- reactiveVal(list())
+  park_visit_time_overrides <- reactiveVal(list())
   computed_route <- reactiveVal(NULL)
   pending_route <- reactiveVal(NULL)
   route_map_bounds <- reactiveVal(NULL)
@@ -2831,7 +2829,7 @@ server <- function(input, output, session) {
       )
   })
   
-  filtered_parks_by_state <- reactive({
+  parks_in_selected_states <- reactive({
     selected_states <- input$park_state_filter
     if (is.null(selected_states) || length(selected_states) == 0) {
       return(park_catalog)
@@ -2842,7 +2840,7 @@ server <- function(input, output, session) {
   # Update map when selection changes
   observe({
     selected <- selected_park_names()
-    map_data <- filtered_parks_by_state() %>%
+    map_data <- park_catalog %>%
       mutate(marker_color = if_else(name %in% selected, "green", "red")) %>%
       add_popup_html()
     
@@ -2869,8 +2867,26 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$park_state_filter, {
-    parks_to_add <- filtered_parks_by_state() %>% pull(name)
-    selected_park_names(unique(c(selected_park_names(), parks_to_add)))
+    selected_states <- input$park_state_filter %||% character(0)
+    previous_states <- previous_state_filter()
+    
+    added_states <- setdiff(selected_states, previous_states)
+    removed_states <- setdiff(previous_states, selected_states)
+    
+    current_selected <- selected_park_names()
+    
+    if (length(added_states) > 0) {
+      parks_to_add <- park_catalog %>% filter(state %in% added_states) %>% pull(name)
+      current_selected <- unique(c(current_selected, parks_to_add))
+    }
+    
+    if (length(removed_states) > 0) {
+      parks_to_remove <- park_catalog %>% filter(state %in% removed_states) %>% pull(name)
+      current_selected <- setdiff(current_selected, parks_to_remove)
+    }
+    
+    selected_park_names(current_selected)
+    previous_state_filter(selected_states)
   }, ignoreInit = TRUE)
   
   # Handle park click
@@ -2886,7 +2902,7 @@ server <- function(input, output, session) {
   
   # Select all parks
   observeEvent(input$select_all_parks, {
-    parks_to_add <- filtered_parks_by_state() %>% pull(name)
+    parks_to_add <- parks_in_selected_states() %>% pull(name)
     selected_park_names(unique(c(selected_park_names(), parks_to_add)))
   })
   
@@ -3037,8 +3053,8 @@ server <- function(input, output, session) {
   observeEvent(input$calculate, {
     selected <- selected_park_names()
     computed_route(NULL)
-    segment_mode_overrides(character(0))
-    park_visit_time_overrides(numeric(0))
+    segment_mode_overrides(list())
+    park_visit_time_overrides(list())
     
     if (length(selected) < 2) {
       showNotification("Please select at least 2 parks.", type = "error", duration = 5)
@@ -3281,8 +3297,8 @@ server <- function(input, output, session) {
         return()
       }
       
-      segment_mode_overrides(character(0))
-      park_visit_time_overrides(numeric(0))
+      segment_mode_overrides(list())
+      park_visit_time_overrides(list())
       
       incProgress(0.05, detail = "Finalizing")
       computed_route(result)
@@ -3297,8 +3313,8 @@ server <- function(input, output, session) {
     req(!is.null(pending))
     removeModal()
     pending_route(NULL)
-    segment_mode_overrides(character(0))
-    park_visit_time_overrides(numeric(0))
+    segment_mode_overrides(list())
+    park_visit_time_overrides(list())
     computed_route(pending)
     showNotification("Route calculated successfully!", type = "message", duration = 3)
     updateTabItems(session, "main_tabs", "optimalroute")
