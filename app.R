@@ -1949,7 +1949,12 @@ ui <- dashboardPage(
                                  selected = character(0),
                                  multiple = TRUE,
                                  width = "100%",
-                                 options = list(`actions-box` = TRUE, `live-search` = TRUE, `selected-text-format` = "count > 2")
+                                 options = list(
+                                   `actions-box` = TRUE,
+                                   `live-search` = TRUE,
+                                   `selected-text-format` = "count > 2",
+                                   `none-selected-text` = "Select states/territories"
+                                 )
                                )
                              )
                            )
@@ -2040,6 +2045,7 @@ ui <- dashboardPage(
                 fluidRow(
                   class = "pdf-hide-control",
                   box(
+                    id = "segment_override_box",
                     title = "Per-Segment Travel Mode Overrides",
                     status = "warning",
                     solidHeader = TRUE,
@@ -2174,12 +2180,7 @@ server <- function(input, output, session) {
   park_catalog <- park_catalog %>%
     left_join(visit_time_defaults, by = c("park_code" = "park_code")) %>%
     arrange(name)
-  park_states_with_nps <- park_catalog %>%
-    filter(!is.na(state), nzchar(state)) %>%
-    distinct(state) %>%
-    pull(state) %>%
-    sort()
-  updatePickerInput(session, "park_state_filter", choices = park_states_with_nps, selected = character(0))
+  updatePickerInput(session, "park_state_filter", choices = all_state_choices, selected = character(0))
   
   selected_park_names <- reactiveVal(character(0))
   initial_view_park <- park_catalog %>% pull(name) %>% .[1]
@@ -2200,6 +2201,18 @@ server <- function(input, output, session) {
   first_or <- function(x, default) {
     if (is.null(x) || length(x) == 0) return(default)
     x
+  }
+  
+  get_default_segment_mode <- function(result, segment_position) {
+    if (is.null(result) || is.null(result$ordered_indices) || is.null(result$base_mode_matrix)) return("auto")
+    route_indices <- result$ordered_indices
+    if (segment_position < 1 || segment_position >= length(route_indices)) return("auto")
+    from_idx <- route_indices[segment_position]
+    to_idx <- route_indices[segment_position + 1]
+    default_mode <- result$base_mode_matrix[from_idx, to_idx]
+    mode_lower <- tolower(as.character(default_mode))
+    if (!mode_lower %in% c("drive", "flight")) return("auto")
+    mode_lower
   }
   
   selected_feature_types <- function(x) {
@@ -2961,6 +2974,34 @@ server <- function(input, output, session) {
   observeEvent(input$back_to_planner, {
     updateTabItems(session, "main_tabs", "planner")
   })
+  
+  collapse_segment_override_box <- function() {
+    runjs("$('#segment_override_box').boxWidget('collapse');")
+  }
+  
+  observeEvent(input$back_to_planner, {
+    collapse_segment_override_box()
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$main_tabs, {
+    if (!identical(input$main_tabs, "optimalroute")) {
+      collapse_segment_override_box()
+    }
+  }, ignoreInit = TRUE)
+  
+  collapse_segment_override_box <- function() {
+    runjs("$('#segment_override_box').boxWidget('collapse');")
+  }
+  
+  observeEvent(input$back_to_planner, {
+    collapse_segment_override_box()
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$main_tabs, {
+    if (!identical(input$main_tabs, "optimalroute")) {
+      collapse_segment_override_box()
+    }
+  }, ignoreInit = TRUE)
   
   observeEvent(input$download_route_pdf, {
     # Show the notification in the bottom right
@@ -3810,18 +3851,33 @@ server <- function(input, output, session) {
     if (nrow(route) > 0) {
       to_matrix <- function(coords_list) {
         if (is.null(coords_list)) return(NULL)
-        if (is.matrix(coords_list) || is.data.frame(coords_list)) {
-          m <- as.matrix(coords_list)
+        
+        if (is.matrix(coords_list)) {
+          m <- coords_list
+        } else if (is.data.frame(coords_list)) {
+          m <- as.matrix(coords_list[, seq_len(min(2, ncol(coords_list))), drop = FALSE])
+        } else if (is.list(coords_list) && !is.null(coords_list$coordinates)) {
+          return(to_matrix(coords_list$coordinates))
+        } else if (is.list(coords_list) && length(coords_list) == 1 && is.list(coords_list[[1]])) {
+          return(to_matrix(coords_list[[1]]))
         } else if (is.list(coords_list)) {
-          if (length(coords_list) < 2) return(NULL)
-          m <- do.call(rbind, lapply(coords_list, function(coord) {
-            coord_vals <- as.numeric(unlist(coord, use.names = FALSE))
-            if (length(coord_vals) < 2) return(c(NA_real_, NA_real_))
+          point_rows <- lapply(coords_list, function(coord) {
+            coord_vals <- suppressWarnings(as.numeric(unlist(coord, use.names = FALSE)))
+            if (length(coord_vals) < 2) return(NULL)
             coord_vals[1:2]
-          }))
+          })
+          point_rows <- point_rows[!vapply(point_rows, is.null, logical(1))]
+          if (length(point_rows) < 2) return(NULL)
+          m <- do.call(rbind, point_rows)
+        } else if (is.atomic(coords_list)) {
+          coord_vals <- suppressWarnings(as.numeric(coords_list))
+          if (length(coord_vals) < 4 || length(coord_vals) %% 2 != 0) return(NULL)
+          m <- matrix(coord_vals, ncol = 2, byrow = TRUE)
         } else {
           return(NULL)
         }
+        
+        m <- suppressWarnings(matrix(as.numeric(m), ncol = 2))
         if (!is.matrix(m) || ncol(m) != 2 || nrow(m) < 2 || !all(is.finite(m))) return(NULL)
         m
       }
@@ -3921,7 +3977,9 @@ server <- function(input, output, session) {
       segment_id <- paste0("segment_", i)
       from_name <- route_df$name[i]
       to_name <- route_df$name[i + 1]
-      current_mode <- route_df$travel_mode[i]
+      current_override <- get_named_value(segment_mode_overrides(), as.character(i))
+      default_mode <- get_default_segment_mode(result, i)
+      selected_mode <- if (is.null(current_override) || !nzchar(current_override)) default_mode else current_override
       
       fluidRow(
         column(6, p(strong(sprintf("%s → %s", from_name, to_name)))),
@@ -3929,7 +3987,7 @@ server <- function(input, output, session) {
           segment_id,
           NULL,
           choices = c("Auto" = "auto", "Drive" = "drive", "Flight" = "flight"),
-          selected = tolower(current_mode)
+          selected = selected_mode
         ))
       )
     })
@@ -3965,15 +4023,24 @@ server <- function(input, output, session) {
     if (is.null(result)) return()
     
     current_overrides <- segment_mode_overrides()
+    updated_overrides <- current_overrides
     
     for (i in 1:(nrow(result$route) - 1)) {
       segment_id <- paste0("segment_", i)
       selected_value <- input[[segment_id]]
       if (!is.null(selected_value)) {
-        current_overrides[[as.character(i)]] <- selected_value
+        key <- as.character(i)
+        default_value <- get_default_segment_mode(result, i)
+        if (identical(selected_value, default_value)) {
+          updated_overrides[[key]] <- NULL
+        } else {
+          updated_overrides[[key]] <- selected_value
+        }
       }
     }
-    segment_mode_overrides(current_overrides)
+    if (!identical(updated_overrides, current_overrides)) {
+      segment_mode_overrides(updated_overrides)
+    }
   })
   
   # Handle park visit time input changes
